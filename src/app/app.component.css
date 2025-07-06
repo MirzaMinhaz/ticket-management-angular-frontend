@@ -1,0 +1,77 @@
+/* src/app/app.component.css */
+/* Navbar styles */
+.navbar {
+  background-color: #2c3e50; /* Dark blue/gray */
+  padding: 15px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  position: sticky; /* Makes navbar stick to top */
+  top: 0;
+  z-index: 1000; /* Ensure it's above other content */
+}
+
+.navbar-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+}
+
+.navbar-brand {
+  color: #ecf0f1; /* Light gray */
+  font-size: 1.8em;
+  font-weight: 700;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.navbar-brand:hover {
+  color: #3498db; /* Blue on hover */
+}
+
+.navbar-links {
+  display: flex;
+  gap: 25px;
+}
+
+.nav-link {
+  color: #bdc3c7; /* Medium gray */
+  font-size: 1.1em;
+  font-weight: 500;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.nav-link:hover {
+  background-color: #34495e; /* Slightly darker background */
+  color: #ecf0f1;
+}
+
+/* Style for active navigation link */
+.nav-link.active-link {
+    background-color: #3498db; /* Blue for active link */
+    color: white;
+    font-weight: 600;
+}
+
+/* Main content area */
+.main-content {
+  padding-top: 0; /* No padding needed here as components have their own containers */
+  min-height: calc(100vh - 60px); /* Adjust based on navbar height (e.g., 60px) */
+  background-color: #f4f7f6; /* Light background for content area */
+}
+
+/* Global styles for body and html (can also go in src/styles.css) */
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background-color: #f4f7f6;
+  box-sizing: border-box;
+}
+*, *::before, *::after {
+  box-sizing: inherit;
+}

@@ -1,6 +1,5 @@
-/* src/styles.css */
-
-/* General container and typography */
+/* src/app/locations-list/locations-list.component.css */
+/* Base container and typography */
 .container {
   max-width: 1000px;
   margin: 40px auto;
@@ -20,7 +19,7 @@ h1 {
 
 h2 {
   font-size: 2.2em;
-  color: #3498db; /* Default blue for section headers */
+  color: #3498db; /* Blue for location section headers */
   margin-bottom: 25px;
   border-bottom: 2px solid #e0e0e0;
   padding-bottom: 10px;
@@ -56,19 +55,18 @@ h2 {
   font-size: 0.95em;
 }
 
-.form-group input, .form-group select {
+.form-group input {
   width: 100%;
   padding: 12px 15px;
   border: 1px solid #ddd;
   border-radius: 6px;
   font-size: 1em;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  box-sizing: border-box;
-  background-color: #fff;
+  box-sizing: border-box; /* Ensures padding doesn't increase width */
 }
 
-.form-group input:focus, .form-group select:focus {
-  border-color: #3498db; /* Default blue focus */
+.form-group input:focus {
+  border-color: #3498db;
   box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
   outline: none;
 }
@@ -79,7 +77,7 @@ h2 {
 }
 
 /* Validation styles */
-.form-group input.is-invalid, .form-group select.is-invalid {
+.form-group input.is-invalid {
   border-color: #e74c3c; /* Red border for invalid input */
   box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.2);
 }
@@ -88,24 +86,6 @@ h2 {
   color: #e74c3c;
   font-size: 0.85em;
   margin-top: 5px;
-}
-
-/* Checkbox specific styles */
-.checkbox-group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.checkbox-group input[type="checkbox"] {
-  width: auto;
-  transform: scale(1.2);
-  margin-right: 0;
-}
-
-.checkbox-group label {
-  margin-bottom: 0;
-  cursor: pointer;
 }
 
 /* Button styles */
@@ -125,22 +105,12 @@ h2 {
 }
 
 .btn-primary {
-  background-color: #3498db; /* Default blue primary button */
+  background-color: #3498db;
   color: white;
 }
 
 .btn-primary:hover {
   background-color: #2980b9;
-  transform: translateY(-1px);
-}
-
-.btn-secondary {
-  background-color: #95a5a6; /* Gray secondary button */
-  color: white;
-}
-
-.btn-secondary:hover {
-  background-color: #7f8c8d;
   transform: translateY(-1px);
 }
 
@@ -160,14 +130,14 @@ h2 {
 }
 
 .success-message-box {
-  background-color: #d4edda;
-  color: #155724;
+  background-color: #d4edda; /* Light green */
+  color: #155724; /* Darker green */
   border: 1px solid #c3e6cb;
 }
 
 .error-message-box {
-  background-color: #f8d7da;
-  color: #721c24;
+  background-color: #f8d7da; /* Light red */
+  color: #721c24; /* Darker red */
   border: 1px solid #f5c6cb;
 }
 
@@ -201,7 +171,7 @@ h2 {
 }
 
 .item-details {
-  flex-grow: 1;
+  flex-grow: 1; /* Allow details to take up available space */
 }
 
 .item-title {
@@ -232,40 +202,5 @@ h2 {
 .item-actions {
   display: flex;
   gap: 10px;
-  margin-left: 20px;
-  align-items: center;
-}
-
-/* Status badge for isActive */
-.status-badge {
-    padding: 5px 10px;
-    border-radius: 15px;
-    font-size: 0.8em;
-    font-weight: bold;
-    white-space: nowrap;
-}
-
-.status-active {
-    background-color: #e6ffe6;
-    color: #27ae60;
-}
-
-.status-inactive {
-    background-color: #ffe6e6;
-    color: #e74c3c;
-}
-
-/* Loading spinner */
-.spinner {
-  border: 4px solid rgba(0, 0, 0, 0.1);
-  border-left-color: #3498db; /* Blue spinner */
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  margin-left: 20px; /* Space between details and actions */
 }
