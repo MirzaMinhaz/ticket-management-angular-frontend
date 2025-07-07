@@ -1,32 +1,27 @@
 // src/main.ts
 import { bootstrapApplication } from '@angular/platform-browser';
+import { AppComponent } from './app/app.component'; // Your root standalone component
+import { provideRouter } from '@angular/router';
+import { routes } from './app/app.routes'; // Your application routes
 import { provideHttpClient } from '@angular/common/http';
-import { provideAnimations } from '@angular/platform-browser/animations';
-import { provideToastr } from 'ngx-toastr';
-import { provideRouter, Routes } from '@angular/router'; // <--- Add this import
+import { importProvidersFrom } from '@angular/core'; // For NgModule-based services
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations'; // For Toastr
+import { ToastrModule } from 'ngx-toastr'; // For Toastr
 
-import { AppComponent } from './app/app.component'; // Your root component
-import { LocationsListComponent } from '../src/app/components/locations-list/locations-list.component';
-
-// Define your application routes
-const routes: Routes = [
-  { path: 'locations', component: LocationsListComponent },
-  // Add a redirect for the root path if desired
-  { path: '', redirectTo: '/locations', pathMatch: 'full' },
-  // Handle any other undefined routes (optional)
-  // { path: '**', component: NotFoundComponent } // You would need to create a NotFoundComponent
-];
 
 bootstrapApplication(AppComponent, {
   providers: [
+    provideRouter(routes),
     provideHttpClient(),
-    provideAnimations(),
-    provideToastr({
-      timeOut: 3000,
-      positionClass: 'toast-top-right',
-      preventDuplicates: true,
-      progressBar: true
-    }),
-    provideRouter(routes) // <--- Add this line to provide router services
+    importProvidersFrom(
+      BrowserAnimationsModule, // Required for Toastr animations
+      ToastrModule.forRoot({
+        positionClass: 'toast-bottom-right', // Configure as needed
+        preventDuplicates: true,
+        closeButton: true
+      })
+    )
+    // ... any other root-level service providers
   ]
-}).catch(err => console.error(err));
+})
+.catch(err => console.error(err));

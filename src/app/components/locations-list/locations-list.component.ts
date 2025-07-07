@@ -1,15 +1,27 @@
-// src/app/components/locations-list/locations-list.component.ts
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, AsyncValidatorFn, ValidationErrors } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+  AbstractControl,
+  AsyncValidatorFn,
+  ValidationErrors
+} from '@angular/forms';
 import { LocationService } from '../../services/location.service';
 import { LocationDto, CreateLocationDto } from '../../models/common';
-// ADDED combineLatest
-import { catchError, finalize, map, switchMap } from 'rxjs/operators'; // <--- Added switchMap
+import {
+  catchError,
+  debounceTime,
+  distinctUntilChanged,
+  finalize,
+  map,
+  switchMap,
+} from 'rxjs/operators';
+import { of, Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
-import { of, Observable, combineLatest } from 'rxjs'; // <--- Added combineLatest
 import { RouterModule } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'app-locations-list',
@@ -33,12 +45,13 @@ export class LocationsListComponent implements OnInit {
     private toastr: ToastrService
   ) {
     this.locationForm = this.fb.group({
-      name: ['', Validators.required],
+      name: ['', {
+        validators: [Validators.required],
+        asyncValidators: [this.locationExistsTogetherValidator()],
+        updateOn: 'blur'
+      }],
       type: ['City', Validators.required],
       address: [''],
-    }, {
-      asyncValidators: [this.locationExistsTogetherValidator()],
-      updateOn: 'blur' // Validate on blur for better UX
     });
   }
 
@@ -47,76 +60,42 @@ export class LocationsListComponent implements OnInit {
     this.setupAddressAutoPopulation();
   }
 
-  // MODIFIED ASYNC VALIDATOR: Checks for duplicate location (name + type)
   locationExistsTogetherValidator(): AsyncValidatorFn {
-    return (group: AbstractControl): Observable<ValidationErrors | null> => {
-      const nameControl = group.get('name');
-      const typeControl = group.get('type');
+    let lastValidatedKey = '';
 
-      // If controls are not initialized or missing, return null
-      if (!nameControl || !typeControl) {
-        return of(null);
-      }
+    return (control: AbstractControl): Observable<ValidationErrors | null> => {
+      if (!this.locationForm) return of(null);
 
-      // Use combineLatest to react to changes in both name and type
-      return combineLatest([nameControl.valueChanges, typeControl.valueChanges]).pipe(
-        debounceTime(500), // Wait for 500ms after the last change on either field
-        distinctUntilChanged((
-          [prevName, prevType],
-          [currName, currType]
-        ) => prevName === currName && prevType === currType), // Only emit if the combination of name and type changes
-        switchMap(([name, type]) => {
-          // If name or type is empty, no need to call API, clear errors
-          if (!name || !type) {
-            this.clearDuplicateErrors(nameControl, typeControl);
-            return of(null);
-          }
-          // Make the API call
-          return this.locationService.checkLocationExists(name, type).pipe(
+      const name = this.locationForm.get('name')?.value;
+      const type = this.locationForm.get('type')?.value;
+
+      if (!name || !type) return of(null);
+
+      const currentKey = `${name}|${type}`;
+      if (currentKey === lastValidatedKey) return of(null);
+
+      return of({ name, type }).pipe(
+        debounceTime(400),
+        distinctUntilChanged((prev, curr) => prev.name === curr.name && prev.type === curr.type),
+        switchMap(val =>
+          this.locationService.checkLocationExists(val.name, val.type).pipe(
             map(exists => {
               if (exists) {
-                // Set error on both controls and the form group
-                nameControl.setErrors({ ...nameControl.errors, duplicateLocation: true });
-                typeControl.setErrors({ ...typeControl.errors, duplicateLocation: true });
                 return { duplicateLocation: true };
               } else {
-                // Clear the duplicate error if it was set
-                this.clearDuplicateErrors(nameControl, typeControl);
+                lastValidatedKey = currentKey;
                 return null;
               }
             }),
-            catchError((error) => {
-              console.error('Error checking duplicate location:', error);
-              this.toastr.error('Failed to verify location existence. Please try again.', 'Validation Error');
-              this.clearDuplicateErrors(nameControl, typeControl); // Clear any old errors
-              return of(null); // Allow submission if API call itself fails
+            catchError(err => {
+              console.error('Validation error:', err);
+              return of(null); // Fail-open
             })
-          );
-        })
+          )
+        )
       );
     };
   }
-
-  private clearDuplicateErrors(nameControl: AbstractControl | null, typeControl: AbstractControl | null): void {
-    if (nameControl && nameControl.hasError('duplicateLocation')) {
-      const errors = { ...nameControl.errors }; // Create a new object to modify
-      delete errors['duplicateLocation'];
-      // Set errors to null if no other errors remain, otherwise set the remaining errors
-      nameControl.setErrors(Object.keys(errors).length ? errors : null);
-    }
-    if (typeControl && typeControl.hasError('duplicateLocation')) {
-      const errors = { ...typeControl.errors }; // Create a new object to modify
-      delete errors['duplicateLocation'];
-      typeControl.setErrors(Object.keys(errors).length ? errors : null);
-    }
-    // Also clear the error from the form group itself if all sub-errors are clear
-    if (this.locationForm.hasError('duplicateLocation')) {
-        const formErrors = { ...this.locationForm.errors };
-        delete formErrors['duplicateLocation'];
-        this.locationForm.setErrors(Object.keys(formErrors).length ? formErrors : null);
-    }
-  }
-
 
   setupAddressAutoPopulation(): void {
     this.locationForm.get('name')?.valueChanges.pipe(
@@ -146,14 +125,19 @@ export class LocationsListComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.locationForm.invalid || this.locationForm.pending) {
-      this.locationForm.markAllAsTouched();
-      if (this.locationForm.pending) {
-        this.toastr.info('Please wait, checking for duplicate location...', 'Validation Pending');
-      } else if (this.locationForm.hasError('duplicateLocation')) {
+    this.locationForm.markAllAsTouched();
+    this.locationForm.updateValueAndValidity({ emitEvent: true });
+
+    if (this.locationForm.pending) {
+      this.toastr.info('Please wait, checking for duplicate location...', 'Validation Pending');
+      return;
+    }
+
+    if (this.locationForm.invalid) {
+      if (this.locationForm.get('name')?.hasError('duplicateLocation')) {
         this.toastr.error('A location with this Name and Type already exists.', 'Duplicate Entry');
       } else {
-        this.toastr.warning('Please fill in all required fields.', 'Validation Error');
+        this.toastr.warning('Please fill in all required fields and ensure valid inputs.', 'Validation Error');
       }
       return;
     }

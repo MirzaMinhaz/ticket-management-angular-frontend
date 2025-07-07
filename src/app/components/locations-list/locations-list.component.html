@@ -1,8 +1,8 @@
 <div class="container">
-  <h1>Locations Management</h1>
+  <h1><i class="fas fa-map-marked-alt"></i> Locations Management</h1>
 
   <section class="form-section">
-    <h2>Add New Location</h2>
+    <h2><i class="fas fa-plus-circle"></i> Add New Location</h2>
     <form [formGroup]="locationForm" (ngSubmit)="onSubmit()">
       <div class="form-grid">
         <div class="form-group">
@@ -19,7 +19,7 @@
           <label for="type">Type <span class="required">*</span></label>
           <select id="type" formControlName="type"
                   [class.is-invalid]="locationForm.get('type')?.invalid && (locationForm.get('type')?.touched || locationForm.get('type')?.dirty)">
-            <option value="City" selected>City</option>
+            <option value="City">City</option>
             <option value="Bus Terminal">Bus Terminal</option>
             <option value="Train Station">Train Station</option>
             <option value="Airport">Airport</option>
@@ -38,26 +38,30 @@
       </div>
       <div class="button-container">
         <button type="submit" [disabled]="loading || locationForm.invalid || locationForm.pending" class="btn btn-primary">
-          {{ loading ? 'Saving...' : (locationForm.pending ? 'Checking...' : 'Create Location') }}
+          <i class="fas fa-save"></i> {{ loading ? 'Saving...' : (locationForm.pending ? 'Checking...' : 'Create Location') }}
         </button>
       </div>
     </form>
   </section>
 
   <section class="list-section">
-    <h2>Existing Locations</h2>
-    <div *ngIf="loading && locations.length === 0" class="loading-message">Loading locations...</div>
-    <div *ngIf="!loading && locations.length === 0" class="no-data-message">No locations found. Add one above!</div>
+    <h2><i class="fas fa-list"></i> Existing Locations</h2>
+    <div *ngIf="loading && locations.length === 0" class="loading-message"><i class="fas fa-spinner fa-spin"></i> Loading locations...</div>
+    <div *ngIf="!loading && locations.length === 0" class="no-data-message"><i class="fas fa-info-circle"></i> No locations found. Add one above!</div>
 
     <ul class="item-list" *ngIf="locations.length > 0">
       <li *ngFor="let location of locations" class="list-item">
         <div class="item-details">
-          <p class="item-title">{{ location.name }} <span class="item-subtitle">({{ location.type }})</span></p>
-          <p class="item-info">{{ location.address || 'No address provided' }}</p>
+          <p class="item-title"><i class="fas fa-map-pin"></i> {{ location.name }} <span class="item-subtitle">({{ location.type }})</span></p>
+          <p class="item-info"><i class="fas fa-location-arrow"></i> {{ location.address || 'No address provided' }}</p>
         </div>
         <div class="item-actions">
+          <!-- Future Edit/Delete buttons -->
         </div>
       </li>
     </ul>
   </section>
 </div>
+
+<!-- Be sure to include FontAwesome in your index.html for icons: -->
+<!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> -->
