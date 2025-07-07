@@ -191,7 +191,7 @@ select:focus {
     grid-template-columns: 1fr;
   }
 
-  .form-group.full-width {
+  .form-group.full-width { 
     grid-column: span 1;
   }
 
