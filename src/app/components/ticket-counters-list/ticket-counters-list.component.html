@@ -1,34 +1,49 @@
 <div class="container">
   <h1>Ticket Counters Management</h1>
 
+  <div *ngIf="loading && ticketCounters.length === 0 && !showCreateForm" class="loading-message">
+    <div class="spinner"></div>
+    Loading ticket counters...
+  </div>
+
+  <div *ngIf="errorMessage" class="message error-message-box">{{ errorMessage }}</div>
+  <div *ngIf="successMessage" class="message success-message-box">{{ successMessage }}</div>
+
   <section class="form-section">
     <h2>Add New Ticket Counter</h2>
-    <form [formGroup]="ticketCounterForm" (ngSubmit)="onSubmit()">
+    <form [formGroup]="ticketCounterForm" (ngSubmit)="onSubmitCreate()" class="entry-form">
       <div class="form-grid">
         <div class="form-group">
           <label for="locationId">Location <span class="required">*</span></label>
-          <select id="locationId" formControlName="locationId"
-                  [class.is-invalid]="ticketCounterForm.get('locationId')?.invalid && ticketCounterForm.get('locationId')?.touched">
-            <option *ngIf="locations.length === 0" value="">No Locations Available</option>
+          <!-- <select id="locationId" formControlName="locationId" [class.is-invalid]="isFieldInvalid('locationId')"
+            [disabled]="locations.length === 0">
+            <option [ngValue]="null" disabled selected>-- Select a Location --</option>
+            <option *ngFor="let loc of locations" [ngValue]="+loc.locationId">
+              {{ loc.name }} ({{ loc.type }})
+            </option>
+          </select> -->
+          <select id="locationId" formControlName="locationId" [class.is-invalid]="isFieldInvalid('locationId')"
+            [disabled]="locations.length === 0">
+            <option [value]="''" disabled selected>-- Select a Location --</option>
             <option *ngFor="let loc of locations" [value]="loc.locationId">
               {{ loc.name }} ({{ loc.type }})
             </option>
           </select>
-          <div *ngIf="ticketCounterForm.get('locationId')?.invalid && ticketCounterForm.get('locationId')?.touched" class="error-message">
+
+
+
+          <div *ngIf="isFieldInvalid('locationId')" class="error-message">
             Location is required.
           </div>
+
         </div>
         <div class="form-group">
           <label for="counterName">Counter Name <span class="required">*</span></label>
           <input type="text" id="counterName" formControlName="counterName" placeholder="e.g., Main Counter 1"
-                 [class.is-invalid]="ticketCounterForm.get('counterName')?.invalid && ticketCounterForm.get('counterName')?.touched">
-          <div *ngIf="ticketCounterForm.get('counterName')?.invalid && ticketCounterForm.get('counterName')?.touched" class="error-message">
+            [class.is-invalid]="isFieldInvalid('counterName')">
+          <div *ngIf="isFieldInvalid('counterName')" class="error-message">
             Counter Name is required.
           </div>
-        </div>
-        <div class="form-group">
-          <label for="counterCode">Counter Code</label>
-          <input type="text" id="counterCode" formControlName="counterCode" placeholder="e.g., DHAKA-C001">
         </div>
         <div class="form-group">
           <label for="contactNumber">Contact Number</label>
@@ -36,57 +51,56 @@
         </div>
         <div class="form-group full-width">
           <label for="addressDetails">Address Details</label>
-          <input type="text" id="addressDetails" formControlName="addressDetails" placeholder="e.g., Inside Sayedabad Bus Terminal, Shop #5">
+          <input type="text" id="addressDetails" formControlName="addressDetails"
+            placeholder="e.g., Inside Sayedabad Bus Terminal, Shop #5">
         </div>
         <div class="form-group">
           <label for="operatingHours">Operating Hours</label>
-          <input type="text" id="operatingHours" formControlName="operatingHours" placeholder="e.g., 9:00 AM - 9:00 PM">
+          <input type="text" id="operatingHours" class="form-control" value="7:00 AM - 11:00 PM" disabled>
         </div>
-        <!-- <div class="form-group">
-          <label for="latitude">Latitude</label>
-          <input type="number" step="any" id="latitude" formControlName="latitude" placeholder="e.g., 23.70">
-        </div> -->
-        <!-- <div class="form-group">
-          <label for="longitude">Longitude</label>
-          <input type="number" step="any" id="longitude" formControlName="longitude" placeholder="e.g., 90.40">
-        </div> -->
         <div class="form-group checkbox-group">
           <input type="checkbox" id="isActive" formControlName="isActive">
           <label for="isActive">Is Active</label>
         </div>
       </div>
       <div class="button-container">
-        <button type="submit" [disabled]="loading || locations.length === 0 || !ticketCounterForm.get('locationId')?.value" class="btn btn-primary">
-          {{ loading ? 'Saving...' : 'Create Ticket Counter' }}
+        <button type="submit" class="btn btn-primary"
+          [disabled]="loading || ticketCounterForm.invalid || locations.length === 0">
+          {{ loading ? 'Creating...' : 'Create Ticket Counter' }}
         </button>
       </div>
     </form>
   </section>
 
-  <div *ngIf="errorMessage" class="message error-message-box">{{ errorMessage }}</div>
-  <div *ngIf="successMessage" class="message success-message-box">{{ successMessage }}</div>
-
+  <hr>
   <section class="list-section">
     <h2>Existing Ticket Counters</h2>
-    <div *ngIf="loading && ticketCounters.length === 0" class="loading-message">Loading ticket counters...</div>
-    <div *ngIf="!loading && ticketCounters.length === 0" class="no-data-message">No ticket counters found. Add one above!</div>
+    <div *ngIf="!loading && ticketCounters.length === 0" class="no-data-message">No ticket counters found.</div>
+    <div *ngIf="loading && ticketCounters.length === 0 && !showCreateForm" class="loading-message">Loading existing
+      counters...</div>
 
     <ul class="item-list" *ngIf="ticketCounters.length > 0">
       <li *ngFor="let counter of ticketCounters" class="list-item">
         <div class="item-details">
-          <p class="item-title">{{ counter.counterName }} <span class="item-subtitle">({{ counter.counterCode || 'N/A' }})</span></p>
-          <p class="item-info">Location: {{ counter.location ? counter.location.name : 'N/A' }} ({{ counter.location?.type || 'N/A' }})</p>
+          <p class="item-title">
+            {{ counter.counterName }}
+            <span class="item-subtitle">({{ counter.counterCode || 'N/A' }})</span>
+          </p>
+          <p class="item-info">
+            Location: {{ counter.location?.name || 'N/A' }} ({{ counter.location?.type || 'N/A' }})
+          </p>
           <p class="item-info">Address: {{ counter.addressDetails || 'No details provided' }}</p>
-          <p class="item-info">Contact: {{ counter.contactNumber || 'N/A' }} | Hours: {{ counter.operatingHours || 'N/A' }}</p>
-          <!-- <p *ngIf="(counter.latitude !== undefined && counter.latitude !== null) && (counter.longitude !== undefined && counter.longitude !== null)" class="item-coordinates">
-            Lat: {{ counter.latitude }}, Lng: {{ counter.longitude }}
-          </p> -->
+          <p class="item-info">Contact: {{ counter.contactNumber || 'N/A' }} | Hours: {{ counter.operatingHours || 'N/A'
+            }}</p>
         </div>
         <div class="item-actions">
-          <span [ngClass]="{'status-active': counter.isActive, 'status-inactive': !counter.isActive}" class="status-badge">
+          <span [ngClass]="{'status-active': counter.isActive, 'status-inactive': !counter.isActive}"
+            class="status-badge">
             {{ counter.isActive ? 'Active' : 'Inactive' }}
           </span>
-          </div>
+          <button class="btn btn-edit" (click)="onEdit(counter.ticketCounterId)">Edit</button>
+          <button class="btn btn-delete" (click)="onDelete(counter.ticketCounterId)">Delete</button>
+        </div>
       </li>
     </ul>
   </section>

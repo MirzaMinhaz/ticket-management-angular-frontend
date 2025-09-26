@@ -1,39 +1,43 @@
-// src/app/services/ticket-counter.service.ts
+// src/app/features/ticket-counters/services/ticket-counter.service.ts
 import { Injectable } from '@angular/core';
-import { ApiService } from './api.service';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+// Adjusted path to common.ts based on your provided structure
 import { TicketCounterDto, CreateTicketCounterDto, UpdateTicketCounterDto } from '../models/common';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TicketCounterService {
-  private readonly endpoint = '/TicketCounters'; // Matches your backend controller route
+  private apiUrl = 'https://localhost:7139/api/TicketCounters'; // Adjust your API base URL
 
-  constructor(private apiService: ApiService) { }
+  constructor(private http: HttpClient) { }
 
   getAllTicketCounters(): Observable<TicketCounterDto[]> {
-    return this.apiService.get<TicketCounterDto[]>(this.endpoint);
+    return this.http.get<TicketCounterDto[]>(this.apiUrl);
   }
 
+  // ID type is string based on your DTOs
   getTicketCounterById(id: string): Observable<TicketCounterDto> {
-    return this.apiService.get<TicketCounterDto>(`${this.endpoint}/${id}`);
+    return this.http.get<TicketCounterDto>(`${this.apiUrl}/${id}`);
   }
 
+  // locationId type is string based on your DTOs
   getTicketCountersByLocation(locationId: string): Observable<TicketCounterDto[]> {
-    // Assuming your backend has an endpoint like /api/TicketCounters/ByLocation/{locationId}
-    return this.apiService.get<TicketCounterDto[]>(`${this.endpoint}/ByLocation/${locationId}`);
+    return this.http.get<TicketCounterDto[]>(`${this.apiUrl}/byLocation/${locationId}`);
   }
 
-  createTicketCounter(data: CreateTicketCounterDto): Observable<TicketCounterDto> {
-    return this.apiService.post<TicketCounterDto>(this.endpoint, data);
+  createTicketCounter(createDto: CreateTicketCounterDto): Observable<TicketCounterDto> {
+    return this.http.post<TicketCounterDto>(this.apiUrl, createDto);
   }
 
-  updateTicketCounter(id: string, data: UpdateTicketCounterDto): Observable<void> {
-    return this.apiService.put<void>(`${this.endpoint}/${id}`, data);
+  // ID type is string based on your DTOs
+  updateTicketCounter(id: string, updateDto: UpdateTicketCounterDto): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${id}`, updateDto);
   }
 
-  deleteTicketCounter(id: string): Observable<void> {
-    return this.apiService.delete<void>(`${this.endpoint}/${id}`);
+  // ID type is string based on your DTOs
+  deleteTicketCounter(id: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}`);
   }
 }

@@ -111,18 +111,24 @@ export class LocationsListComponent implements OnInit {
   }
 
   fetchLocations(): void {
-    this.loading = true;
-    this.locationService.getAllLocations().pipe(
-      catchError(error => {
-        this.toastr.error(error.message || 'Failed to fetch locations.', 'Error');
-        console.error('Fetch error:', error);
-        return of([]);
-      }),
-      finalize(() => this.loading = false)
-    ).subscribe(data => {
-      this.locations = data;
-    });
-  }
+  this.loading = true;
+  this.locationService.getAllLocations().pipe(
+    map(data => data.map(loc => ({
+      ...loc,
+      locationId: Number(loc.locationId) // convert string to number
+    }))),
+    catchError(error => {
+      this.toastr.error(error.message || 'Failed to fetch locations.', 'Error');
+      console.error('Fetch error:', error);
+      return of([]);
+    }),
+    finalize(() => this.loading = false)
+  ).subscribe(data => {
+    this.locations = data;
+  });
+}
+
+
 
   onSubmit(): void {
     this.locationForm.markAllAsTouched();

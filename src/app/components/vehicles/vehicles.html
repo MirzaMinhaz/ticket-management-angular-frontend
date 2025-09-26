@@ -1,0 +1,73 @@
+<!-- src/app/components/vehicles/vehicles.html -->
+
+<div class="vehicle-container">
+  <h2 class="page-title">Vehicle Management</h2>
+
+  <!-- 🔼 Entry Form Card -->
+  <div class="vehicle-card">
+    <h3 class="card-title">Add / Edit Vehicle</h3>
+    <form (ngSubmit)="save()" #vehicleForm="ngForm" class="vehicle-form">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="type">Type</label>
+          <select [(ngModel)]="selectedVehicle.type" name="type" id="type" required (change)="onTypeChange()">
+            <option value="Bus">Bus</option>
+            <option value="Train">Train</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="model">Model</label>
+          <input [(ngModel)]="selectedVehicle.model" name="model" id="model" required />
+        </div>
+
+        <div class="form-group">
+          <label for="licensePlate">License Plate</label>
+          <input [(ngModel)]="selectedVehicle.licensePlate" name="licensePlate" id="licensePlate" required />
+        </div>
+
+        <div class="form-group">
+          <label for="capacity">Capacity</label>
+          <input type="number" [(ngModel)]="selectedVehicle.capacity" name="capacity" id="capacity" required />
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn primary">Save</button>
+        <button type="button" class="btn secondary" (click)="reset()">Clear</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- 🔽 Vehicle List -->
+  <div class="list-section">
+    <h3 class="card-title">Vehicle List</h3>
+    <table class="vehicle-table">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Model</th>
+          <th>License Plate</th>
+          <th>Capacity</th>
+          <th>Code</th>
+          <th>Operator</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let v of vehicles">
+          <td>{{ v.type }}</td>
+          <td>{{ v.model }}</td>
+          <td>{{ v.licensePlate }}</td>
+          <td>{{ v.capacity }}</td>
+          <td>{{ v.vehicleCode }}</td>
+          <td>{{ v.operatorId ?? '—' }}</td>
+          <td>
+            <button class="btn small edit" (click)="select(v)">✏️ Edit</button>
+            <button class="btn small delete" (click)="delete(v.id)">🗑️ Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

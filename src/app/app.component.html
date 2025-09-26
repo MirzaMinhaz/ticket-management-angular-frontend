@@ -1,16 +1,15 @@
 <!-- src/app/app.component.html -->
 <nav class="navbar">
   <div class="navbar-container">
-    <a routerLink="/" class="navbar-brand">TMS Dashboard</a>
+    <a routerLink="/" class="navbar-brand">TMS</a>
     <div class="navbar-links">
       <a routerLink="/locations" class="nav-link" routerLinkActive="active-link">Locations</a>
       <a routerLink="/ticket-counters" class="nav-link" routerLinkActive="active-link">Ticket Counters</a>
-      <!-- Add more navigation links here as your app grows -->
+      <a routerLink="/vehicles" class="nav-link" routerLinkActive="active-link">Vehicles</a> <!-- ✅ Added -->
     </div>
   </div>
 </nav>
 
 <main class="main-content">
-  <!-- The router-outlet is where components will be displayed based on the current route -->
   <router-outlet></router-outlet>
 </main>
