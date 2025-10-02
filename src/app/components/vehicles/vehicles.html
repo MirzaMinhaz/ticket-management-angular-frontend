@@ -1,9 +1,10 @@
-<!-- src/app/components/vehicles/vehicles.html -->
-
 <div class="vehicle-container">
   <h2 class="page-title">Vehicle Management</h2>
 
-  <!-- 🔼 Entry Form Card -->
+  <div *ngIf="successMessage" class="alert success-alert">
+    {{ successMessage }}
+  </div>
+
   <div class="vehicle-card">
     <h3 class="card-title">Add / Edit Vehicle</h3>
     <form (ngSubmit)="save()" #vehicleForm="ngForm" class="vehicle-form">
@@ -39,23 +40,22 @@
     </form>
   </div>
 
-  <!-- 🔽 Vehicle List -->
   <div class="list-section">
     <h3 class="card-title">Vehicle List</h3>
     <table class="vehicle-table">
       <thead>
         <tr>
-          <th>Type</th>
-          <th>Model</th>
-          <th>License Plate</th>
-          <th>Capacity</th>
-          <th>Code</th>
-          <th>Operator</th>
+          <th (click)="sortBy('type')">Type</th>
+          <th (click)="sortBy('model')">Model</th>
+          <th (click)="sortBy('licensePlate')">License Plate</th>
+          <th (click)="sortBy('capacity')">Capacity</th>
+          <th (click)="sortBy('vehicleCode')">Code</th>
+          <th (click)="sortBy('operatorId')">Operator</th>
           <th>Actions</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let v of vehicles">
+        <tr *ngFor="let v of paginatedVehicles">
           <td>{{ v.type }}</td>
           <td>{{ v.model }}</td>
           <td>{{ v.licensePlate }}</td>
@@ -69,5 +69,11 @@
         </tr>
       </tbody>
     </table>
+
+    <div class="pagination">
+      <button class="btn small" [disabled]="currentPage === 1" (click)="goToPreviousPage()">⬅ Prev</button>
+      <span>Page {{ currentPage }} of {{ totalPages }}</span>
+      <button class="btn small" [disabled]="currentPage === totalPages" (click)="goToNextPage()">Next ➡</button>
+    </div>
   </div>
 </div>
