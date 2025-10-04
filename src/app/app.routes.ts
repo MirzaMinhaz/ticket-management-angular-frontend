@@ -6,6 +6,7 @@ import { LocationsListComponent } from './components/locations-list/locations-li
 import { TicketCountersListComponent } from './components/ticket-counters-list/ticket-counters-list.component'; // Path: ./components/ticket-counters-list/ticket-counters-list.component
 import { TicketCounterEntryComponent } from './components/ticket-counter-entry/ticket-counter-entry.component'; // Path: ./components/ticket-counter-entry/ticket-counter-entry.component
 import { VehicleComponent } from './components/vehicles/vehicles'; // ✅ Path: ./components/vehicle/vehicle.ts
+import { OperatorComponent } from './components/operators/operators';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -14,5 +15,6 @@ export const routes: Routes = [
   { path: 'ticket-counters/entry', component: TicketCounterEntryComponent },
   { path: 'ticket-counters/edit/:id', component: TicketCounterEntryComponent },
   { path: 'vehicles', component: VehicleComponent }, // ✅ Added Vehicle route
+  { path: 'operators', component: OperatorComponent },
   { path: '**', redirectTo: '' }
 ];

@@ -1,0 +1,59 @@
+<div class="operator-container">
+    <h2>Add / Edit Operator</h2>
+
+    <form [formGroup]="operatorForm" (ngSubmit)="onSubmit()">
+        <div class="form-row">
+            <label>Name:</label>
+            <input formControlName="name" />
+        </div>
+
+        <div class="form-row">
+            <label>Type:</label>
+            <select formControlName="type">
+                <option value="">-- Select Type --</option>
+                <option value="Bus">Bus</option>
+                <option value="Train">Train</option>
+            </select>
+        </div>
+
+
+
+        <!-- <div class="form-row">
+      <label>Operator Code:</label>
+      <input formControlName="operatorCode" />
+    </div> -->
+
+        <button type="submit" [disabled]="operatorForm.invalid || loading">
+            {{ operatorForm.value.id ? 'Update' : 'Create' }}
+        </button>
+    </form>
+
+    <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+
+    <h2>Operator List</h2>
+    <div *ngIf="loading">Loading...</div>
+
+    <table *ngIf="!loading">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Code</th>
+                <th>Created At</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let op of operators">
+                <td>{{ op.name }}</td>
+                <td>{{ op.type }}</td>
+                <td>{{ op.operatorCode }}</td>
+                <td>{{ op.createdAt | date:'short' }}</td>
+                <td>
+                    <button (click)="edit(op)">✏️</button>
+                    <button (click)="delete(op.id)">🗑️</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

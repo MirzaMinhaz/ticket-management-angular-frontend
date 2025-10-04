@@ -17,6 +17,8 @@ export class VehicleComponent implements OnInit {
   selectedVehicle: Vehicle = this.getEmptyVehicle();
   successMessage: string = '';
 
+  showModal: boolean = false;
+
   currentPage: number = 1;
   itemsPerPage: number = 10;
   sortField: string = '';
@@ -45,9 +47,15 @@ export class VehicleComponent implements OnInit {
     });
   }
 
-  select(vehicle: Vehicle): void {
+  openModal(vehicle: Vehicle): void {
     this.selectedVehicle = { ...vehicle };
     this.onTypeChange();
+    this.showModal = true;
+  }
+
+  closeModal(): void {
+    this.showModal = false;
+    this.reset();
   }
 
   save(): void {
@@ -65,7 +73,7 @@ export class VehicleComponent implements OnInit {
         next: () => {
           this.successMessage = '✅ Vehicle updated successfully!';
           this.loadVehicles();
-          this.reset();
+          this.closeModal();
           this.autoClearMessage();
         },
         error: err => console.error('Failed to update vehicle', err)
@@ -140,6 +148,15 @@ export class VehicleComponent implements OnInit {
       this.currentPage--;
     }
   }
+
+  get pages(): number[] {
+  return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+}
+
+goToPage(page: number): void {
+  this.currentPage = page;
+}
+
 
   sortBy(field: keyof Vehicle): void {
     if (this.sortField === field) {
