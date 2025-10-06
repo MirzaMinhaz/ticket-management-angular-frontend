@@ -4,6 +4,8 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { OperatorService } from '../../services/operators.service';
+import { OperatorDto, CreateOperatorDto, UpdateOperatorDto } from '../../models/common';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-operator',
@@ -14,7 +16,7 @@ import { OperatorService } from '../../services/operators.service';
 })
 export class OperatorComponent implements OnInit {
   operatorForm!: FormGroup;
-  operators: any[] = [];
+  operators: OperatorDto[] = [];
   loading = false;
   errorMessage = '';
 
@@ -25,6 +27,7 @@ export class OperatorComponent implements OnInit {
       id: [null],
       name: ['', Validators.required],
       type: ['', Validators.required]
+      // ❌ operatorCode removed from form
     });
 
     this.loadOperators();
@@ -33,11 +36,12 @@ export class OperatorComponent implements OnInit {
   loadOperators(): void {
     this.loading = true;
     this.operatorService.getAll().subscribe({
-      next: data => {
+      next: (data: OperatorDto[]) => {
         this.operators = data;
         this.loading = false;
       },
-      error: err => {
+      error: (err: any) => {
+        console.error('Load error:', err);
         this.errorMessage = 'Failed to load operators.';
         this.loading = false;
       }
@@ -50,24 +54,44 @@ export class OperatorComponent implements OnInit {
     const payload = this.operatorForm.value;
     this.loading = true;
 
-    const request = payload.id
-      ? this.operatorService.update(payload.id, payload)
-      : this.operatorService.create(payload);
+    let request: Observable<any>;
+
+    if (payload.id) {
+      const updatePayload: UpdateOperatorDto = {
+        name: payload.name,
+        type: payload.type
+        // ❌ operatorCode excluded
+      };
+      request = this.operatorService.update(payload.id, updatePayload);
+    } else {
+      const createPayload: CreateOperatorDto = {
+        name: payload.name,
+        type: payload.type
+        // ❌ operatorCode excluded
+      };
+      request = this.operatorService.create(createPayload);
+    }
 
     request.subscribe({
       next: () => {
         this.operatorForm.reset();
         this.loadOperators();
       },
-      error: err => {
+      error: (err: any) => {
+        console.error('Save error:', err);
         this.errorMessage = 'Failed to save operator.';
         this.loading = false;
       }
     });
   }
 
-  edit(op: any): void {
-    this.operatorForm.patchValue(op);
+  edit(op: OperatorDto): void {
+    this.operatorForm.patchValue({
+      id: op.id,
+      name: op.name,
+      type: op.type
+      // ❌ operatorCode excluded from form
+    });
   }
 
   delete(id: number): void {
@@ -76,7 +100,8 @@ export class OperatorComponent implements OnInit {
     this.loading = true;
     this.operatorService.delete(id).subscribe({
       next: () => this.loadOperators(),
-      error: err => {
+      error: (err: any) => {
+        console.error('Delete error:', err);
         this.errorMessage = 'Failed to delete operator.';
         this.loading = false;
       }

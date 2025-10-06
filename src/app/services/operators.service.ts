@@ -1,25 +1,28 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { OperatorDto, CreateOperatorDto, UpdateOperatorDto } from '../models/common';
+import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class OperatorService {
-  private baseUrl = '/api/operators';
+  private baseUrl = `${environment.apiUrl}/operators`;
 
   constructor(private http: HttpClient) {}
 
-  getAll() {
-    return this.http.get<any[]>(this.baseUrl);
+  getAll(): Observable<OperatorDto[]> {
+    return this.http.get<OperatorDto[]>(this.baseUrl);
   }
 
-  create(operator: any) {
-    return this.http.post(this.baseUrl, operator);
+  create(operator: CreateOperatorDto): Observable<OperatorDto> {
+    return this.http.post<OperatorDto>(this.baseUrl, operator);
   }
 
-  update(id: number, operator: any) {
-    return this.http.put(`${this.baseUrl}/${id}`, operator);
+  update(id: number, operator: UpdateOperatorDto): Observable<void> {
+    return this.http.put<void>(`${this.baseUrl}/${id}`, operator);
   }
 
-  delete(id: number) {
-    return this.http.delete(`${this.baseUrl}/${id}`);
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 }

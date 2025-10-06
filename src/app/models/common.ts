@@ -88,3 +88,29 @@ export interface UpdateTicketCounterDto {
   isActive: boolean;
   // counterCode is intentionally OMITTED here as it's typically immutable after creation
 }
+
+
+export interface OperatorDto {
+  id: number;
+  name: string;
+  type: string;
+  operatorCode: string;
+  createdAt: string; // ISO string from backend DateTime
+  lastModifiedAt?: string;
+  createdBy: string;
+  lastModifiedBy?: string;
+}
+
+
+export interface CreateOperatorDto {
+  name: string;
+  type: string;
+  operatorCode?: string; // ✅ optional now
+}
+
+export interface UpdateOperatorDto {
+  name: string;
+  type: string;
+  operatorCode?: string; // ✅ optional now
+}
+
