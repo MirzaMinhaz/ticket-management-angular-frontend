@@ -16,18 +16,25 @@ import { Observable } from 'rxjs';
 })
 export class OperatorComponent implements OnInit {
   operatorForm!: FormGroup;
+  editForm!: FormGroup;
   operators: OperatorDto[] = [];
   loading = false;
   errorMessage = '';
+  successMessage = '';
+  showEditModal = false;
+  selectedOperatorId: number | null = null;
 
-  constructor(private fb: FormBuilder, private operatorService: OperatorService) {}
+  constructor(private fb: FormBuilder, private operatorService: OperatorService) { }
 
   ngOnInit(): void {
     this.operatorForm = this.fb.group({
-      id: [null],
       name: ['', Validators.required],
       type: ['', Validators.required]
-      // ❌ operatorCode removed from form
+    });
+
+    this.editForm = this.fb.group({
+      name: ['', Validators.required],
+      type: ['', Validators.required]
     });
 
     this.loadOperators();
@@ -51,47 +58,71 @@ export class OperatorComponent implements OnInit {
   onSubmit(): void {
     if (this.operatorForm.invalid) return;
 
-    const payload = this.operatorForm.value;
+    const createPayload: CreateOperatorDto = {
+      name: this.operatorForm.value.name,
+      type: this.operatorForm.value.type
+    };
+
     this.loading = true;
-
-    let request: Observable<any>;
-
-    if (payload.id) {
-      const updatePayload: UpdateOperatorDto = {
-        name: payload.name,
-        type: payload.type
-        // ❌ operatorCode excluded
-      };
-      request = this.operatorService.update(payload.id, updatePayload);
-    } else {
-      const createPayload: CreateOperatorDto = {
-        name: payload.name,
-        type: payload.type
-        // ❌ operatorCode excluded
-      };
-      request = this.operatorService.create(createPayload);
-    }
-
-    request.subscribe({
+    this.operatorService.create(createPayload).subscribe({
       next: () => {
+        this.successMessage = 'Operator created successfully!';
         this.operatorForm.reset();
         this.loadOperators();
+        this.loading = false;
       },
       error: (err: any) => {
-        console.error('Save error:', err);
-        this.errorMessage = 'Failed to save operator.';
+        console.error('Create error:', err);
+        this.errorMessage = 'Failed to create operator.';
         this.loading = false;
       }
     });
   }
 
-  edit(op: OperatorDto): void {
-    this.operatorForm.patchValue({
-      id: op.id,
+  openEditModal(op: OperatorDto): void {
+    this.selectedOperatorId = op.id;
+    this.editForm.setValue({
       name: op.name,
       type: op.type
-      // ❌ operatorCode excluded from form
     });
+    this.showEditModal = true;
+    this.successMessage = '';
+    this.errorMessage = '';
+  }
+
+  onEditSubmit(): void {
+    if (this.editForm.invalid || this.selectedOperatorId === null) return;
+
+    const updatePayload: UpdateOperatorDto = {
+      name: this.editForm.value.name,
+      type: this.editForm.value.type
+    };
+
+    this.loading = true;
+    this.operatorService.update(this.selectedOperatorId, updatePayload).subscribe({
+      next: () => {
+        this.successMessage = 'Operator updated successfully!';
+        this.loadOperators();
+        this.loading = false;
+
+        setTimeout(() => {
+          this.closeModal();
+        }, 1500); // Auto-close after success
+      },
+      error: (err: any) => {
+        console.error('Update error:', err);
+        this.errorMessage = 'Failed to update operator.';
+        this.loading = false;
+      }
+    });
+  }
+
+  closeModal(): void {
+    this.showEditModal = false;
+    this.editForm.reset();
+    this.selectedOperatorId = null;
+    this.successMessage = '';
+    this.errorMessage = '';
   }
 
   delete(id: number): void {
@@ -99,7 +130,10 @@ export class OperatorComponent implements OnInit {
 
     this.loading = true;
     this.operatorService.delete(id).subscribe({
-      next: () => this.loadOperators(),
+      next: () => {
+        this.loadOperators();
+        this.loading = false;
+      },
       error: (err: any) => {
         console.error('Delete error:', err);
         this.errorMessage = 'Failed to delete operator.';
