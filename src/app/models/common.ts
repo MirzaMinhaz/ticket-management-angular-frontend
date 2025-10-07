@@ -105,12 +105,10 @@ export interface OperatorDto {
 export interface CreateOperatorDto {
   name: string;
   type: string;
-  operatorCode?: string; // ✅ optional now
 }
 
 export interface UpdateOperatorDto {
   name: string;
   type: string;
-  operatorCode?: string; // ✅ optional now
 }
 
