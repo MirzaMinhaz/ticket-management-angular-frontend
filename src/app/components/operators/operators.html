@@ -42,8 +42,8 @@
         <td>{{ op.operatorCode }}</td>
         <td>{{ op.createdAt | date: 'short' }}</td>
         <td>
-          <button (click)="openEditModal(op)">✏️</button>
-          <button (click)="delete(op.id)">🗑️</button>
+          <button (click)="openEditModal(op)">✏️ Edit</button>
+          <button (click)="delete(op.id)">🗑️ Delete</button>
         </td>
       </tr>
     </tbody>
