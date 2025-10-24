@@ -19,12 +19,15 @@ export interface Vehicle {
   capacity: number;
   vehicleCode: string;
   operatorId?: number; // ✅ Optional
+  operatorCode?: string; // ✅ Add this
+  operatorName?: string;
   createdAt?: string;
   lastModifiedAt?: string;
   isActive: boolean;
 }
 
 export interface CreateVehicleDto {
+  operatorCode: string;
   type: string;
   model: string;
   licensePlate: string;
@@ -32,7 +35,7 @@ export interface CreateVehicleDto {
 }
 
 export interface UpdateVehicleDto {
-  operatorId: number;
+  operatorCode: string;
   type: string; // ✅ Changed from union to string
   model: string;
   licensePlate: string;

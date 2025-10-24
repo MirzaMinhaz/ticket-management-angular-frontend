@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { VehicleService } from '../../services/vehicle.service';
 import { Vehicle, CreateVehicleDto, UpdateVehicleDto } from '../../models/common';
 import { NgZone } from '@angular/core';
+import { OperatorService } from '../../services/operators.service'; 
+import { OperatorDto } from '../../models/common';
 
 @Component({
   selector: 'app-vehicles',
@@ -16,6 +18,13 @@ export class VehicleComponent implements OnInit {
   vehicles: Vehicle[] = [];
   selectedVehicle: Vehicle = this.getEmptyVehicle();
   successMessage: string = '';
+  modalSuccessMessage: string = '';
+
+  getOperatorName(code: string | undefined): string | undefined {
+  return this.operators.find(op => op.operatorCode === code)?.name;
+}
+
+
 
   showModal: boolean = false;
 
@@ -24,11 +33,26 @@ export class VehicleComponent implements OnInit {
   sortField: string = '';
   sortAsc: boolean = true;
 
-  constructor(private vehicleService: VehicleService, private ngZone: NgZone) {}
+  operators: OperatorDto[] = []; // ✅ Added
+  selectedOperatorCode: string = ''; // ✅ Added
+
+  constructor(private vehicleService: VehicleService, 
+    private operatorService: OperatorService, 
+    private ngZone: NgZone
+  ) {}
 
   ngOnInit(): void {
     this.loadVehicles();
+    this.loadOperators();
     this.onTypeChange();
+    
+  }
+
+  loadOperators(): void {
+    this.operatorService.getAll().subscribe({
+      next: data => this.operators = data,
+      error: err => console.error('Failed to load operators', err)
+    });
   }
 
   get paginatedVehicles(): Vehicle[] {
@@ -49,8 +73,11 @@ export class VehicleComponent implements OnInit {
 
   openModal(vehicle: Vehicle): void {
     this.selectedVehicle = { ...vehicle };
-    this.onTypeChange();
-    this.showModal = true;
+    const matched = this.operators.find(op => op.operatorCode === vehicle.operatorCode);
+  this.selectedOperatorCode = matched?.operatorCode ?? '';
+
+  this.onTypeChange();
+  this.showModal = true;
   }
 
   closeModal(): void {
@@ -58,45 +85,65 @@ export class VehicleComponent implements OnInit {
     this.reset();
   }
 
+  autoClearModalMessage(): void {
+  setTimeout(() => {
+    this.ngZone.run(() => {
+      this.modalSuccessMessage = '';
+    });
+  }, 3000);
+}
+
+
   save(): void {
-    if (this.selectedVehicle.id > 0) {
-      const updateDto: UpdateVehicleDto = {
-        operatorId: this.selectedVehicle.operatorId ?? 0,
-        type: this.selectedVehicle.type,
-        model: this.selectedVehicle.model,
-        licensePlate: this.selectedVehicle.licensePlate,
-        capacity: this.selectedVehicle.capacity,
-        isActive: this.selectedVehicle.isActive ?? true
-      };
+  const selectedOperator = this.operators.find(op => op.operatorCode === this.selectedOperatorCode);
 
-      this.vehicleService.update(this.selectedVehicle.id, updateDto).subscribe({
-        next: () => {
-          this.successMessage = '✅ Vehicle updated successfully!';
-          this.loadVehicles();
-          this.closeModal();
-          this.autoClearMessage();
-        },
-        error: err => console.error('Failed to update vehicle', err)
-      });
-    } else {
-      const createDto: CreateVehicleDto = {
-        type: this.selectedVehicle.type,
-        model: this.selectedVehicle.model,
-        licensePlate: this.selectedVehicle.licensePlate,
-        capacity: this.selectedVehicle.capacity
-      };
+  if (this.selectedVehicle.id > 0) {
+    const updateDto: UpdateVehicleDto = {
+      operatorCode: this.selectedOperatorCode,
+      type: this.selectedVehicle.type,
+      model: this.selectedVehicle.model,
+      licensePlate: this.selectedVehicle.licensePlate,
+      capacity: this.selectedVehicle.capacity,
+      isActive: this.selectedVehicle.isActive ?? true
+    };
 
-      this.vehicleService.create(createDto).subscribe({
-        next: () => {
-          this.successMessage = '✅ Vehicle created successfully!';
-          this.loadVehicles();
-          this.reset();
-          this.autoClearMessage();
-        },
-        error: err => console.error('Failed to create vehicle', err)
-      });
-    }
+    this.vehicleService.update(this.selectedVehicle.id, updateDto).subscribe({
+      next: () => {
+        this.modalSuccessMessage = '✅ Vehicle updated successfully!';
+        this.loadVehicles();
+
+        // Delay modal close to show success message
+        setTimeout(() => {
+          this.ngZone.run(() => {
+            this.closeModal();
+            this.modalSuccessMessage = '';
+          });
+        }, 2000); // Show message for 2 seconds
+      },
+      error: err => console.error('Failed to update vehicle', err)
+    });
+  } else {
+    const createDto: CreateVehicleDto = {
+      operatorCode: this.selectedOperatorCode,
+      type: this.selectedVehicle.type,
+      model: this.selectedVehicle.model,
+      licensePlate: this.selectedVehicle.licensePlate,
+      capacity: this.selectedVehicle.capacity
+    };
+
+    this.vehicleService.create(createDto).subscribe({
+      next: () => {
+        this.successMessage = '✅ Vehicle created successfully!';
+        this.loadVehicles();
+        this.reset();
+        this.autoClearMessage();
+      },
+      error: err => console.error('Failed to create vehicle', err)
+    });
   }
+}
+
+
 
   delete(id: number): void {
     this.vehicleService.delete(id).subscribe({
@@ -107,6 +154,7 @@ export class VehicleComponent implements OnInit {
 
   reset(): void {
     this.selectedVehicle = this.getEmptyVehicle();
+    this.selectedOperatorCode = '';
     this.onTypeChange();
   }
 

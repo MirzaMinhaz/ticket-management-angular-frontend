@@ -132,20 +132,24 @@ select:focus {
 .vehicle-table {
   width: 100%;
   border-collapse: collapse;
+  border: 1px solid #ccc;
+}
+
+.vehicle-table th,
+.vehicle-table td {
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: left;
 }
 
 .vehicle-table th {
   background-color: #f8f9fa;
   font-weight: 600;
-  padding: 10px;
-  border-bottom: 2px solid #dee2e6;
-  text-align: left;
   cursor: pointer;
   user-select: none;
 }
 
 .vehicle-table td {
-  padding: 10px;
   border-bottom: 1px solid #dee2e6;
 }
 
@@ -173,6 +177,21 @@ select:focus {
 .pagination .btn {
   padding: 6px 12px;
   font-size: 14px;
+}
+
+.page-btn {
+  background-color: #f1f1f1;
+  color: #333;
+}
+
+.page-btn:hover {
+  background-color: #e0e0e0;
+}
+
+.page-btn.active {
+  background-color: #007bff;
+  color: white;
+  font-weight: bold;
 }
 
 /* Success Message */
@@ -209,12 +228,13 @@ select:focus {
 }
 
 .modal {
+  position: relative; /* ✅ Fix for close button */
   background-color: #fff;
   border-radius: 10px;
   padding: 30px;
   width: 600px;
   max-width: 90%;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 24px rgba(32, 20, 20, 0.2);
   animation: fadeIn 0.3s ease-in-out;
 }
 
@@ -225,23 +245,25 @@ select:focus {
   text-align: center;
 }
 
+.modal-close {
+  position: absolute;
+  top: 18px;
+  right: 22px;
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  font-weight: bold;
+  color: #555;
+  cursor: pointer;
+  transition: color 0.2s;
+  z-index: 10; /* ✅ Ensures visibility */
+}
+
+.modal-close:hover {
+  color: #000;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: scale(0.95); }
   to { opacity: 1; transform: scale(1); }
-}
-
-
-.page-btn {
-  background-color: #f1f1f1;
-  color: #333;
-}
-
-.page-btn:hover {
-  background-color: #e0e0e0;
-}
-
-.page-btn.active {
-  background-color: #007bff;
-  color: white;
-  font-weight: bold;
 }
