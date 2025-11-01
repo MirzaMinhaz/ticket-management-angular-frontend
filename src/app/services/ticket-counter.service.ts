@@ -32,12 +32,12 @@ export class TicketCounterService {
   }
 
   // ID type is string based on your DTOs
-  updateTicketCounter(id: string, updateDto: UpdateTicketCounterDto): Observable<any> {
+  updateTicketCounter(id: number, updateDto: UpdateTicketCounterDto): Observable<any> {
     return this.http.put(`${this.apiUrl}/${id}`, updateDto);
   }
 
   // ID type is string based on your DTOs
-  deleteTicketCounter(id: string): Observable<any> {
+  deleteTicketCounter(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
   }
 }

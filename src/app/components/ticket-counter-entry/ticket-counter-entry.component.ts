@@ -1,198 +1,188 @@
-import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { TicketCounterService } from '../../services/ticket-counter.service';
-import { LocationService } from '../../services/location.service';
-import { TicketCounterDto, CreateTicketCounterDto, UpdateTicketCounterDto, LocationDto } from '../../models/common';
-import { catchError, finalize } from 'rxjs/operators';
-import { of, forkJoin } from 'rxjs';
+import { Component, OnInit, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { TicketCounterService } from '../../services/ticket-counter.service';
+import { TicketCounterDto, CreateTicketCounterDto, UpdateTicketCounterDto, LocationDto } from '../../models/common';
+import { LocationService } from '../../services/location.service';
 
 @Component({
   selector: 'app-ticket-counter-entry',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    RouterModule
-  ],
+  imports: [CommonModule, FormsModule],
   templateUrl: './ticket-counter-entry.component.html',
   styleUrls: ['./ticket-counter-entry.component.css']
 })
 export class TicketCounterEntryComponent implements OnInit {
-  ticketCounterForm: FormGroup;
+  counters: TicketCounterDto[] = [];
+  selectedCounter: TicketCounterDto = this.getEmptyCounter();
+  selectedLocationCode: string = '';
   locations: LocationDto[] = [];
-  isEditMode = false;
-  ticketCounterId: string | null = null; // ID is string as per your DTO (Assuming string for TicketCounterDto ID for now)
-  loading = false;
-  errorMessage: string | null = null;
-  successMessage: string | null = null;
 
-  // Define static operating hours
-  readonly staticOperatingHours = '7:00 AM - 11:00 PM';
+  successMessage: string = '';
+  modalSuccessMessage: string = '';
+  showModal: boolean = false;
+
+  currentPage: number = 1;
+  itemsPerPage: number = 10;
+  sortField: string = '';
+  sortAsc: boolean = true;
 
   constructor(
-    private fb: FormBuilder,
-    private ticketCounterService: TicketCounterService,
+    private counterService: TicketCounterService,
     private locationService: LocationService,
-    private route: ActivatedRoute,
-    private router: Router
-  ) {
-    this.ticketCounterForm = this.fb.group({
-      locationId: ['', Validators.required],
-      counterName: ['', Validators.required],
-      counterCode: [{ value: '', disabled: true }],
-      addressDetails: [''],
-      contactNumber: [''],
-      operatingHours: [this.staticOperatingHours], // Initialize with static value
-      isActive: [true]
-    });
-  }
+    private ngZone: NgZone
+  ) {}
 
   ngOnInit(): void {
-    this.ticketCounterId = this.route.snapshot.paramMap.get('id');
+    this.loadCounters();
+    this.loadLocations();
+  }
 
-    this.loading = true;
-    this.errorMessage = null;
-
-    this.locationService.getAllLocations().pipe(
-      catchError(error => {
-        this.errorMessage = 'Failed to load locations: ' + (error.message || 'Unknown error');
-        console.error('Error fetching locations:', error);
-        return of([]);
-      }),
-      finalize(() => {
-        if (this.locations.length === 0) {
-          this.ticketCounterForm.get('locationId')?.disable();
-        }
-        if (!this.isEditMode && this.locations.length > 0) {
-          this.loading = false;
-        }
-        // Ensure loading is false even if there are no locations and not in edit mode
-        if (!this.isEditMode && this.locations.length === 0) {
-          this.loading = false;
-        }
-      })
-    ).subscribe(locations => {
-      this.locations = locations;
-      if (!this.isEditMode && this.locations.length > 0) {
-        this.ticketCounterForm.get('locationId')?.setValue(this.locations[0].locationId); // Changed .locationId to .id
-      }
-
-      if (this.ticketCounterId) {
-        this.isEditMode = true;
-        this.loadTicketCounterForEdit(this.ticketCounterId);
-      }
+  loadCounters(): void {
+    this.counterService.getAllTicketCounters().subscribe({
+      next: data => this.counters = data,
+      error: err => console.error('Failed to load counters', err)
     });
   }
 
-  loadTicketCounterForEdit(id: string): void {
-    this.loading = true;
-    this.ticketCounterService.getTicketCounterById(id).pipe(
-      catchError(error => {
-        this.errorMessage = 'Failed to load ticket counter for edit: ' + (error.message || 'Unknown error');
-        console.error('Error fetching ticket counter for edit:', error);
-        this.router.navigate(['/ticket-counters']);
-        return of(null);
-      }),
-      finalize(() => this.loading = false)
-    ).subscribe(counter => {
-      if (counter) {
-        this.ticketCounterForm.get('counterCode')?.enable();
-        this.ticketCounterForm.patchValue({
-          locationId: counter.locationId, // Assuming TicketCounterDto still uses locationId
-          counterName: counter.counterName,
-          counterCode: counter.counterCode,
-          addressDetails: counter.addressDetails,
-          contactNumber: counter.contactNumber,
-          operatingHours: counter.operatingHours || this.staticOperatingHours, // Use existing or fallback to static
-          isActive: counter.isActive
-        });
-        this.ticketCounterForm.get('counterCode')?.disable(); // Keep disabled if you only want it for display
-        // Also disable operatingHours if you want to ensure it remains static for edits too
-        this.ticketCounterForm.get('operatingHours')?.disable();
-      }
+  loadLocations(): void {
+    this.locationService.getAllLocations().subscribe({
+      next: data => this.locations = data,
+      error: err => console.error('Failed to load locations', err)
     });
   }
 
-  onSubmit(): void {
-    if (this.ticketCounterForm.invalid) {
-      this.ticketCounterForm.markAllAsTouched();
-      this.errorMessage = 'Please correct the form errors.';
-      return;
-    }
+  get paginatedCounters(): TicketCounterDto[] {
+    const start = (this.currentPage - 1) * this.itemsPerPage;
+    return this.counters.slice(start, start + this.itemsPerPage);
+  }
 
-    this.loading = true;
-    this.errorMessage = null;
-    this.successMessage = null;
+  get totalPages(): number {
+    return Math.ceil(this.counters.length / this.itemsPerPage);
+  }
 
-    // Use getRawValue to get values from disabled controls.
-    // We'll explicitly pick fields for DTOs.
-    const formValue = this.ticketCounterForm.getRawValue();
+  get pages(): number[] {
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  }
 
-    if (this.isEditMode && this.ticketCounterId) {
+  goToPage(page: number): void {
+    this.currentPage = page;
+  }
+
+  goToNextPage(): void {
+    if (this.currentPage < this.totalPages) this.currentPage++;
+  }
+
+  goToPreviousPage(): void {
+    if (this.currentPage > 1) this.currentPage--;
+  }
+
+  getLocationName(code: string | undefined): string | undefined {
+    return this.locations.find(loc => loc.locationCode === code)?.name;
+  }
+
+  openModal(counter: TicketCounterDto): void {
+    this.selectedCounter = { ...counter };
+    this.selectedLocationCode = counter.locationCode;
+    this.showModal = true;
+  }
+
+  closeModal(): void {
+    this.showModal = false;
+    this.reset();
+  }
+
+  save(): void {
+    if (this.selectedCounter.id>0) {
       const updateDto: UpdateTicketCounterDto = {
-        locationId: formValue.locationId,
-        counterName: formValue.counterName,
-        addressDetails: formValue.addressDetails || undefined,
-        contactNumber: formValue.contactNumber || undefined,
-        operatingHours: this.staticOperatingHours, // Always send static value for update
-        isActive: formValue.isActive
+        locationCode: this.selectedLocationCode,
+        counterName: this.selectedCounter.counterName,
+        addressDetails: this.selectedCounter.addressDetails,
+        contactNumber: this.selectedCounter.contactNumber
       };
 
-      this.ticketCounterService.updateTicketCounter(this.ticketCounterId, updateDto).pipe(
-        catchError(error => {
-          this.errorMessage = error.message || 'Failed to update ticket counter.';
-          console.error('Update error:', error);
-          return of(null);
-        }),
-        finalize(() => this.loading = false)
-      ).subscribe(result => {
-        if (result !== null) {
-          this.successMessage = 'Ticket Counter updated successfully!';
-          setTimeout(() => this.router.navigate(['/ticket-counters']), 2000);
-        }
+      this.counterService.updateTicketCounter(this.selectedCounter.id, updateDto).subscribe({
+        next: () => {
+          this.modalSuccessMessage = '✅ Counter updated successfully!';
+          this.loadCounters();
+
+          setTimeout(() => {
+            this.ngZone.run(() => {
+              this.closeModal();
+              this.modalSuccessMessage = '';
+            });
+          }, 2000);
+        },
+        error: err => console.error('Failed to update counter', err)
       });
+
     } else {
       const createDto: CreateTicketCounterDto = {
-        locationId: formValue.locationId,
-        counterName: formValue.counterName,
-        addressDetails: formValue.addressDetails || undefined,
-        contactNumber: formValue.contactNumber || undefined,
-        operatingHours: this.staticOperatingHours, // Always send static value for creation
-        isActive: formValue.isActive
+        locationCode: this.selectedLocationCode,
+        counterName: this.selectedCounter.counterName,
+        addressDetails: this.selectedCounter.addressDetails,
+        contactNumber: this.selectedCounter.contactNumber
       };
-      this.ticketCounterService.createTicketCounter(createDto).pipe(
-        catchError(error => {
-          this.errorMessage = error.message || 'Failed to create ticket counter.';
-          console.error('Creation error:', error);
-          return of(null);
-        }),
-        finalize(() => this.loading = false)
-      ).subscribe(createdCounter => {
-        if (createdCounter) {
-          this.successMessage = `Ticket Counter "${createdCounter.counterName}" created successfully!`;
-          this.ticketCounterForm.reset();
-          if (this.locations.length > 0) {
-            this.ticketCounterForm.get('locationId')?.setValue(this.locations[0].locationId); // Changed .locationId to .id
-          }
-          this.ticketCounterForm.get('isActive')?.setValue(true);
-          // this.ticketCounterForm.get('operatingHours')?.setValue(this.staticOperatingHours); // Reset static hours
-          this.ticketCounterForm.get('counterCode')?.disable(); // Keep disabled
-          this.ticketCounterForm = this.fb.group({
-            operatingHours: [{ value: '7:00 AM - 11:00 PM', disabled: true }]
-          });
-        }
+
+      this.counterService.createTicketCounter(createDto).subscribe({
+        next: () => {
+          this.successMessage = '✅ Counter created successfully!';
+          this.loadCounters();
+          this.reset();
+          this.autoClearMessage();
+        },
+        error: err => console.error('Failed to create counter', err)
       });
     }
   }
 
-  isFieldInvalid(fieldName: string): boolean {
-    const control = this.ticketCounterForm.get(fieldName);
-    return control ? control.invalid && (control.touched || control.dirty) : false;
+  delete(id: number): void {
+    this.counterService.deleteTicketCounter(id).subscribe({
+      next: () => this.loadCounters(),
+      error: err => console.error('Failed to delete counter', err)
+    });
   }
 
-  onCancel(): void {
-    this.router.navigate(['/ticket-counters']);
+  reset(): void {
+    this.selectedCounter = this.getEmptyCounter();
+    this.selectedLocationCode = '';
+  }
+
+  getEmptyCounter(): TicketCounterDto {
+    return {
+      id: 0,
+      locationCode: '',
+      counterName: '',
+      counterCode: '',
+      addressDetails: '',
+      contactNumber: '',
+      operatingHours: '',
+      isActive: true,
+      createdAt: '',
+      createdBy: ''
+    };
+  }
+
+  autoClearMessage(): void {
+    setTimeout(() => {
+      this.ngZone.run(() => {
+        this.successMessage = '';
+      });
+    }, 3000);
+  }
+
+  sortBy(field: keyof TicketCounterDto): void {
+    if (this.sortField === field) {
+      this.sortAsc = !this.sortAsc;
+    } else {
+      this.sortField = field;
+      this.sortAsc = true;
+    }
+
+    this.counters.sort((a, b) => {
+      const valA = a[field]?.toString().toLowerCase() ?? '';
+      const valB = b[field]?.toString().toLowerCase() ?? '';
+      return this.sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+    });
   }
 }

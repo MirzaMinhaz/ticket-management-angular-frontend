@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { VehicleService } from '../../services/vehicle.service';
@@ -12,13 +12,17 @@ import { OperatorDto } from '../../models/common';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './vehicles.html',
-  styleUrls: ['./vehicles.css']
+  styleUrls: ['./vehicles.css'],
+  encapsulation: ViewEncapsulation.None 
 })
 export class VehicleComponent implements OnInit {
   vehicles: Vehicle[] = [];
   selectedVehicle: Vehicle = this.getEmptyVehicle();
   successMessage: string = '';
   modalSuccessMessage: string = '';
+
+  showDeleteConfirmModal: boolean = false;
+vehicleToDelete: Vehicle | null = null;
 
   getOperatorName(code: string | undefined): string | undefined {
   return this.operators.find(op => op.operatorCode === code)?.name;
@@ -85,6 +89,16 @@ export class VehicleComponent implements OnInit {
     this.reset();
   }
 
+  confirmDelete(vehicle: Vehicle): void {
+  this.vehicleToDelete = vehicle;
+  this.showDeleteConfirmModal = true;
+}
+
+cancelDelete(): void {
+  this.vehicleToDelete = null;
+  this.showDeleteConfirmModal = false;
+}
+
   autoClearModalMessage(): void {
   setTimeout(() => {
     this.ngZone.run(() => {
@@ -143,6 +157,20 @@ export class VehicleComponent implements OnInit {
   }
 }
 
+deleteConfirmed(): void {
+  if (!this.vehicleToDelete) return;
+
+  this.vehicleService.delete(this.vehicleToDelete.id).subscribe({
+    next: () => {
+      this.loadVehicles();
+      this.showDeleteConfirmModal = false;
+      this.vehicleToDelete = null;
+      this.successMessage = '🗑️ Vehicle deleted successfully!';
+      this.autoClearMessage();
+    },
+    error: err => console.error('Failed to delete vehicle', err)
+  });
+}
 
 
   delete(id: number): void {
