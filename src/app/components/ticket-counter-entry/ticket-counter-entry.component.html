@@ -73,7 +73,7 @@
           <td>{{ c.isActive ? '✅' : '❌' }}</td>
           <td>
             <button class="btn small edit" (click)="openModal(c)">✏️ Edit</button>
-            <button class="btn small delete" (click)="delete(c.id)">🗑️ Delete</button>
+            <button class="btn small delete" (click)="confirmDelete(c)">🗑️ Delete</button>
           </td>
         </tr>
       </tbody>
@@ -141,4 +141,26 @@
       </form>
     </div>
   </div>
+
+
+
+
+<!-- ✅ Delete Confirmation Modal -->
+<div class="modal-backdrop" *ngIf="showDeleteConfirmModal">
+  <div class="modal delete-modal">
+    <h3 class="modal-title">Confirm Deletion</h3>
+    <p class="delete-message">
+      Are you sure you want to delete 
+      <strong>{{ counterToToDelete?.counterName }}</strong>
+      ({{ counterToToDelete?.addressDetails }})?
+    </p>
+
+    <div class="form-actions">
+      <button class="btn delete" (click)="deleteConfirmed()">Yes, Delete</button>
+      <button class="btn secondary" (click)="cancelDelete()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+
 </div>

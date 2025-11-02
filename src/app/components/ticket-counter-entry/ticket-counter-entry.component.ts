@@ -27,6 +27,9 @@ export class TicketCounterEntryComponent implements OnInit {
   sortField: string = '';
   sortAsc: boolean = true;
 
+  counterToToDelete: TicketCounterDto | null = null;
+    showDeleteConfirmModal: boolean = false;
+
   constructor(
     private counterService: TicketCounterService,
     private locationService: LocationService,
@@ -92,6 +95,17 @@ export class TicketCounterEntryComponent implements OnInit {
     this.reset();
   }
 
+
+ confirmDelete(ticketCounter: TicketCounterDto): void {
+  this.counterToToDelete = ticketCounter;
+  this.showDeleteConfirmModal = true;
+}
+
+cancelDelete(): void {
+  this.counterToToDelete = null;
+  this.showDeleteConfirmModal = false;
+}
+
   save(): void {
     if (this.selectedCounter.id>0) {
       const updateDto: UpdateTicketCounterDto = {
@@ -135,6 +149,23 @@ export class TicketCounterEntryComponent implements OnInit {
       });
     }
   }
+
+
+
+  deleteConfirmed(): void {
+  if (!this.counterToToDelete) return;
+
+  this.counterService.deleteTicketCounter(this.counterToToDelete.id).subscribe({
+    next: () => {
+      this.loadCounters();
+      this.showDeleteConfirmModal = false;
+      this.counterToToDelete = null;
+      this.successMessage = '🗑️ Ticket Counter deleted successfully!';
+      this.autoClearMessage();
+    },
+    error: err => console.error('Failed to delete Ticket Counter', err)
+  });
+}
 
   delete(id: number): void {
     this.counterService.deleteTicketCounter(id).subscribe({
