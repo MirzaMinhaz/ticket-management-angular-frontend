@@ -1,187 +1,182 @@
 <div class="vehicle-container">
-  <h2 class="page-title">Vehicle Management</h2>
 
-  <!-- ✅ Success Message -->
+  <!-- PAGE HEADER -->
+  <div class="header">
+    <h2>🚍 Vehicle Management</h2>
+  </div>
+
+  <!-- SUCCESS MESSAGE -->
   <div *ngIf="successMessage" class="alert success-alert">
     {{ successMessage }}
   </div>
 
-  <!-- ✅ Inline Form for Adding New Vehicle -->
-  <div class="vehicle-card">
-    <h3 class="card-title">Add New Vehicle</h3>
+  <!-- ADD VEHICLE CARD -->
+  <div class="card add-card">
+    <h3>Add New Vehicle</h3>
 
-    <form (ngSubmit)="save()" #vehicleForm="ngForm" class="vehicle-form">
-      <div class="form-grid">
+    <form (ngSubmit)="save()" #vehicleForm="ngForm">
+      <div class="grid">
 
-        <!-- Type -->
+        <!-- TYPE -->
         <div class="form-group">
-          <label for="type">Type</label>
-          <select [(ngModel)]="selectedVehicle.type" name="type" id="type" required (change)="onTypeChange()">
+          <label>Type</label>
+          <select [(ngModel)]="selectedVehicle.type" name="type" required (change)="onTypeChange()">
             <option value="Bus">Bus</option>
             <option value="Train">Train</option>
           </select>
         </div>
 
-        <!-- Operator -->
+        <!-- OPERATOR -->
         <div class="form-group">
-          <label for="operatorCode">Operator</label>
-          <select [(ngModel)]="selectedOperatorCode" name="operatorCode" id="operatorCode" required>
+          <label>Operator</label>
+          <select [(ngModel)]="selectedOperatorCode" name="operatorCode" required>
             <option value="" disabled selected>Select Operator</option>
-            <option *ngFor="let op of operators" [value]="op.operatorCode">
-              {{ op.name }}
-            </option>
+            <option *ngFor="let op of operators" [value]="op.operatorCode">{{ op.name }}</option>
           </select>
         </div>
 
-        <!-- Model -->
+        <!-- MODEL -->
         <div class="form-group">
-          <label for="model">Model</label>
-          <input [(ngModel)]="selectedVehicle.model" name="model" id="model" required />
+          <label>Model</label>
+          <input [(ngModel)]="selectedVehicle.model" name="model" required />
         </div>
 
-        <!-- License Plate -->
+        <!-- LICENSE PLATE -->
         <div class="form-group">
-          <label for="licensePlate">License Plate</label>
-          <input [(ngModel)]="selectedVehicle.licensePlate" name="licensePlate" id="licensePlate" required />
+          <label>License Plate</label>
+          <input [(ngModel)]="selectedVehicle.licensePlate" name="licensePlate" required />
         </div>
 
-        <!-- Capacity -->
+        <!-- CAPACITY -->
         <div class="form-group">
-          <label for="capacity">Capacity</label>
-          <input type="number" [(ngModel)]="selectedVehicle.capacity" name="capacity" id="capacity" required />
+          <label>Capacity</label>
+          <input type="number" [(ngModel)]="selectedVehicle.capacity" name="capacity" required />
         </div>
       </div>
 
-      <!-- Actions -->
-      <div class="form-actions">
-        <button type="submit" class="btn primary">Save</button>
-        <button type="button" class="btn secondary" (click)="reset()">Clear</button>
+      <div class="actions">
+        <button class="btn primary">Save</button>
+        <button class="btn secondary" type="button" (click)="reset()">Clear</button>
       </div>
     </form>
   </div>
 
-  <!-- ✅ Vehicle List Table -->
-  <div class="list-section">
-  <h3 class="card-title">Vehicle List</h3>
-  <table class="vehicle-table">
-    <thead>
-      <tr>
-        <th>SL</th>
-        <th (click)="sortBy('type')">Type</th>
-        <th (click)="sortBy('operatorCode')">Operator Name</th>
-        <th (click)="sortBy('model')">Model</th>
-        <th (click)="sortBy('licensePlate')">License Plate</th>
-        <th (click)="sortBy('capacity')">Capacity</th>
-        <th (click)="sortBy('vehicleCode')">Vehicle Code</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let v of paginatedVehicles; let i = index">
-        <td>{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
-        <td>{{ v.type }}</td>
-        <td>{{ getOperatorName(v.operatorCode) ?? '—' }}</td>
-        <td>{{ v.model }}</td>
-        <td>{{ v.licensePlate }}</td>
-        <td>{{ v.capacity }}</td>
-        <td>{{ v.vehicleCode }}</td>
-        <td>
-          <button class="btn small edit" (click)="openModal(v)">✏️ Edit</button>
-          <button class="btn small delete" (click)="confirmDelete(v)">🗑️ Delete</button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+  <!-- VEHICLE LIST -->
+  <div class="card">
+    <h3>Vehicle List</h3>
 
+    <table class="styled-table">
+      <thead>
+        <tr>
+          <th>SL</th>
+          <th (click)="sortBy('type')">Type</th>
+          <th (click)="sortBy('operatorCode')">Operator</th>
+          <th (click)="sortBy('model')">Model</th>
+          <th (click)="sortBy('licensePlate')">License Plate</th>
+          <th (click)="sortBy('capacity')">Capacity</th>
+          <th (click)="sortBy('vehicleCode')">Vehicle Code</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
 
-  <!-- ✅ Pagination Controls -->
-  <div class="pagination">
-    <button class="btn small" [disabled]="currentPage === 1" (click)="goToPreviousPage()">⬅ Prev</button>
+      <tbody>
+        <tr *ngFor="let v of paginatedVehicles; let i = index">
+          <td>{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
+          <td>{{ v.type }}</td>
+          <td>{{ getOperatorName(v.operatorCode) }}</td>
+          <td>{{ v.model }}</td>
+          <td>{{ v.licensePlate }}</td>
+          <td>{{ v.capacity }}</td>
+          <td>{{ v.vehicleCode }}</td>
 
-    <ng-container *ngFor="let page of pages">
-      <button class="btn small page-btn" [class.active]="page === currentPage" (click)="goToPage(page)">
+          <td class="action-buttons">
+            <button class="btn small edit" (click)="openModal(v)">Edit</button>
+            <button class="btn small delete" (click)="confirmDelete(v)">Delete</button>
+            <button class="btn small book" (click)="bookSeats(v)">Book</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div class="pagination">
+      <button class="btn small" [disabled]="currentPage === 1" (click)="goToPreviousPage()">Prev</button>
+
+      <button class="btn small page"
+              *ngFor="let page of pages"
+              [class.active]="page === currentPage"
+              (click)="goToPage(page)">
         {{ page }}
       </button>
-    </ng-container>
 
-    <button class="btn small" [disabled]="currentPage === totalPages" (click)="goToNextPage()">Next ➡</button>
+      <button class="btn small" [disabled]="currentPage === totalPages" (click)="goToNextPage()">Next</button>
+    </div>
   </div>
 
-  <!-- ✅ Modal for Editing Vehicle -->
+  <!-- EDIT MODAL -->
   <div class="modal-backdrop" *ngIf="showModal">
-  <div class="modal">
-    <!-- ❌ Close Button -->
-    <button class="modal-close" (click)="closeModal()">×</button>
+    <div class="modal">
+      <button class="modal-close" (click)="closeModal()">×</button>
 
-    <h3 class="modal-title">Edit Vehicle</h3>
+      <h3>Edit Vehicle</h3>
 
-    <!-- ✅ Modal Success Message -->
-    <div *ngIf="modalSuccessMessage" class="alert success-alert modal-alert">
-      {{ modalSuccessMessage }}
-    </div>
-
-    <form (ngSubmit)="save()" #editForm="ngForm" class="vehicle-form">
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="edit-type">Type</label>
-          <select [(ngModel)]="selectedVehicle.type" name="editType" id="edit-type" required (change)="onTypeChange()">
-            <option value="Bus">Bus</option>
-            <option value="Train">Train</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="operatorCode">Operator</label>
-          <select [(ngModel)]="selectedOperatorCode" name="operatorCode" id="operatorCode" required>
-            <option value="" disabled selected>Select Operator</option>
-            <option *ngFor="let op of operators" [value]="op.operatorCode">
-              {{ op.name }}
-            </option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="edit-model">Model</label>
-          <input [(ngModel)]="selectedVehicle.model" name="editModel" id="edit-model" required />
-        </div>
-
-        <div class="form-group">
-          <label for="edit-licensePlate">License Plate</label>
-          <input [(ngModel)]="selectedVehicle.licensePlate" name="editLicensePlate" id="edit-licensePlate" required />
-        </div>
-
-        <div class="form-group">
-          <label for="edit-capacity">Capacity</label>
-          <input type="number" [(ngModel)]="selectedVehicle.capacity" name="editCapacity" id="edit-capacity" required />
-        </div>
+      <div *ngIf="modalSuccessMessage" class="alert success-alert">
+        {{ modalSuccessMessage }}
       </div>
 
-      <div class="form-actions">
-        <button type="submit" class="btn primary" [disabled]="!!modalSuccessMessage">Update</button>
-        <button type="button" class="btn secondary" (click)="closeModal()">Cancel</button>
-      </div>
-    </form>
-  </div>
-</div>
+      <form (ngSubmit)="save()" #editForm="ngForm">
+        <div class="grid">
+          <div class="form-group">
+            <label>Type</label>
+            <select [(ngModel)]="selectedVehicle.type" name="editType">
+              <option value="Bus">Bus</option>
+              <option value="Train">Train</option>
+            </select>
+          </div>
 
+          <div class="form-group">
+            <label>Operator</label>
+            <select [(ngModel)]="selectedOperatorCode" name="operatorCode">
+              <option *ngFor="let op of operators" [value]="op.operatorCode">{{ op.name }}</option>
+            </select>
+          </div>
 
-<!-- ✅ Delete Confirmation Modal -->
-<div class="modal-backdrop" *ngIf="showDeleteConfirmModal">
-  <div class="modal delete-modal">
-    <h3 class="modal-title">Confirm Deletion</h3>
-    <p class="delete-message">
-      Are you sure you want to delete 
-      <strong>{{ vehicleToDelete?.model }}</strong>
-      ({{ vehicleToDelete?.licensePlate }})?
-    </p>
+          <div class="form-group">
+            <label>Model</label>
+            <input [(ngModel)]="selectedVehicle.model" name="editModel" />
+          </div>
 
-    <div class="form-actions">
-      <button class="btn delete" (click)="deleteConfirmed()">Yes, Delete</button>
-      <button class="btn secondary" (click)="cancelDelete()">Cancel</button>
+          <div class="form-group">
+            <label>License Plate</label>
+            <input [(ngModel)]="selectedVehicle.licensePlate" name="editLicensePlate" />
+          </div>
+
+          <div class="form-group">
+            <label>Capacity</label>
+            <input type="number" [(ngModel)]="selectedVehicle.capacity" name="editCapacity" />
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn primary">Update</button>
+          <button type="button" class="btn secondary" (click)="closeModal()">Cancel</button>
+        </div>
+      </form>
     </div>
   </div>
-</div>
 
+  <!-- DELETE MODAL -->
+  <div class="modal-backdrop" *ngIf="showDeleteConfirmModal">
+    <div class="modal modal-delete">
+      <h3>Confirm Deletion</h3>
+
+      <p>Delete <strong>{{ vehicleToDelete?.model }}</strong> ({{ vehicleToDelete?.licensePlate }})?</p>
+
+      <div class="actions">
+        <button class="btn delete" (click)="deleteConfirmed()">Yes, Delete</button>
+        <button class="btn secondary" (click)="cancelDelete()">Cancel</button>
+      </div>
+    </div>
+  </div>
 
 </div>

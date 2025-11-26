@@ -7,6 +7,7 @@ import { LocationsListComponent } from './components/locations-list/locations-li
 import { TicketCounterEntryComponent } from './components/ticket-counter-entry/ticket-counter-entry.component'; // Path: ./components/ticket-counter-entry/ticket-counter-entry.component
 import { VehicleComponent } from './components/vehicles/vehicles'; // ✅ Path: ./components/vehicle/vehicle.ts
 import { OperatorComponent } from './components/operators/operators';
+import { SeatBookingComponent } from './components/seat-booking/seat-booking.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -16,5 +17,9 @@ export const routes: Routes = [
   { path: 'ticket-counters/edit/:id', component: TicketCounterEntryComponent },
   { path: 'vehicles', component: VehicleComponent }, // ✅ Added Vehicle route
   { path: 'operators', component: OperatorComponent },
+  // { path: 'seat-booking', component: SeatBookingComponent },
+  // { path: 'seat-booking/:vehicleId', component: SeatBookingComponent },
+  { path: 'seat-booking/:vehicleId', component: SeatBookingComponent },
+  // { path: 'seat-booking', component: SeatBookingComponent }, // optional fallback
   { path: '**', redirectTo: '' }
 ];

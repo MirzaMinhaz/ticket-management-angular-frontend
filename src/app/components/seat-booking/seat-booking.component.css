@@ -1,0 +1,111 @@
+/* ===== Container ===== */
+.booking-container {
+  max-width: 720px;
+  margin: 0 auto;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: #fff;
+  font-family: Arial, sans-serif;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* ===== Header ===== */
+.booking-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 12px 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.page-title { margin: 0; font-size: 20px; font-weight: bold; color: #222; }
+.bus-info { font-size: 14px; color: #555; }
+
+.legend { display:flex; gap:12px; font-size:12px; }
+.legend-item { display:flex; align-items:center; gap:6px; }
+.legend-dot { width:12px; height:12px; border-radius:50%; display:inline-block; }
+.legend-dot.available { background: #2ecc71; }
+.legend-dot.selected  { background: #3498db; }
+.legend-dot.reserved  { background: #7f8c8d; }
+
+/* ===== Bus body ===== */
+.bus-body { padding: 16px; }
+
+/* Driver row */
+.driver-row { display:flex; justify-content:flex-end; margin-bottom:12px; }
+.driver-cabin { display:flex; flex-direction:column; align-items:center; }
+.steering { width:28px; height:28px; border:2px solid #333; border-radius:50%; margin-bottom:4px; }
+.driver-label { font-size:12px; font-weight:bold; color:#222; }
+
+/* ===== Seat grid ===== */
+.seat-grid { display:flex; flex-direction:column; gap:10px; align-items:center; }
+
+/* Each row uses CSS grid: col1 col2 aisle col3 col4 */
+.row-grid {
+  display: grid;
+  grid-template-columns: 52px 52px 28px 52px 52px;
+  column-gap: 8px;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Last row: remove aisle gap visually but keep layout consistent
+   We keep the grid columns identical but visually the aisle cell will be small/empty. */
+.row-grid.last-row {
+  /* We can keep same columns but use smaller gap for visual compactness if desired */
+}
+
+/* Seat placeholders for missing seats keep vertical alignment */
+.seat, .seat.placeholder {
+  width: 52px;
+  height: 52px;
+  border-radius: 8px;
+  border: none;
+  font-size: 12px;
+  font-weight: bold;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* placeholder appearance */
+.seat.placeholder {
+  background: transparent;
+  border: 1px dashed transparent;
+  box-shadow: none;
+  cursor: default;
+  color: transparent;
+}
+
+/* seat states */
+.seat.available { background-color: #2ecc71; color: #fff; cursor: pointer; border: none; }
+.seat.selected  { background-color: #3498db; color: #fff; }
+.seat.reserved  { background-color: #7f8c8d; color: #fff; cursor: not-allowed; opacity: 0.95; }
+
+/* hover */
+button.seat:hover:not(.reserved):not(.placeholder) { transform: scale(1.04); box-shadow: 0 3px 10px rgba(0,0,0,0.15); }
+
+/* small responsive tweak */
+@media (max-width: 520px) {
+  .row-grid { grid-template-columns: 44px 44px 18px 44px 44px; column-gap: 6px; }
+  .seat, .seat.placeholder { width: 44px; height: 44px; border-radius: 6px; font-size: 11px; }
+}
+
+/* Footer */
+.booking-footer {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.summary { font-size: 14px; }
+.actions { display:flex; gap:8px; }
+
+.btn { padding: 6px 12px; border-radius: 6px; font-size: 13px; cursor: pointer; border: none; }
+.btn.primary { background: #3498db; color: #fff; }
+.btn.ghost { background: #f1f1f1; color: #333; }

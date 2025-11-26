@@ -6,6 +6,8 @@ import { Vehicle, CreateVehicleDto, UpdateVehicleDto } from '../../models/common
 import { NgZone } from '@angular/core';
 import { OperatorService } from '../../services/operators.service'; 
 import { OperatorDto } from '../../models/common';
+import { Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-vehicles',
@@ -42,7 +44,8 @@ vehicleToDelete: Vehicle | null = null;
 
   constructor(private vehicleService: VehicleService, 
     private operatorService: OperatorService, 
-    private ngZone: NgZone
+    private ngZone: NgZone,
+    private router: Router   // ✅ add router
   ) {}
 
   ngOnInit(): void {
@@ -51,6 +54,13 @@ vehicleToDelete: Vehicle | null = null;
     this.onTypeChange();
     
   }
+
+  bookSeats(vehicle: Vehicle): void {
+  // Navigate to seat booking page with vehicleId
+  this.router.navigate(['/seat-booking', vehicle.id]);
+}
+
+
 
   loadOperators(): void {
     this.operatorService.getAll().subscribe({

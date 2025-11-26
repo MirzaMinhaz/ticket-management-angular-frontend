@@ -117,3 +117,13 @@ export interface UpdateOperatorDto {
   type: string;
 }
 
+
+export type SeatStatus = 'available' | 'selected' | 'reserved';
+
+export interface SeatDto {
+  id: number;
+  seatNumber: string;   // e.g. A1, B2
+  seatCode: string;
+  isBooked: boolean;
+  status: SeatStatus;   // mapped from backend "reserved"/"available"
+}

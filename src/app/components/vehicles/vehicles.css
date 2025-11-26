@@ -1,269 +1,213 @@
-/* Container and Layout */
+/* MAIN CONTAINER */
 .vehicle-container {
-  padding: 30px;
-  max-width: 1100px;
+  max-width: 1200px;
   margin: auto;
-  font-family: 'Segoe UI', sans-serif;
+  padding: 30px;
+  font-family: "Segoe UI", Arial, sans-serif;
 }
 
-.page-title {
+/* HEADER */
+.header h2 {
   text-align: center;
-  font-size: 28px;
-  margin-bottom: 30px;
-  color: #2c3e50;
+  font-size: 32px;
+  color: #1f3b57;
+  margin-bottom: 25px;
 }
 
-/* Card Sections */
-.vehicle-card,
-.list-section {
-  background-color: #ffffff;
-  border-radius: 10px;
+/* CARD */
+.card {
+  background: #ffffff;
   padding: 25px;
+  border-radius: 12px;
   margin-bottom: 30px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
 }
 
-.card-title {
-  font-size: 20px;
+.card h3 {
+  font-size: 22px;
+  color: #2b4a63;
   margin-bottom: 20px;
-  color: #34495e;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 10px;
+  font-weight: 600;
 }
 
-/* Form Styling */
-.vehicle-form {
-  display: flex;
-  flex-direction: column;
-}
-
-.form-grid {
+/* GRID FORM */
+.grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 20px;
 }
 
-.form-group {
-  display: flex;
-  flex-direction: column;
-}
-
-label {
+.form-group label {
   font-weight: 600;
   margin-bottom: 6px;
-  color: #555;
+  color: #444;
 }
 
 input,
 select {
-  padding: 8px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #cdd4e0;
   font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  transition: border-color 0.2s;
+  transition: all 0.2s ease;
 }
 
 input:focus,
 select:focus {
   border-color: #007bff;
+  box-shadow: 0 0 4px rgba(0, 123, 255, 0.3);
   outline: none;
 }
 
-/* Form Actions */
-.form-actions {
-  margin-top: 20px;
-  display: flex;
-  gap: 15px;
-  justify-content: center;
-}
-
-/* Buttons */
+/* BUTTONS */
 .btn {
-  padding: 8px 16px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
   font-size: 14px;
   border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.2s;
+  transition: 0.2s ease;
 }
 
 .btn.primary {
-  background-color: #007bff;
+  background: #007bff;
   color: white;
 }
 
 .btn.primary:hover {
-  background-color: #0056b3;
+  background: #005fcc;
 }
 
 .btn.secondary {
-  background-color: #6c757d;
+  background: #6c757d;
   color: white;
 }
 
 .btn.secondary:hover {
-  background-color: #5a6268;
+  background: #565e64;
 }
 
 .btn.small {
   padding: 6px 10px;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .btn.edit {
-  background-color: #ffc107;
-  color: #212529;
-}
-
-.btn.edit:hover {
-  background-color: #e0a800;
+  background: #f1c40f;
+  color: black;
 }
 
 .btn.delete {
-  background-color: #dc3545;
+  background: #e74c3c;
+  color: white;
+}
+
+.btn.book {
+  background: #2ecc71;
   color: white;
 }
 
 .btn.delete:hover {
-  background-color: #c82333;
+  background: #c0392b;
 }
 
-/* Table Styling */
-.vehicle-table {
+.actions {
+  margin-top: 25px;
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+/* TABLE */
+.styled-table {
   width: 100%;
   border-collapse: collapse;
-  border: 1px solid #ccc;
+  border-radius: 10px;
+  overflow: hidden;
 }
 
-.vehicle-table th,
-.vehicle-table td {
-  border: 1px solid #ccc;
-  padding: 10px;
-  text-align: left;
-}
-
-.vehicle-table th {
-  background-color: #f8f9fa;
+.styled-table th {
+  background: #eef3f9;
+  padding: 12px;
   font-weight: 600;
+  border-bottom: 2px solid #d6dee8;
   cursor: pointer;
-  user-select: none;
+  white-space: nowrap;
 }
 
-.vehicle-table td {
-  border-bottom: 1px solid #dee2e6;
+.styled-table td {
+  padding: 12px;
+  border-bottom: 1px solid #e3e8ef;
 }
 
-.vehicle-table tr:hover {
-  background-color: #eaf4ff;
-  cursor: pointer;
+.styled-table tbody tr:hover {
+  background-color: #f5faff;
 }
 
-.vehicle-table th:first-child,
-.vehicle-table td:first-child {
-  width: 50px;
-  text-align: center;
-  color: #888;
-}
-
-/* Pagination */
+/* PAGINATION */
 .pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-  margin-top: 20px;
+  margin-top: 15px;
+  text-align: center;
 }
 
-.pagination .btn {
-  padding: 6px 12px;
-  font-size: 14px;
+.page {
+  background: #f0f0f0;
 }
 
-.page-btn {
-  background-color: #f1f1f1;
-  color: #333;
-}
-
-.page-btn:hover {
-  background-color: #e0e0e0;
-}
-
-.page-btn.active {
-  background-color: #007bff;
+.page.active {
+  background: #007bff;
   color: white;
   font-weight: bold;
 }
 
-/* Success Message */
-.alert.success-alert {
-  background-color: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
-  padding: 12px 20px;
-  border-radius: 6px;
-  margin-bottom: 20px;
-  font-weight: 500;
-  animation: fadeInOut 3s ease-in-out;
-}
-
-@keyframes fadeInOut {
-  0% { opacity: 0; }
-  10% { opacity: 1; }
-  90% { opacity: 1; }
-  100% { opacity: 0; }
-}
-
-/* Modal Styling */
+/* MODAL */
 .modal-backdrop {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.4);
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(2px);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 20;
 }
 
 .modal {
-  position: relative; /* ✅ Fix for close button */
-  background-color: #fff;
-  border-radius: 10px;
+  background: white;
   padding: 30px;
-  width: 600px;
-  max-width: 90%;
-  box-shadow: 0 8px 24px rgba(32, 20, 20, 0.2);
-  animation: fadeIn 0.3s ease-in-out;
+  width: 500px;
+  max-width: 95%;
+  border-radius: 12px;
+  animation: zoom 0.25s ease;
+  position: relative;
 }
 
-.modal-title {
-  font-size: 22px;
-  margin-bottom: 20px;
-  color: #2c3e50;
-  text-align: center;
+@keyframes zoom {
+  0% { transform: scale(0.9); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
 }
 
 .modal-close {
   position: absolute;
-  top: 18px;
-  right: 22px;
-  background: transparent;
-  border: none;
+  top: 12px;
+  right: 15px;
   font-size: 24px;
-  font-weight: bold;
-  color: #555;
+  background: none;
+  border: none;
   cursor: pointer;
-  transition: color 0.2s;
-  z-index: 10; /* ✅ Ensures visibility */
+  color: #777;
 }
 
 .modal-close:hover {
   color: #000;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+/* SUCCESS MESSAGE */
+.alert.success-alert {
+  background: #d4edda;
+  color: #155724;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border-left: 5px solid #28a745;
 }
