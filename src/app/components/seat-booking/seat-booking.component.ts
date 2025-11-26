@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { SeatService } from '../../services/seat.service';
 import { VehicleService } from '../../services/vehicle.service';
 import { SeatDto, Vehicle } from '../../models/common';
 
@@ -15,18 +14,21 @@ import { SeatDto, Vehicle } from '../../models/common';
 })
 export class SeatBookingComponent implements OnInit {
   seats: SeatDto[] = [];
+  seatMap: Record<string, SeatDto> = {};
   selectedSeats: SeatDto[] = [];
   selectedBusId: number = 0;
   vehicle: Vehicle | null = null;
 
-  rows: string[] = [];         // row letters in order ['A','B','C',...]
+  rows: string[] = [];
   leftCols: number[] = [1, 2];
   rightCols: number[] = [3, 4];
 
   oddCapacity: boolean = false;
+  isLoading: boolean = false;
+  loadError: string | null = null;
+
 
   constructor(
-    private seatService: SeatService,
     private vehicleService: VehicleService,
     private route: ActivatedRoute
   ) {}
@@ -37,49 +39,31 @@ export class SeatBookingComponent implements OnInit {
       if (!vehicleId) return;
 
       this.selectedBusId = vehicleId;
+      this.isLoading = true;
 
-      this.vehicleService.getById(vehicleId).subscribe(v => {
-        this.vehicle = v;
-        const capacity = v.capacity ?? 40;
-        this.oddCapacity = capacity % 2 !== 0;
-        this.loadSeatsByVehicle(vehicleId, capacity);
+      this.vehicleService.getById(vehicleId).subscribe({
+        next: (v) => {
+          this.vehicle = v;
+          const capacity = v.capacity ?? 40;
+          this.oddCapacity = capacity % 2 !== 0;
+          this.generateSeats(capacity);
+          this.isLoading = false;
+        },
+        error: (err) => {
+          console.error(err);
+          this.vehicle = null;
+          this.isLoading = false;
+        }
       });
     });
   }
 
-  private loadSeatsByVehicle(vehicleId: number, capacity: number): void {
-    this.seatService.getSeatsBySchedule(vehicleId).subscribe({
-      next: (seats) => {
-        if (seats && seats.length) {
-          this.seats = seats.map(s => ({
-            ...s,
-            status: s.isBooked ? 'reserved' : 'available'
-          }));
-        } else {
-          this.seats = this.generateSeatsByCapacity(capacity);
-        }
-        this.normalizeAndPrepareLayout();
-        this.selectedSeats = [];
-      },
-      error: () => {
-        this.seats = this.generateSeatsByCapacity(capacity);
-        this.normalizeAndPrepareLayout();
-        this.selectedSeats = [];
-      }
-    });
-  }
-
-  /**
-   * Generate seats sequentially by rows (A, B, C...) and 4 columns per row.
-   * If capacity is odd: remove A1.
-   * Then ensure the last row has all 4 columns (fill missing columns).
-   */
-  private generateSeatsByCapacity(capacity: number): SeatDto[] {
+  /** Generate seats based on vehicle capacity */
+  private generateSeats(capacity: number): void {
     const seats: SeatDto[] = [];
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     let count = 0;
 
-    // create seats by rows with up to 4 seats per row
     for (let r = 0; count < capacity && r < alphabet.length; r++) {
       const row = alphabet[r];
       for (let c = 1; c <= 4 && count < capacity; c++) {
@@ -94,23 +78,24 @@ export class SeatBookingComponent implements OnInit {
       }
     }
 
-    // If odd capacity, remove A1 (first column first row)
+    // adjust if capacity odd
     if (capacity % 2 !== 0) {
       const idx = seats.findIndex(s => s.seatNumber === 'A1');
       if (idx !== -1) seats.splice(idx, 1);
     }
 
-    // Ensure last row has all 4 columns
+    // fill last row to always have 4 seats
     if (seats.length) {
-      const lastRowLetter = seats[seats.length - 1].seatNumber.charAt(0);
-      const lastRowSeats = seats.filter(s => s.seatNumber.charAt(0) === lastRowLetter);
-      const existingCols = lastRowSeats.map(s => parseInt(s.seatNumber.substring(1), 10));
+      const lastRow = seats[seats.length - 1].seatNumber.charAt(0);
+      const lastRowSeats = seats.filter(s => s.seatNumber.charAt(0) === lastRow);
+      const existingCols = new Set(lastRowSeats.map(s => parseInt(s.seatNumber.substring(1), 10)));
       for (let c = 1; c <= 4; c++) {
-        if (!existingCols.includes(c)) {
+        if (!existingCols.has(c)) {
+          count++;
           seats.push({
-            id: ++count,
-            seatNumber: `${lastRowLetter}${c}`,
-            seatCode: `${lastRowLetter}${c}`,
+            id: count,
+            seatNumber: `${lastRow}${c}`,
+            seatCode: `${lastRow}${c}`,
             isBooked: false,
             status: 'available'
           });
@@ -118,46 +103,32 @@ export class SeatBookingComponent implements OnInit {
       }
     }
 
-    return seats;
+    this.seats = seats;
+    this.prepareSeatMap(seats);
   }
 
-  /** Normalize seat ordering and prepare rows array */
-  private normalizeAndPrepareLayout(): void {
-    // sort seats by row letter (A..Z) then by column (1..4)
-    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    this.seats.sort((a, b) => {
+  /** Build row array and O(1) seat map */
+  private prepareSeatMap(seats: SeatDto[]): void {
+    seats.sort((a, b) => {
       const ra = a.seatNumber.charAt(0);
       const rb = b.seatNumber.charAt(0);
-      const ia = alphabet.indexOf(ra);
-      const ib = alphabet.indexOf(rb);
-      if (ia !== ib) return ia - ib;
-      const ca = parseInt(a.seatNumber.substring(1), 10);
-      const cb = parseInt(b.seatNumber.substring(1), 10);
-      return ca - cb;
+      if (ra !== rb) return ra.charCodeAt(0) - rb.charCodeAt(0);
+      return parseInt(a.seatNumber.substring(1), 10) - parseInt(b.seatNumber.substring(1), 10);
     });
 
-    // Build ordered unique rows
-    this.rows = [...new Set(this.seats.map(s => s.seatNumber.charAt(0)))];
-
-    // If oddCapacity and A row lost A1 entirely (possible if capacity small),
-    // ensure A still exists only if there are seats for A.
-    this.oddCapacity = (this.vehicle?.capacity ?? 40) % 2 !== 0;
+    this.rows = Array.from(new Set(seats.map(s => s.seatNumber.charAt(0))));
+    this.seatMap = {};
+    for (const s of seats) {
+      this.seatMap[s.seatNumber] = s;
+    }
   }
 
   getSeatByPosition(row: string, col: number): SeatDto | undefined {
-    return this.seats.find(s => {
-      const seatRow = s.seatNumber.charAt(0);
-      const seatCol = parseInt(s.seatNumber.substring(1), 10);
-      return seatRow === row && seatCol === col;
-    });
-  }
-
-  get selectedSeatLabels(): string {
-    return this.selectedSeats.map(s => s.seatNumber).join(', ');
+    return this.seatMap?.[`${row}${col}`];
   }
 
   toggleSeat(seat: SeatDto): void {
-    if (seat.status === 'reserved') return;
+    if (!seat || seat.status === 'reserved') return;
 
     if (seat.status === 'selected') {
       seat.status = 'available';
@@ -174,14 +145,12 @@ export class SeatBookingComponent implements OnInit {
   }
 
   confirmBooking(): void {
-    // simple optimistic booking; update UI when API returns
-    const seatsToBook = [...this.selectedSeats];
+    if (!this.selectedSeats.length) return;
+    // keep UI only; booking API removed
+    this.selectedSeats.forEach(s => (s.status = 'reserved'));
     this.selectedSeats = [];
-    seatsToBook.forEach(seat => {
-      this.seatService.bookSeat(seat.id, 'user1').subscribe({
-        next: () => (seat.status = 'reserved'),
-        error: () => (seat.status = 'available') // rollback on error
-      });
-    });
   }
+
+  trackRow(index: number, row: string) { return row; }
+  trackCol(index: number, col: number) { return col; }
 }

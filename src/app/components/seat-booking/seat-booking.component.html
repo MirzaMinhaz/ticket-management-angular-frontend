@@ -1,133 +1,148 @@
-<div class="booking-container">
+<!-- Outer container -->
+<div class="booking-shell" role="application" aria-label="Bus seat booking">
+
+  <!-- Header -->
   <header class="booking-header">
-    <div class="title-block">
-      <h2 class="page-title">Bus Seat Booking</h2>
-      <div class="bus-info">
-        <strong>{{ vehicle?.model || 'Bus' }}</strong>
-        <span>({{ vehicle?.capacity || 0 }} seats)</span>
+    <div class="title">
+      <h1 class="title-main">Bus Seat Booking</h1>
+      <div class="bus-meta">
+        <div class="bus-model">{{ vehicle?.model || 'Bus' }}</div>
+        <div class="bus-capacity">{{ vehicle?.capacity ?? 0 }} seats</div>
       </div>
     </div>
 
-    <div class="legend">
-      <div class="legend-item"><span class="legend-dot available"></span><span>Available</span></div>
-      <div class="legend-item"><span class="legend-dot selected"></span><span>Selected</span></div>
-      <div class="legend-item"><span class="legend-dot reserved"></span><span>Booked</span></div>
+    <div class="legend" aria-hidden="false">
+      <div class="legend-item"><span class="dot available"></span><span>Available</span></div>
+      <div class="legend-item"><span class="dot selected"></span><span>Selected</span></div>
+      <div class="legend-item"><span class="dot reserved"></span><span>Booked</span></div>
     </div>
   </header>
 
-  <section class="bus-body">
-    <div class="driver-row">
-      <div class="driver-cabin">
-        <div class="steering"></div>
-        <span class="driver-label">Driver</span>
+  <!-- Body -->
+  <main class="bus-body">
+
+    <!-- Loading / Error -->
+    <div class="status-row" *ngIf="isLoading">
+      <div class="skeleton-row">
+        <div class="skeleton-box"></div>
+      </div>
+    </div>
+    <div class="status-row error" *ngIf="loadError && !isLoading">{{ loadError }}</div>
+
+    <!-- Driver -->
+    <div class="driver-row" aria-hidden="true">
+      <div class="driver-cab">
+        <div class="wheel"></div>
+        <span class="driver-text">Driver</span>
       </div>
     </div>
 
-    <!-- Seat grid: render rows top-to-bottom; each row displays 4 columns (col1, col2, aisle, col3, col4) -->
-    <div class="seat-grid">
-      <ng-container *ngFor="let row of rows; let i = index">
-        <!-- Determine special classes -->
+    <!-- Seat Grid -->
+    <section class="seat-grid" *ngIf="!isLoading">
+      <ng-container *ngFor="let row of rows; let i = index; trackBy: trackRow">
         <div
           class="row-grid"
           [class.last-row]="i === rows.length - 1"
-          [class.first-odd]="i === 0 && oddCapacity"
+          [class.first-row-odd]="i === 0 && oddCapacity"
         >
-          <!-- Column 1 (could be empty when first row & oddCapacity removed A1) -->
-          <div class="col-1">
-            <ng-container *ngIf="getSeatByPosition(row, 1) as seat">
+          <!-- Column 1 -->
+          <div class="col col-1">
+            <ng-container *ngIf="getSeatByPosition(row,1) as seat; else empty1">
               <button
-                class="seat"
+                class="seat-btn"
+                [attr.aria-label]="'Seat ' + seat.seatNumber"
                 [class.available]="seat.status === 'available'"
                 [class.selected]="seat.status === 'selected'"
                 [class.reserved]="seat.status === 'reserved'"
                 [disabled]="seat.status === 'reserved'"
                 (click)="toggleSeat(seat)"
-                title="{{seat.seatNumber}}"
+                title="{{ seat.seatNumber }}"
               >
-                {{ seat.seatNumber }}
+                <span class="label">{{ seat.seatNumber }}</span>
               </button>
             </ng-container>
-            <ng-container *ngIf="!getSeatByPosition(row,1)">
-              <div class="seat placeholder"></div>
-            </ng-container>
+            <ng-template #empty1><div class="seat-placeholder" aria-hidden="true"></div></ng-template>
           </div>
 
           <!-- Column 2 -->
-          <div class="col-2">
-            <ng-container *ngIf="getSeatByPosition(row, 2) as seat">
+          <div class="col col-2">
+            <ng-container *ngIf="getSeatByPosition(row,2) as seat; else empty2">
               <button
-                class="seat"
+                class="seat-btn"
+                [attr.aria-label]="'Seat ' + seat.seatNumber"
                 [class.available]="seat.status === 'available'"
                 [class.selected]="seat.status === 'selected'"
                 [class.reserved]="seat.status === 'reserved'"
                 [disabled]="seat.status === 'reserved'"
                 (click)="toggleSeat(seat)"
-                title="{{seat.seatNumber}}"
+                title="{{ seat.seatNumber }}"
               >
-                {{ seat.seatNumber }}
+                <span class="label">{{ seat.seatNumber }}</span>
               </button>
             </ng-container>
-            <ng-container *ngIf="!getSeatByPosition(row,2)">
-              <div class="seat placeholder"></div>
-            </ng-container>
+            <ng-template #empty2><div class="seat-placeholder" aria-hidden="true"></div></ng-template>
           </div>
 
-          <!-- Aisle column (visual gap) -->
-          <div class="aisle-col"></div>
+          <!-- Aisle -->
+          <div class="aisle" aria-hidden="true"></div>
 
           <!-- Column 3 -->
-          <div class="col-3">
-            <ng-container *ngIf="getSeatByPosition(row, 3) as seat">
+          <div class="col col-3">
+            <ng-container *ngIf="getSeatByPosition(row,3) as seat; else empty3">
               <button
-                class="seat"
+                class="seat-btn"
+                [attr.aria-label]="'Seat ' + seat.seatNumber"
                 [class.available]="seat.status === 'available'"
                 [class.selected]="seat.status === 'selected'"
                 [class.reserved]="seat.status === 'reserved'"
                 [disabled]="seat.status === 'reserved'"
                 (click)="toggleSeat(seat)"
-                title="{{seat.seatNumber}}"
+                title="{{ seat.seatNumber }}"
               >
-                {{ seat.seatNumber }}
+                <span class="label">{{ seat.seatNumber }}</span>
               </button>
             </ng-container>
-            <ng-container *ngIf="!getSeatByPosition(row,3)">
-              <div class="seat placeholder"></div>
-            </ng-container>
+            <ng-template #empty3><div class="seat-placeholder" aria-hidden="true"></div></ng-template>
           </div>
 
           <!-- Column 4 -->
-          <div class="col-4">
-            <ng-container *ngIf="getSeatByPosition(row, 4) as seat">
+          <div class="col col-4">
+            <ng-container *ngIf="getSeatByPosition(row,4) as seat; else empty4">
               <button
-                class="seat"
+                class="seat-btn"
+                [attr.aria-label]="'Seat ' + seat.seatNumber"
                 [class.available]="seat.status === 'available'"
                 [class.selected]="seat.status === 'selected'"
                 [class.reserved]="seat.status === 'reserved'"
                 [disabled]="seat.status === 'reserved'"
                 (click)="toggleSeat(seat)"
-                title="{{seat.seatNumber}}"
+                title="{{ seat.seatNumber }}"
               >
-                {{ seat.seatNumber }}
+                <span class="label">{{ seat.seatNumber }}</span>
               </button>
             </ng-container>
-            <ng-container *ngIf="!getSeatByPosition(row,4)">
-              <div class="seat placeholder"></div>
-            </ng-container>
+            <ng-template #empty4><div class="seat-placeholder" aria-hidden="true"></div></ng-template>
           </div>
         </div>
       </ng-container>
-    </div>
+    </section>
 
+    <!-- Footer actions -->
     <footer class="booking-footer">
-      <div class="summary">
-        <strong>Selected seats:</strong>
-        <span *ngIf="selectedSeats.length; else none">{{ selectedSeatLabels }}</span>
-        <ng-template #none><em>None</em></ng-template>
+      <div class="selected-summary">
+        <div class="summary-title">Selected seats</div>
+        <div class="summary-list" aria-live="polite">
+          <ng-container *ngIf="selectedSeats.length; else none">
+            <span class="chip" *ngFor="let s of selectedSeats">{{ s.seatNumber }}</span>
+          </ng-container>
+          <ng-template #none><em class="none">None</em></ng-template>
+        </div>
       </div>
-      <div class="actions">
+
+      <div class="footer-actions">
         <button class="btn ghost" (click)="clearSelection()" [disabled]="!selectedSeats.length">Clear</button>
-        <button class="btn primary" (click)="confirmBooking()" [disabled]="!selectedSeats.length">Confirm</button>
+        <button class="btn confirm" (click)="confirmBooking()" [disabled]="!selectedSeats.length">Confirm</button>
       </div>
     </footer>
-  </section>
+  </main>
 </div>

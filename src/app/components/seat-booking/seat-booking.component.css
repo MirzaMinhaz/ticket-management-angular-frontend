@@ -1,111 +1,199 @@
-/* ===== Container ===== */
-.booking-container {
-  max-width: 720px;
-  margin: 0 auto;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  background: #fff;
-  font-family: Arial, sans-serif;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+/* ---- Root shell ---- */
+.booking-shell {
+  max-width: 780px; /* slightly smaller for compact look */
+  margin: 20px auto;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  color: #1f2d3d;
+  background: linear-gradient(180deg, #fbfdff 0%, #f7fbff 100%);
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(17, 24, 39, 0.05);
 }
 
-/* ===== Header ===== */
+/* ---- Header ---- */
 .booking-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
-  padding: 12px 16px;
-  border-bottom: 1px solid #eee;
+  align-items: center;
+  padding: 12px 4px;
+  margin-bottom: 6px;
 }
 
-.page-title { margin: 0; font-size: 20px; font-weight: bold; color: #222; }
-.bus-info { font-size: 14px; color: #555; }
+.title {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
 
-.legend { display:flex; gap:12px; font-size:12px; }
-.legend-item { display:flex; align-items:center; gap:6px; }
-.legend-dot { width:12px; height:12px; border-radius:50%; display:inline-block; }
-.legend-dot.available { background: #2ecc71; }
-.legend-dot.selected  { background: #3498db; }
-.legend-dot.reserved  { background: #7f8c8d; }
+.title-main {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0b2545;
+}
 
-/* ===== Bus body ===== */
-.bus-body { padding: 16px; }
+.bus-meta {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  color: #3b556f;
+}
 
-/* Driver row */
-.driver-row { display:flex; justify-content:flex-end; margin-bottom:12px; }
-.driver-cabin { display:flex; flex-direction:column; align-items:center; }
-.steering { width:28px; height:28px; border:2px solid #333; border-radius:50%; margin-bottom:4px; }
-.driver-label { font-size:12px; font-weight:bold; color:#222; }
+.bus-model { font-weight: 600; }
+.bus-capacity { opacity: 0.85; font-size: 11px; }
 
-/* ===== Seat grid ===== */
-.seat-grid { display:flex; flex-direction:column; gap:10px; align-items:center; }
+/* legend */
+.legend {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
 
-/* Each row uses CSS grid: col1 col2 aisle col3 col4 */
+.legend-item {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 12px;
+  color: #334e6e;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  display: inline-block;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.06);
+}
+
+.dot.available { background: #2ecc71; }
+.dot.selected  { background: #0066ff; }
+.dot.reserved  { background: #7f8c8d; }
+
+/* ---- Body ---- */
+.bus-body { padding: 6px 4px 0 4px; }
+
+/* loading skeleton */
+.status-row { display:flex; justify-content:center; margin: 10px 0; }
+.skeleton-row .skeleton-box {
+  width: 360px;
+  height: 90px;
+  background: linear-gradient(90deg,#eef2f7 25%, #f8fbff 50%, #eef2f7 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.1s infinite;
+  border-radius: 8px;
+}
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* driver */
+.driver-row { display:flex; justify-content:flex-end; margin: 6px 2px; padding-right: 20px; }
+.driver-cab { text-align:center; }
+.wheel {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid #0b2545;
+  display:inline-block;
+  margin-bottom:2px;
+  background: linear-gradient(#fff,#f0f6ff);
+}
+.driver-text { display:block; font-size: 11px; color: #16324a; font-weight:600; }
+
+/* ---- Seat grid layout (grid per row) ---- */
+.seat-grid { display: flex; flex-direction: column; gap: 8px; padding: 4px 10px 10px 10px; }
+
 .row-grid {
   display: grid;
-  grid-template-columns: 52px 52px 28px 52px 52px;
-  column-gap: 8px;
+  grid-template-columns: 48px 48px 20px 48px 48px; /* col1 col2 aisle col3 col4 */
+  column-gap: 6px;
   align-items: center;
   justify-content: center;
-  width: 100%;
 }
 
-/* Last row: remove aisle gap visually but keep layout consistent
-   We keep the grid columns identical but visually the aisle cell will be small/empty. */
-.row-grid.last-row {
-  /* We can keep same columns but use smaller gap for visual compactness if desired */
+/* placeholders keep vertical alignment */
+.seat-placeholder {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: transparent;
 }
 
-/* Seat placeholders for missing seats keep vertical alignment */
-.seat, .seat.placeholder {
-  width: 52px;
-  height: 52px;
+/* seat button */
+.seat-btn {
+  width: 48px;
+  height: 48px;
   border-radius: 8px;
   border: none;
+  font-weight: 600;
   font-size: 12px;
-  font-weight: bold;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor: pointer;
+  color: white;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  box-shadow: 0 4px 12px rgba(11, 37, 69, 0.05);
+  background: linear-gradient(180deg,#0b2545 0%, #0f3a6a 100%);
 }
 
-/* placeholder appearance */
-.seat.placeholder {
-  background: transparent;
-  border: 1px dashed transparent;
-  box-shadow: none;
-  cursor: default;
-  color: transparent;
-}
+/* states */
+.seat-btn.available { background: linear-gradient(180deg,#2ecc71 0%, #22b86b 100%); color: #fff; }
+.seat-btn.selected  { background: linear-gradient(180deg,#0066ff 0%, #0051cc 100%); color: #fff; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,102,255,0.15); }
+.seat-btn.reserved  { background: linear-gradient(180deg,#7f8c8d 0%, #6f7a80 100%); color: #fff; cursor: not-allowed; opacity: 0.95; }
 
-/* seat states */
-.seat.available { background-color: #2ecc71; color: #fff; cursor: pointer; border: none; }
-.seat.selected  { background-color: #3498db; color: #fff; }
-.seat.reserved  { background-color: #7f8c8d; color: #fff; cursor: not-allowed; opacity: 0.95; }
+/* label inside seat */
+.seat-btn .label { pointer-events: none; }
 
 /* hover */
-button.seat:hover:not(.reserved):not(.placeholder) { transform: scale(1.04); box-shadow: 0 3px 10px rgba(0,0,0,0.15); }
+.seat-btn:hover:not(.reserved) { transform: translateY(-2px) scale(1.02); box-shadow: 0 10px 24px rgba(17, 34, 68, 0.12); }
 
-/* small responsive tweak */
-@media (max-width: 520px) {
-  .row-grid { grid-template-columns: 44px 44px 18px 44px 44px; column-gap: 6px; }
-  .seat, .seat.placeholder { width: 44px; height: 44px; border-radius: 6px; font-size: 11px; }
-}
+/* aisle visual */
+.aisle { width: 20px; height: 18px; }
 
-/* Footer */
+/* last row special */
+.row-grid.last-row .seat-btn { box-shadow: 0 4px 10px rgba(11,37,69,0.04); }
+
+/* first-row-odd */
+.row-grid.first-row-odd .col-1 .seat-placeholder { opacity: 0.0; }
+
+/* ---- Footer / actions ---- */
 .booking-footer {
-  margin-top: 16px;
-  padding: 12px 16px;
-  border-top: 1px solid #eee;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding: 12px 8px;
+  margin-top: 8px;
+  border-top: 1px solid rgba(15, 42, 78, 0.05);
 }
 
-.summary { font-size: 14px; }
-.actions { display:flex; gap:8px; }
+.selected-summary { display:flex; flex-direction:column; gap:4px; }
+.summary-title { font-weight:700; color:#113050; font-size:12px; }
+.summary-list { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
 
-.btn { padding: 6px 12px; border-radius: 6px; font-size: 13px; cursor: pointer; border: none; }
-.btn.primary { background: #3498db; color: #fff; }
-.btn.ghost { background: #f1f1f1; color: #333; }
+/* chip */
+.chip {
+  background: #e6f0ff;
+  color: #013a7a;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-weight:600;
+  font-size:12px;
+  box-shadow: inset 0 -1px 0 rgba(0,0,0,0.02);
+}
+
+/* none text */
+.none { color: #7b8b9a; }
+
+/* footer actions */
+.footer-actions { display:flex; gap:8px; align-items:center; }
+.btn { padding: 6px 12px; border-radius: 8px; border: none; font-weight:600; cursor:pointer; background: transparent; }
+.btn.ghost { background: #ffffff; border: 1px solid #dfeaf8; color: #0b2545; }
+.btn.confirm { background: linear-gradient(90deg,#0051cc,#007bff); color:#fff; box-shadow: 0 8px 24px rgba(0,123,255,0.12); }
+.btn[disabled] { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* responsiveness */
+@media (max-width: 720px) {
+  .row-grid { grid-template-columns: 38px 38px 16px 38px 38px; column-gap: 6px; }
+  .seat-btn, .seat-placeholder { width: 38px; height: 38px; border-radius: 6px; font-size: 11px; }
+  .booking-shell { padding: 10px; margin: 10px; border-radius: 10px; }
+  .title-main { font-size: 16px; }
+}
