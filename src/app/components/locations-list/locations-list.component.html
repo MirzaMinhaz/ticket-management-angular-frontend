@@ -1,67 +1,150 @@
-<div class="container">
-  <h1><i class="fas fa-map-marked-alt"></i> Locations Management</h1>
+<div class="vehicle-container">
 
-  <section class="form-section">
-    <h2><i class="fas fa-plus-circle"></i> Add New Location</h2>
-    <form [formGroup]="locationForm" (ngSubmit)="onSubmit()">
-      <div class="form-grid">
+  <!-- PAGE HEADER -->
+  <div class="header">
+    <h2>Location Management</h2>
+  </div>
+
+  <!-- SUCCESS MESSAGE -->
+  <div *ngIf="successMessage" class="alert success-alert">
+    {{ successMessage }}
+  </div>
+
+  <!-- ADD VEHICLE CARD -->
+  <div class="card add-card">
+    <h3>Add New Location</h3>
+
+    <form (ngSubmit)="save()" #vehicleForm="ngForm">
+      <div class="grid">
+
+        <!-- Name -->
         <div class="form-group">
-          <label for="name">Name <span class="required">*</span></label>
-          <input type="text" id="name" formControlName="name" placeholder="e.g., Dhaka"
-                 [class.is-invalid]="locationForm.get('name')?.invalid && (locationForm.get('name')?.touched || locationForm.get('name')?.dirty)">
-          <div *ngIf="locationForm.get('name')?.invalid && (locationForm.get('name')?.touched || locationForm.get('name')?.dirty)" class="error-message">
-            <span *ngIf="locationForm.get('name')?.errors?.['required']">Name is required.</span>
-            <span *ngIf="locationForm.get('name')?.errors?.['duplicateLocation']">Location with this Name and Type already exists.</span>
-            <span *ngIf="locationForm.get('name')?.pending">Checking for duplicates...</span>
-          </div>
+          <label>Name</label>
+          <input [(ngModel)]="selectedLocation.name" name="name" required />
         </div>
+
+        <!-- TYPE -->
         <div class="form-group">
-          <label for="type">Type <span class="required">*</span></label>
-          <select id="type" formControlName="type"
-                  [class.is-invalid]="locationForm.get('type')?.invalid && (locationForm.get('type')?.touched || locationForm.get('type')?.dirty)">
+          <label>Type</label>
+          <select [(ngModel)]="selectedLocation.type" name="type" required>
             <option value="City">City</option>
             <option value="Bus Terminal">Bus Terminal</option>
             <option value="Train Station">Train Station</option>
             <option value="Airport">Airport</option>
             <option value="Port">Port</option>
           </select>
-          <div *ngIf="locationForm.get('type')?.invalid && (locationForm.get('type')?.touched || locationForm.get('type')?.dirty)" class="error-message">
-            <span *ngIf="locationForm.get('type')?.errors?.['required']">Type is required.</span>
-            <span *ngIf="locationForm.get('type')?.errors?.['duplicateLocation']">Location with this Name and Type already exists.</span>
-            <span *ngIf="locationForm.get('type')?.pending">Checking for duplicates...</span>
-          </div>
         </div>
-        <div class="form-group full-width">
-          <label for="address">Address</label>
-          <input type="text" id="address" formControlName="address" placeholder="e.g., Sayedabad Bus Terminal">
+
+        <!-- Address -->
+        <div class="form-group">
+          <label>Address</label>
+          <input [(ngModel)]="selectedLocation.address" placeholder="e.g., Sayedabad Bus Terminal" name="address" required />
         </div>
       </div>
-      <div class="button-container">
-        <button type="submit" [disabled]="loading || locationForm.invalid || locationForm.pending" class="btn btn-primary">
-          <i class="fas fa-save"></i> {{ loading ? 'Saving...' : (locationForm.pending ? 'Checking...' : 'Create Location') }}
-        </button>
+
+      <div class="actions">
+        <button class="btn primary">Save</button>
+        <button class="btn secondary" type="button" (click)="reset()">Clear</button>
       </div>
     </form>
-  </section>
+  </div>
 
-  <section class="list-section">
-    <h2><i class="fas fa-list"></i> Existing Locations</h2>
-    <div *ngIf="loading && locations.length === 0" class="loading-message"><i class="fas fa-spinner fa-spin"></i> Loading locations...</div>
-    <div *ngIf="!loading && locations.length === 0" class="no-data-message"><i class="fas fa-info-circle"></i> No locations found. Add one above!</div>
+  <!-- VEHICLE LIST -->
+  <div class="card">
+    <h3>Vehicle List</h3>
 
-    <ul class="item-list" *ngIf="locations.length > 0">
-      <li *ngFor="let location of locations" class="list-item">
-        <div class="item-details">
-          <p class="item-title"><i class="fas fa-map-pin"></i> {{ location.name }} <span class="item-subtitle">({{ location.type }})</span></p>
-          <p class="item-info"><i class="fas fa-location-arrow"></i> {{ location.address || 'No address provided' }}</p>
+    <table class="styled-table">
+      <thead>
+        <tr>
+          <th>SL</th>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Address</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let v of paginatedlocations; let i = index">
+          <td>{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
+          <td>{{ v.name }}</td>
+          <td>{{ v.type }}</td>
+          <td>{{ v.address }}</td>
+
+          <td class="action-buttons">
+            <button class="btn small edit" (click)="openModal(v)">Edit</button>
+            <button class="btn small delete" (click)="confirmDelete(v)">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div class="pagination">
+      <button class="btn small" [disabled]="currentPage === 1" (click)="goToPreviousPage()">Prev</button>
+
+      <button class="btn small page"
+              *ngFor="let page of pages"
+              [class.active]="page === currentPage"
+              (click)="goToPage(page)">
+        {{ page }}
+      </button>
+
+      <button class="btn small" [disabled]="currentPage === totalPages" (click)="goToNextPage()">Next</button>
+    </div>
+  </div>
+
+  <!-- EDIT MODAL -->
+  <div class="modal-backdrop" *ngIf="showModal">
+    <div class="modal">
+      <button class="modal-close" (click)="closeModal()">×</button>
+
+      <h3>Edit Vehicle</h3>
+
+      <div *ngIf="modalSuccessMessage" class="alert success-alert">
+        {{ modalSuccessMessage }}
+      </div>
+
+      <form (ngSubmit)="save()" #editForm="ngForm">
+        <div class="grid">
+
+          <div class="form-group">
+            <label>Name</label>
+            <input [(ngModel)]="selectedLocation.name" name="editName" />
+          </div>
+
+          <div class="form-group">
+            <label>Type</label>
+            <select [(ngModel)]="selectedLocation.type" name="editType">
+              <option value="City">City</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Address</label>
+            <input [(ngModel)]="selectedLocation.address" name="editAddress" />
+          </div>
+
         </div>
-        <div class="item-actions">
-          <!-- Future Edit/Delete buttons -->
+
+        <div class="actions">
+          <button class="btn primary">Update</button>
+          <button type="button" class="btn secondary" (click)="closeModal()">Cancel</button>
         </div>
-      </li>
-    </ul>
-  </section>
+      </form>
+    </div>
+  </div>
+
+  <!-- DELETE MODAL -->
+  <div class="modal-backdrop" *ngIf="showDeleteConfirmModal">
+    <div class="modal modal-delete">
+      <h3>Confirm Deletion</h3>
+
+
+      <div class="actions">
+        <button class="btn delete" (click)="deleteConfirmed()">Yes, Delete</button>
+        <button class="btn secondary" (click)="cancelDelete()">Cancel</button>
+      </div>
+    </div>
+  </div>
 </div>
-
-<!-- Be sure to include FontAwesome in your index.html for icons: -->
-<!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> -->

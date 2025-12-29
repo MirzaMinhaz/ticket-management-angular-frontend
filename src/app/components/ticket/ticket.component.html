@@ -1,0 +1,173 @@
+<!-- src/app/features/ticket/ticket.component.html -->
+<div class="ticket-container">
+  <h2>Ticket booking</h2>
+
+  <!-- Filters -->
+  <section class="card">
+    <h3>Filter tickets</h3>
+    <form [formGroup]="filterForm" (ngSubmit)="loadTickets()" class="filter-grid">
+      <div class="form-field">
+        <label>Status</label>
+        <select formControlName="status">
+          <option value="">All</option>
+          <option *ngFor="let s of statusOptions" [value]="s">{{ s }}</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label>Schedule</label>
+        <select formControlName="scheduleId">
+          <option [value]="null">All</option>
+          <option *ngFor="let sch of scheduleOptions" [value]="sch.id">{{ sch.code }}</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label>Passenger name</label>
+        <input type="text" formControlName="passengerName" placeholder="Search by name" />
+      </div>
+      <div class="actions">
+        <button type="submit">Apply</button>
+        <button type="button" (click)="filterForm.reset(); loadTickets()">Reset</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- Create / Edit Form -->
+  <section class="card">
+    <h3>{{ editingId ? 'Edit ticket' : 'Create ticket' }}</h3>
+    <form [formGroup]="form" (ngSubmit)="submit()" class="form-grid">
+      <div class="form-field">
+        <label>User</label>
+        <select formControlName="userId">
+          <option [value]="null">Select user</option>
+          <option *ngFor="let u of userOptions" [value]="u.id">{{ u.name }}</option>
+        </select>
+        <small class="error" *ngIf="form.get('userId')?.touched && form.get('userId')?.invalid">Required</small>
+      </div>
+
+      <div class="form-field">
+        <label>Schedule</label>
+        <select formControlName="scheduleId">
+          <option [value]="null">Select schedule</option>
+          <option *ngFor="let sch of scheduleOptions" [value]="sch.id">{{ sch.code }}</option>
+        </select>
+        <small class="error" *ngIf="form.get('scheduleId')?.touched && form.get('scheduleId')?.invalid">Required</small>
+      </div>
+
+      <div class="form-field">
+        <label>Booking counter</label>
+        <select formControlName="bookingCounterId">
+          <option [value]="null">Select counter</option>
+          <option *ngFor="let c of counterOptions" [value]="c.id">{{ c.name }}</option>
+        </select>
+        <small class="error" *ngIf="form.get('bookingCounterId')?.touched && form.get('bookingCounterId')?.invalid">Required</small>
+      </div>
+
+      <div class="form-field">
+        <label>Departure counter</label>
+        <select formControlName="departureCounterId">
+          <option [value]="null">Select counter</option>
+          <option *ngFor="let c of counterOptions" [value]="c.id">{{ c.name }}</option>
+        </select>
+        <small class="error" *ngIf="form.get('departureCounterId')?.touched && form.get('departureCounterId')?.invalid">Required</small>
+      </div>
+
+      <div class="form-field">
+        <label>Arrival counter</label>
+        <select formControlName="arrivalCounterId">
+          <option [value]="null">Select counter</option>
+          <option *ngFor="let c of counterOptions" [value]="c.id">{{ c.name }}</option>
+        </select>
+        <small class="error" *ngIf="form.get('arrivalCounterId')?.touched && form.get('arrivalCounterId')?.invalid">Required</small>
+      </div>
+
+      <div class="form-field">
+        <label>Seat code</label>
+        <input type="text" formControlName="seatCode" placeholder="e.g., A1" />
+      </div>
+
+      <div class="form-field">
+        <label>Seat number</label>
+        <input type="text" formControlName="seatNumber" placeholder="e.g., 12" />
+      </div>
+
+      <div class="form-field full">
+        <label>Ticket code</label>
+        <input type="text" formControlName="ticketCode" placeholder="e.g., TKT-001" />
+        <small class="error" *ngIf="form.get('ticketCode')?.touched && form.get('ticketCode')?.invalid">Required</small>
+      </div>
+
+      <div class="form-field">
+        <label>Passenger name</label>
+        <input type="text" formControlName="passengerName" />
+        <small class="error" *ngIf="form.get('passengerName')?.touched && form.get('passengerName')?.invalid">Required</small>
+      </div>
+
+      <div class="form-field">
+        <label>Passenger contact</label>
+        <input type="text" formControlName="passengerContact" placeholder="Phone" />
+        <small class="error" *ngIf="form.get('passengerContact')?.touched && form.get('passengerContact')?.invalid">Required</small>
+      </div>
+
+      <div class="form-field">
+        <label>Fare paid</label>
+        <input type="number" step="0.01" formControlName="farePaid" />
+        <small class="error" *ngIf="form.get('farePaid')?.touched && form.get('farePaid')?.invalid">Must be 0 or more</small>
+      </div>
+
+      <div class="form-field">
+        <label>Booking date & time</label>
+        <input type="datetime-local" formControlName="bookingDateTime" />
+        <small class="error" *ngIf="form.get('bookingDateTime')?.touched && form.get('bookingDateTime')?.invalid">Required</small>
+      </div>
+
+      <div class="form-field">
+        <label>Status</label>
+        <select formControlName="status">
+          <option *ngFor="let s of statusOptions" [value]="s">{{ s }}</option>
+        </select>
+      </div>
+
+      <div class="actions full">
+        <button type="submit" [disabled]="saving">{{ editingId ? 'Update' : 'Create' }}</button>
+        <button type="button" (click)="resetForm()" [disabled]="saving">Clear</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- List -->
+  <section class="card">
+    <h3>Tickets</h3>
+    <div *ngIf="loading">Loading...</div>
+    <table *ngIf="!loading" class="list-table">
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Passenger</th>
+          <th>Contact</th>
+          <th>Fare</th>
+          <th>Seat</th>
+          <th>Schedule</th>
+          <th>Status</th>
+          <th>Booked at</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let t of tickets">
+          <td>{{ t.ticketCode }}</td>
+          <td>{{ t.passengerName }}</td>
+          <td>{{ t.passengerContact }}</td>
+          <td>{{ t.farePaid | number: '1.2-2' }}</td>
+          <td>{{ t.seatCode || '-' }} / {{ t.seatNumber || '-' }}</td>
+          <td>{{ t.scheduleId }}</td>
+          <td>{{ t.status }}</td>
+          <td>{{ t.bookingDateTime | date:'medium' }}</td>
+          <td class="row-actions">
+            <button (click)="edit(t)">Edit</button>
+            <button class="danger" (click)="delete(t)">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</div>

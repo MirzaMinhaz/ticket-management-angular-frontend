@@ -12,6 +12,19 @@ export interface LocationDto {
   lastModifiedBy?: string;
 }
 
+
+export interface CreateLocationDto {
+  name: string;
+  type: string;
+  address: string;
+}
+
+export interface UpdateLocationDto {
+  name: string;
+  type: string;
+  address: string;
+}
+
 export interface Vehicle {
   id: number;
   type: string;
@@ -44,18 +57,6 @@ export interface UpdateVehicleDto {
   isActive: boolean;
 }
 
-
-export interface CreateLocationDto {
-  name: string;
-  type: string;
-  address: string;
-}
-
-export interface UpdateLocationDto {
-  name: string;
-  type: string;
-  address: string;
-}
 
 export interface TicketCounterDto {
   id: number;
@@ -126,4 +127,46 @@ export interface SeatDto {
   seatCode: string;
   isBooked: boolean;
   status: SeatStatus;   // mapped from backend "reserved"/"available"
+}
+
+
+export interface Ticket {
+  id: number; // PK (int)
+  userId: number;
+  scheduleId: number;
+  seatCode: string | null;
+  seatNumber: string | null;
+  bookingCounterId: number;
+  departureCounterId: number;
+  arrivalCounterId: number;
+  ticketCode: string;
+  passengerName: string;
+  passengerContact: string;
+  farePaid: number; // decimal
+  bookingDateTime: string; // ISO string
+  status: string;
+  createdAt?: string;
+  createdBy?: string | null;
+  lastModifiedAt?: string | null;
+  lastModifiedBy?: string | null;
+}
+
+export interface TicketCreateRequest {
+  userId: number;
+  scheduleId: number;
+  seatCode?: string | null;
+  seatNumber?: string | null;
+  bookingCounterId: number;
+  departureCounterId: number;
+  arrivalCounterId: number;
+  ticketCode: string;
+  passengerName: string;
+  passengerContact: string;
+  farePaid: number;
+  bookingDateTime: string; // ISO string
+  status: string;
+}
+
+export interface TicketUpdateRequest extends TicketCreateRequest {
+  id: number;
 }

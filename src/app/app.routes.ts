@@ -8,6 +8,7 @@ import { TicketCounterEntryComponent } from './components/ticket-counter-entry/t
 import { VehicleComponent } from './components/vehicles/vehicles'; // ✅ Path: ./components/vehicle/vehicle.ts
 import { OperatorComponent } from './components/operators/operators';
 import { SeatBookingComponent } from './components/seat-booking/seat-booking.component';
+import { TicketComponent } from './components/ticket/ticket.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -20,6 +21,7 @@ export const routes: Routes = [
   // { path: 'seat-booking', component: SeatBookingComponent },
   // { path: 'seat-booking/:vehicleId', component: SeatBookingComponent },
   { path: 'seat-booking/:vehicleId', component: SeatBookingComponent },
+  { path: 'ticket', component: TicketComponent },
   // { path: 'seat-booking', component: SeatBookingComponent }, // optional fallback
   { path: '**', redirectTo: '' }
 ];

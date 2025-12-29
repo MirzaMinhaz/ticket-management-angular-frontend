@@ -1,179 +1,214 @@
-import { Component, OnInit } from '@angular/core';
-import {
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-  AbstractControl,
-  AsyncValidatorFn,
-  ValidationErrors
-} from '@angular/forms';
-import { LocationService } from '../../services/location.service';
-import { LocationDto, CreateLocationDto } from '../../models/common';
-import {
-  catchError,
-  debounceTime,
-  distinctUntilChanged,
-  finalize,
-  map,
-  switchMap,
-} from 'rxjs/operators';
-import { of, Observable } from 'rxjs';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { ToastrService } from 'ngx-toastr';
+import { FormsModule } from '@angular/forms';
+import { LocationService } from '../../services/location.service';
+import { LocationDto, CreateLocationDto, UpdateLocationDto } from '../../models/common';
+import { NgZone } from '@angular/core';
+import { Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
-  selector: 'app-locations-list',
+  selector: 'app-locations',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    RouterModule
-  ],
+  imports: [CommonModule, FormsModule],
   templateUrl: './locations-list.component.html',
   styleUrls: ['./locations-list.component.css']
 })
 export class LocationsListComponent implements OnInit {
   locations: LocationDto[] = [];
-  locationForm: FormGroup;
-  loading = false;
+  selectedLocation: LocationDto = this.getEmptyLocation();
+  successMessage: string = '';
+  modalSuccessMessage: string = '';
 
-  constructor(
-    private locationService: LocationService,
-    private fb: FormBuilder,
-    private toastr: ToastrService
-  ) {
-    this.locationForm = this.fb.group({
-      name: ['', {
-        validators: [Validators.required],
-        asyncValidators: [this.locationExistsTogetherValidator()],
-        updateOn: 'blur'
-      }],
-      type: ['City', Validators.required],
-      address: [''],
-    });
-  }
+  showDeleteConfirmModal: boolean = false;
+  LocationToDelete: LocationDto | null = null;
+
+
+
+
+  showModal: boolean = false;
+
+  currentPage: number = 1;
+  itemsPerPage: number = 10;
+  sortField: string = '';
+  sortAsc: boolean = true;
+
+  constructor(private locationService: LocationService,
+    private ngZone: NgZone,
+    private router: Router   // ✅ add router
+  ) { }
 
   ngOnInit(): void {
-    this.fetchLocations();
-    this.setupAddressAutoPopulation();
+    this.loadlocations();
+
   }
 
-  locationExistsTogetherValidator(): AsyncValidatorFn {
-    let lastValidatedKey = '';
 
-    return (control: AbstractControl): Observable<ValidationErrors | null> => {
-      if (!this.locationForm) return of(null);
 
-      const name = this.locationForm.get('name')?.value;
-      const type = this.locationForm.get('type')?.value;
-
-      if (!name || !type) return of(null);
-
-      const currentKey = `${name}|${type}`;
-      if (currentKey === lastValidatedKey) return of(null);
-
-      return of({ name, type }).pipe(
-        debounceTime(400),
-        distinctUntilChanged((prev, curr) => prev.name === curr.name && prev.type === curr.type),
-        switchMap(val =>
-          this.locationService.checkLocationExists(val.name, val.type).pipe(
-            map(exists => {
-              if (exists) {
-                return { duplicateLocation: true };
-              } else {
-                lastValidatedKey = currentKey;
-                return null;
-              }
-            }),
-            catchError(err => {
-              console.error('Validation error:', err);
-              return of(null); // Fail-open
-            })
-          )
-        )
-      );
-    };
+  get paginatedlocations(): LocationDto[] {
+    const start = (this.currentPage - 1) * this.itemsPerPage;
+    return this.locations.slice(start, start + this.itemsPerPage);
   }
 
-  setupAddressAutoPopulation(): void {
-    this.locationForm.get('name')?.valueChanges.pipe(
-      debounceTime(300),
-      distinctUntilChanged()
-    ).subscribe(name => {
-      if (name) {
-        this.locationForm.get('address')?.setValue(`${name}, Bangladesh`);
-      } else {
-        this.locationForm.get('address')?.setValue('');
-      }
+  get totalPages(): number {
+    return Math.ceil(this.locations.length / this.itemsPerPage);
+  }
+
+  loadlocations(): void {
+    this.locationService.getAllLocations().subscribe({
+      next: data => this.locations = data,
+      error: err => console.error('Failed to load locations', err)
     });
   }
 
-  fetchLocations(): void {
-  this.loading = true;
-  this.locationService.getAllLocations().pipe(
-    map(data => data.map(loc => ({
-      ...loc,
-      locationId: Number(loc.locationId) // convert string to number
-    }))),
-    catchError(error => {
-      this.toastr.error(error.message || 'Failed to fetch locations.', 'Error');
-      console.error('Fetch error:', error);
-      return of([]);
-    }),
-    finalize(() => this.loading = false)
-  ).subscribe(data => {
-    this.locations = data;
-  });
-}
+  openModal(Location: LocationDto): void {
+    this.selectedLocation = { ...Location };
+    this.showModal = true;
+  }
+
+  closeModal(): void {
+    this.showModal = false;
+    this.reset();
+  }
+
+  confirmDelete(Location: LocationDto): void {
+    this.LocationToDelete = Location;
+    this.showDeleteConfirmModal = true;
+  }
+
+  cancelDelete(): void {
+    this.LocationToDelete = null;
+    this.showDeleteConfirmModal = false;
+  }
+
+  autoClearModalMessage(): void {
+    setTimeout(() => {
+      this.ngZone.run(() => {
+        this.modalSuccessMessage = '';
+      });
+    }, 3000);
+  }
 
 
+  save(): void {
 
-  onSubmit(): void {
-    this.locationForm.markAllAsTouched();
-    this.locationForm.updateValueAndValidity({ emitEvent: true });
+    if (this.selectedLocation.locationId > 0) {
+      const updateDto: UpdateLocationDto = {
+        name: this.selectedLocation.name,
+        type: this.selectedLocation.type,
+        address: this.selectedLocation.address
+      };
 
-    if (this.locationForm.pending) {
-      this.toastr.info('Please wait, checking for duplicate location...', 'Validation Pending');
-      return;
+      this.locationService.updateLocation(this.selectedLocation.locationId, updateDto).subscribe({
+        next: () => {
+          this.modalSuccessMessage = '✅ Location updated successfully!';
+          this.loadlocations();
+
+          // Delay modal close to show success message
+          setTimeout(() => {
+            this.ngZone.run(() => {
+              this.closeModal();
+              this.modalSuccessMessage = '';
+            });
+          }, 2000); // Show message for 2 seconds
+        },
+        error: err => console.error('Failed to update Location', err)
+      });
+    } else {
+      const createDto: CreateLocationDto = {
+        name: this.selectedLocation.name,
+        type: this.selectedLocation.type,
+        address: this.selectedLocation.address
+      };
+
+      this.locationService.createLocation(createDto).subscribe({
+        next: () => {
+          this.successMessage = '✅ Location created successfully!';
+          this.loadlocations();
+          this.reset();
+          this.autoClearMessage();
+        },
+        error: err => console.error('Failed to create Location', err)
+      });
     }
+  }
 
-    if (this.locationForm.invalid) {
-      if (this.locationForm.get('name')?.hasError('duplicateLocation')) {
-        this.toastr.error('A location with this Name and Type already exists.', 'Duplicate Entry');
-      } else {
-        this.toastr.warning('Please fill in all required fields and ensure valid inputs.', 'Validation Error');
-      }
-      return;
-    }
+  deleteConfirmed(): void {
+    if (!this.LocationToDelete) return;
 
-    this.loading = true;
-
-    const newLocation: CreateLocationDto = {
-      name: this.locationForm.value.name,
-      type: this.locationForm.value.type,
-      address: this.locationForm.value.address || undefined,
-    };
-
-    this.locationService.createLocation(newLocation).pipe(
-      catchError(error => {
-        this.toastr.error(error.message || 'Failed to create location.', 'Creation Failed');
-        console.error('Creation error:', error);
-        return of(null);
-      }),
-      finalize(() => this.loading = false)
-    ).subscribe(createdLocation => {
-      if (createdLocation) {
-        this.toastr.success(`Location "${createdLocation.name}" created successfully!`, 'Success');
-        this.locationForm.reset();
-        this.locationForm.patchValue({
-          name: '',
-          type: 'City',
-          address: ''
-        });
-        this.fetchLocations();
-      }
+    this.locationService.deleteLocation(this.LocationToDelete.locationId).subscribe({
+      next: () => {
+        this.loadlocations();
+        this.showDeleteConfirmModal = false;
+        this.LocationToDelete = null;
+        this.successMessage = '🗑️ Location deleted successfully!';
+        this.autoClearMessage();
+      },
+      error: err => console.error('Failed to delete Location', err)
     });
+  }
+
+
+  delete(id: number): void {
+    this.locationService.deleteLocation(id).subscribe({
+      next: () => this.loadlocations(),
+      error: err => console.error('Failed to delete Location', err)
+    });
+  }
+
+  reset(): void {
+    this.selectedLocation = this.getEmptyLocation();
+  }
+
+  getEmptyLocation(): LocationDto {
+    return {
+      locationId: 0,
+      locationCode: '',
+      name: '',
+      type: '',
+      address: '',
+      createdAt: '',
+      lastModifiedAt: '',
+      createdBy: '',
+      lastModifiedBy: ''
+    };
+  }
+
+  autoClearMessage(): void {
+    setTimeout(() => {
+      this.ngZone.run(() => {
+        this.successMessage = '';
+      });
+    }, 3000);
+  }
+
+  goToNextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+    }
+  }
+
+  goToPreviousPage(): void {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+    }
+  }
+
+  get pages(): number[] {
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  }
+
+  goToPage(page: number): void {
+    this.currentPage = page;
+  }
+
+
+  sortBy(field: keyof Location): void {
+    if (this.sortField === field) {
+      this.sortAsc = !this.sortAsc;
+    } else {
+      this.sortField = field;
+      this.sortAsc = true;
+    }
   }
 }
