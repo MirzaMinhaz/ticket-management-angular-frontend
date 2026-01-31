@@ -170,3 +170,26 @@ export interface TicketCreateRequest {
 export interface TicketUpdateRequest extends TicketCreateRequest {
   id: number;
 }
+
+
+export interface RouteDto {
+  id: number;
+  departureLocationCode: string;
+  destinationLocationCode: string;
+  routeName: string;
+  estimatedDurationHours: number;
+}
+
+export interface CreateRouteDto {
+  departureLocationCode: string;
+  destinationLocationCode: string;
+  routeName: string;
+  estimatedDurationHours: number;
+}
+
+export interface UpdateRouteDto {
+  departureLocationCode: string;
+  destinationLocationCode: string;
+  routeName: string;
+  estimatedDurationHours: number;
+}

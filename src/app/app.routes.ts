@@ -9,6 +9,7 @@ import { VehicleComponent } from './components/vehicles/vehicles'; // ✅ Path: 
 import { OperatorComponent } from './components/operators/operators';
 import { SeatBookingComponent } from './components/seat-booking/seat-booking.component';
 import { TicketComponent } from './components/ticket/ticket.component';
+import { RoutesComponent } from './components/routes/routes.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -18,6 +19,7 @@ export const routes: Routes = [
   { path: 'ticket-counters/edit/:id', component: TicketCounterEntryComponent },
   { path: 'vehicles', component: VehicleComponent }, // ✅ Added Vehicle route
   { path: 'operators', component: OperatorComponent },
+  { path: 'routes', component: RoutesComponent },
   // { path: 'seat-booking', component: SeatBookingComponent },
   // { path: 'seat-booking/:vehicleId', component: SeatBookingComponent },
   { path: 'seat-booking/:vehicleId', component: SeatBookingComponent },

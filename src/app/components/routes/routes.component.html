@@ -1,0 +1,48 @@
+<div class="router-container">
+    <h2>Add Route</h2>
+
+    <form [formGroup]="routeForm" class="form-grid">
+
+        <div class="form-group">
+            <label for="departureLocation">Departure Location:</label>
+            <select formControlName="departureLocation" id="departureLocation" required>
+                <option value="" disabled selected>Select Location</option>
+                <option *ngFor="let loc of locations" [value]="loc.locationCode">
+                    {{ loc.name }}
+                </option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="destinationLocation">Destination Location:</label>
+            <select formControlName="destinationLocation" id="destinationLocation" required>
+                <option value="" disabled selected>Select Location</option>
+                <option *ngFor="let loc of locations" [value]="loc.locationCode">
+                    {{ loc.name }}
+                </option>
+            </select>
+        </div>
+
+
+        <div class="form-group">
+            <label for="routeName">Route Name:</label>
+            <input id="routeName" formControlName="routeName" readonly />
+        </div>
+
+
+        <div class="form-group">
+            <label for="estimatedDurationHours">Estimated Duration (Hours):</label>
+            <input id="estimatedDurationHours" type="number" formControlName="estimatedDurationHours" step="0.1" min="0"
+                placeholder="e.g. 2.5" />
+        </div>
+
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-save">Save</button>
+            <button type="button" class="btn btn-clear" (click)="reset()">Clear</button>
+        </div>
+
+
+    </form>
+
+</div>
