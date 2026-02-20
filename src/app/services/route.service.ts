@@ -23,14 +23,24 @@ export class RouteService {
   }
 
 
+  // createRoute(createDto: CreateRouteDto): Observable<RouteDto> {
+  //   return this.http.post<RouteDto>(this.apiUrl, createDto);
+  // }
+
   createRoute(createDto: CreateRouteDto): Observable<RouteDto> {
-    return this.http.post<RouteDto>(this.apiUrl, createDto);
-  }
+  return this.http.post<RouteDto>(`${this.apiUrl}/create`, createDto);
+}
+
 
   // ID type is string based on your DTOs
-  updateRoute(id: number, updateDto: UpdateRouteDto): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${id}`, updateDto);
-  }
+  // updateRoute(id: number, updateDto: UpdateRouteDto): Observable<any> {
+  //   return this.http.put(`${this.apiUrl}/${id}`, updateDto);
+  // }
+
+  updateRoute(id: number, updateDto: UpdateRouteDto) {
+  return this.http.put(`${this.apiUrl}/${id}`, updateDto);
+}
+
 
   // ID type is string based on your DTOs
   deleteRoute(id: number): Observable<any> {

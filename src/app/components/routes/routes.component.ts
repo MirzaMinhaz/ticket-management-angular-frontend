@@ -40,14 +40,14 @@ export class RoutesComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-  this.loadRoutes();
+    this.loadRoutes();
 
     this.routeForm = this.fb.group({
       departureLocation: ['', Validators.required],
       destinationLocation: ['', Validators.required],
       routeName: [{ value: '', disabled: true }, Validators.required],
       estimatedDurationHours: ['', [Validators.required, Validators.min(0)]]
-      
+
     });
 
     this.routeForm.valueChanges.subscribe(val => {
@@ -65,7 +65,7 @@ export class RoutesComponent implements OnInit {
     this.loadLocations();
   }
 
-      loadRoutes(): void {
+  loadRoutes(): void {
     this.routeService.getAllRoutes().subscribe({
       next: data => this.routes = data,
       error: err => console.error('Failed to load routes', err)
@@ -82,20 +82,30 @@ export class RoutesComponent implements OnInit {
 
 
   openModal(route: RouteDto): void {
-      this.selectedRoute = { ...route };
-      this.showModal = true;
-    }
-  
-    closeModal(): void {
-      this.showModal = false;
-      this.reset();
-    }
+    this.selectedRoute = { ...route };
+    this.showModal = true;
+  }
+
+  closeModal(): void {
+    this.showModal = false;
+    this.reset();
+  }
+
+  errorMessage: string = '';
 
 
   save(): void {
+
+    const formValue = this.routeForm.getRawValue();
+
+    this.selectedRoute.departureLocationCode = formValue.departureLocation;
+    this.selectedRoute.destinationLocationCode = formValue.destinationLocation;
+    this.selectedRoute.routeName = formValue.routeName;
+    this.selectedRoute.estimatedDurationHours = formValue.estimatedDurationHours;
+
     if (this.selectedRoute.id > 0) {
       const updateDto: UpdateRouteDto = {
-        departureLocationCode: this.selectedRoute.destinationLocationCode,
+        departureLocationCode: this.selectedRoute.departureLocationCode,
         destinationLocationCode: this.selectedRoute.destinationLocationCode,
         routeName: this.selectedRoute.routeName,
         estimatedDurationHours: this.selectedRoute.estimatedDurationHours
@@ -127,25 +137,28 @@ export class RoutesComponent implements OnInit {
       this.routeService.createRoute(createDto).subscribe({
         next: () => {
           this.successMessage = '✅ Route created successfully!';
+          this.errorMessage = ''; // clear error
           this.loadRoutes();
           this.reset();
           this.autoClearMessage();
-        },
-        error: err => console.error('Failed to create route', err)
+        }, error: err => {
+          console.error('Failed to create route', err);
+          this.errorMessage = err.error?.message || '❌ Failed to create route.';
+        }
       });
     }
   }
 
 
   reset(): void {
-  this.selectedRoute = this.getEmptyRoute();
-  this.routeForm.reset({
-    departureLocation: '',
-    destinationLocation: '',
-    routeName: '',
-    estimatedDurationHours: ''
-  });
-}
+    this.selectedRoute = this.getEmptyRoute();
+    this.routeForm.reset({
+      departureLocation: '',
+      destinationLocation: '',
+      routeName: '',
+      estimatedDurationHours: ''
+    });
+  }
 
 
   getEmptyRoute(): RouteDto {

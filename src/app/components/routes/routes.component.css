@@ -99,3 +99,16 @@ select:focus {
     flex-direction: column;
   }
 }
+
+.error-message {
+  color: red;
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.success-message {
+  color: green;
+  margin-top: 10px;
+  font-weight: bold;
+}
+

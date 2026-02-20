@@ -1,7 +1,8 @@
 <div class="router-container">
     <h2>Add Route</h2>
 
-    <form [formGroup]="routeForm" class="form-grid">
+    <form [formGroup]="routeForm" (ngSubmit)="save()" class="form-grid">
+
 
         <div class="form-group">
             <label for="departureLocation">Departure Location:</label>
@@ -41,6 +42,11 @@
             <button type="submit" class="btn btn-save">Save</button>
             <button type="button" class="btn btn-clear" (click)="reset()">Clear</button>
         </div>
+
+        <div *ngIf="errorMessage" class="error-message">
+            {{ errorMessage }}
+        </div>
+        <div *ngIf="successMessage" class="success-message"> {{ successMessage }} </div>
 
 
     </form>
