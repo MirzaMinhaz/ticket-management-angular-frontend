@@ -144,6 +144,7 @@ export class RoutesComponent implements OnInit {
         }, error: err => {
           console.error('Failed to create route', err);
           this.errorMessage = err.error?.message || '❌ Failed to create route.';
+          setTimeout(() => { this.errorMessage = ''; }, 2000);
         }
       });
     }

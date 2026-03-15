@@ -19,7 +19,9 @@
     <button type="submit" [disabled]="operatorForm.invalid || loading">Create</button>
   </form>
 
-  <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
   <div *ngIf="successMessage" class="success">{{ successMessage }}</div>
 
   <h2>Operator List</h2>

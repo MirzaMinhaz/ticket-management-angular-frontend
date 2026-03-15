@@ -92,14 +92,14 @@ export class LocationsListComponent implements OnInit {
 
   save(): void {
 
-    if (this.selectedLocation.locationId > 0) {
+    if (this.selectedLocation.id > 0) {
       const updateDto: UpdateLocationDto = {
         name: this.selectedLocation.name,
         type: this.selectedLocation.type,
         address: this.selectedLocation.address
       };
 
-      this.locationService.updateLocation(this.selectedLocation.locationId, updateDto).subscribe({
+      this.locationService.updateLocation(this.selectedLocation.id, updateDto).subscribe({
         next: () => {
           this.modalSuccessMessage = '✅ Location updated successfully!';
           this.loadlocations();
@@ -136,7 +136,7 @@ export class LocationsListComponent implements OnInit {
   deleteConfirmed(): void {
     if (!this.LocationToDelete) return;
 
-    this.locationService.deleteLocation(this.LocationToDelete.locationId).subscribe({
+    this.locationService.deleteLocation(this.LocationToDelete.id).subscribe({
       next: () => {
         this.loadlocations();
         this.showDeleteConfirmModal = false;
@@ -162,7 +162,7 @@ export class LocationsListComponent implements OnInit {
 
   getEmptyLocation(): LocationDto {
     return {
-      locationId: 0,
+      id: 0,
       locationCode: '',
       name: '',
       type: '',

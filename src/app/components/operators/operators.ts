@@ -66,18 +66,40 @@ export class OperatorComponent implements OnInit {
     this.loading = true;
     this.operatorService.create(createPayload).subscribe({
       next: () => {
-        this.successMessage = 'Operator created successfully!';
+        this.successMessage = '✅ Operator created successfully!';
+        this.errorMessage = ''; // clear any old error
         this.operatorForm.reset();
         this.loadOperators();
         this.loading = false;
+
+        // ✅ Auto-clear success after 3 seconds
+        setTimeout(() => {
+          this.successMessage = '';
+        }, 3000);
       },
       error: (err: any) => {
         console.error('Create error:', err);
-        this.errorMessage = 'Failed to create operator.';
+
+        if (typeof err.error === 'string') {
+          // backend returned plain string
+          this.errorMessage = err.error;
+        } else {
+          // backend returned JSON { message: "..." }
+          this.errorMessage = err.error?.message || '❌ Failed to create operator.';
+        }
+
         this.loading = false;
+
+        setTimeout(() => {
+          this.errorMessage = '';
+        }, 3000);
       }
+
+
+
     });
   }
+
 
   openEditModal(op: OperatorDto): void {
     this.selectedOperatorId = op.id;

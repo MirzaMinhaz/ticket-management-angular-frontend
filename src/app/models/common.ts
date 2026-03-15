@@ -1,7 +1,7 @@
 // src/app/models/common.ts
 
 export interface LocationDto {
-  locationId: number; // Confirmed: string ID for Location
+  id: number;
   locationCode: string;
   name: string;
   type: string;
@@ -56,6 +56,49 @@ export interface UpdateVehicleDto {
   capacity: number;
   isActive: boolean;
 }
+
+export interface TicketDto {
+  id: number;
+  passengerName: string;
+  passengerContact: string;
+  seatNumber: string;
+  farePaid: number;
+  bookingDateTime: string; // ISO string from backend
+  bookingCounterId: string;
+  departureCounterId: string;
+  arrivalCounterId: string;
+
+  // Optional metadata
+  createdAt: string;
+  lastModifiedAt?: string;
+  createdBy: string;
+  lastModifiedBy?: string;
+}
+
+export interface CreateTicketDto {
+  passengerName: string;
+  passengerContact: string;
+  seatNumber: string;
+  farePaid: number;
+  bookingDateTime: string; // ISO string
+  bookingCounterId: string;
+  departureCounterId: string;
+  arrivalCounterId: string;
+  // createdBy is usually set by backend (current user/session)
+}
+
+export interface UpdateTicketDto {
+  passengerName: string;
+  passengerContact: string;
+  seatNumber: string;
+  farePaid: number;
+  bookingDateTime: string; // ISO string
+  bookingCounterId: string;
+  departureCounterId: string;
+  arrivalCounterId: string;
+  // lastModifiedBy is typically set by backend
+}
+
 
 
 export interface TicketCounterDto {
@@ -193,3 +236,42 @@ export interface UpdateRouteDto {
   routeName: string;
   estimatedDurationHours: number;
 }
+
+export interface CreateScheduleDto {
+  routeId: number;
+  vehicleId: number;
+  departureDateTime: string;
+  arrivalDateTime: string;
+  baseFare: number;
+  status: string;
+}
+
+export interface UpdateScheduleDto {
+  routeId: number;
+  vehicleId: number;
+  departureDateTime: string;
+  arrivalDateTime: string;
+  baseFare: number;
+  status: string;
+}
+
+export interface ScheduleDto {
+  id: number;
+  routeId: number;
+  vehicleId: number;
+  departureDateTime: string;
+  arrivalDateTime: string;
+  baseFare: number;
+  status: string;
+  scheduleCode: string;
+  createdAt: string;
+  createdBy: string;
+  lastModifiedAt?: string;
+  lastModifiedBy?: string;
+  routeName?: string;
+  vehicleName?: string;
+}
+
+
+
+

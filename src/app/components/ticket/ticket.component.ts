@@ -1,204 +1,259 @@
-// src/app/features/ticket/ticket.component.ts
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import {
-  ReactiveFormsModule,
-  FormsModule,
-  FormBuilder,
-  FormGroup,
-  Validators
-} from '@angular/forms';
-import { finalize } from 'rxjs/operators';
-
-import { TicketService } from '../../services/ticket.service';
-import { Ticket } from '../../models/common';
+  TicketDto,
+  RouteDto,
+  Vehicle,
+  OperatorDto,
+  ScheduleDto
+} from '../../models/common';
+import { RouteService } from '../../services/route.service';
+import { VehicleService } from '../../services/vehicle.service';
+import { OperatorService } from '../../services/operators.service';
+import { ScheduleService } from '../../services/schedule.service';
 
 @Component({
   selector: 'app-ticket',
-  standalone: true, // <-- standalone component
-  imports: [
-    CommonModule,        // gives *ngFor, *ngIf, date pipe, number pipe
-    FormsModule,         // template-driven forms if needed
-    ReactiveFormsModule  // reactive forms (formGroup, formControlName)
-  ],
+  standalone: true,
+  imports: [CommonModule, FormsModule],
   templateUrl: './ticket.component.html',
   styleUrls: ['./ticket.component.css']
 })
 export class TicketComponent implements OnInit {
-  tickets: Ticket[] = [];
-  loading = false;
-  saving = false;
-  editingId: number | null = null;
+  tickets: TicketDto[] = [];
+  paginatedTickets: TicketDto[] = [];
+  selectedTicket: TicketDto = this.emptyTicket();
 
-  statusOptions = ['Booked', 'Cancelled', 'Completed', 'Pending'];
+  // Inherited schedule fields
+  routes: RouteDto[] = [];
+  vehicles: Vehicle[] = [];
+  operators: OperatorDto[] = [];
+  schedules: ScheduleDto[] = [];
 
-  // In real UI, these IDs should be loaded via services and shown as dropdowns
-  scheduleOptions: { id: number; code: string }[] = [];
-  counterOptions: { id: number; name: string }[] = [];
-  userOptions: { id: number; name: string }[] = [];
+  selectedRouteCode: string = '';
+  selectedVehicleCode: string = '';
+  selectedDepartureDateTime: string = '';
+  selectedArrivalDateTime: string = '';
+  selectedBaseFare: number = 0;
 
-  form!: FormGroup;
-  filterForm!: FormGroup;
+  availableVehicles: Vehicle[] = [];
 
-  constructor(private fb: FormBuilder, private ticketService: TicketService) {}
+  successMessage: string | null = null;
+  modalSuccessMessage: string | null = null;
+
+  showModal = false;
+  showDeleteConfirmModal = false;
+  ticketToDelete: TicketDto | null = null;
+
+  // Pagination
+  currentPage = 1;
+  itemsPerPage = 5;
+  totalPages = 1;
+  pages: number[] = [];
+
+  constructor(
+    private ngZone: NgZone,
+    private routeService: RouteService,
+    private vehicleService: VehicleService,
+    private operatorService: OperatorService,
+    private scheduleService: ScheduleService
+  ) {}
 
   ngOnInit(): void {
-    // Initialize reactive forms
-    this.form = this.fb.group({
-      id: [null],
-      userId: [null, [Validators.required]],
-      scheduleId: [null, [Validators.required]],
-      seatCode: [null],
-      seatNumber: [null],
-      bookingCounterId: [null, [Validators.required]],
-      departureCounterId: [null, [Validators.required]],
-      arrivalCounterId: [null, [Validators.required]],
-      ticketCode: ['', [Validators.required, Validators.maxLength(32)]],
-      passengerName: ['', [Validators.required, Validators.maxLength(100)]],
-      passengerContact: ['', [Validators.required, Validators.maxLength(30)]],
-      farePaid: [0, [Validators.required, Validators.min(0)]],
-      bookingDateTime: ['', [Validators.required]],
-      status: ['Booked', [Validators.required]]
-    });
-
-    this.filterForm = this.fb.group({
-      status: [''],
-      scheduleId: [null],
-      passengerName: ['']
-    });
-
-    // Placeholder: load ref data via your services
-    this.scheduleOptions = [
-      { id: 1, code: 'SCH-001' },
-      { id: 2, code: 'SCH-002' }
-    ];
-    this.counterOptions = [
-      { id: 10, name: 'Gabtoli' },
-      { id: 20, name: 'Mohakhali' },
-      { id: 30, name: 'Sayedabad' }
-    ];
-    this.userOptions = [
-      { id: 100, name: 'Agent-100' },
-      { id: 101, name: 'Agent-101' }
-    ];
-
-    this.loadTickets();
+    this.loadRoutes();
+    this.loadVehicles();
+    this.loadOperators();
+    this.loadSchedules();
+    this.updatePagination();
   }
 
-  loadTickets(): void {
-    this.loading = true;
-    const filter = this.filterForm.value;
-    this.ticketService
-      .getTickets(filter)
-      .pipe(finalize(() => (this.loading = false)))
-      .subscribe({
-        next: (data) => (this.tickets = data),
-        error: (err) => console.error('Failed to load tickets', err)
-      });
+  // Load data
+  loadRoutes(): void {
+    this.routeService.getAllRoutes().subscribe({
+      next: data => this.routes = data,
+      error: err => console.error('Failed to load routes', err)
+    });
   }
 
-  resetForm(): void {
-    this.form.reset({
-      id: null,
-      userId: null,
-      scheduleId: null,
-      seatCode: null,
-      seatNumber: null,
-      bookingCounterId: null,
-      departureCounterId: null,
-      arrivalCounterId: null,
-      ticketCode: '',
+  loadVehicles(): void {
+    this.vehicleService.getAll().subscribe({
+      next: data => this.vehicles = data,
+      error: err => console.error('Failed to load vehicles', err)
+    });
+  }
+
+  loadOperators(): void {
+    this.operatorService.getAll().subscribe({
+      next: data => this.operators = data,
+      error: err => console.error('Failed to load operators', err)
+    });
+  }
+
+  loadSchedules(): void {
+    this.scheduleService.getAllSchedules().subscribe({
+      next: data => this.schedules = data,
+      error: err => console.error('Failed to load schedules', err)
+    });
+  }
+
+  getOperatorName(operatorCode: string | undefined): string {
+    if (!operatorCode) return '';
+    const op = this.operators.find(o => o.operatorCode === operatorCode);
+    return op ? op.name : '';
+  }
+
+  // Calculate arrival time based on route duration
+  calculateArrivalTime(): void {
+  if (!this.selectedDepartureDateTime || !this.selectedRouteCode) return;
+
+  const route = this.routes.find(r => r.id === Number(this.selectedRouteCode));
+  if (!route || !route.estimatedDurationHours) return;
+
+  const departure = new Date(this.selectedDepartureDateTime);
+  const arrival = new Date(departure.getTime() + route.estimatedDurationHours * 60 * 60 * 1000);
+
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  this.selectedArrivalDateTime = `${arrival.getFullYear()}-${pad(arrival.getMonth() + 1)}-${pad(arrival.getDate())}T${pad(arrival.getHours())}:${pad(arrival.getMinutes())}`;
+
+  // ✅ Fix: normalize schedule departure times
+  this.availableVehicles = this.vehicles.filter(v =>
+    this.schedules.some(s =>
+      s.routeId === Number(this.selectedRouteCode) &&
+      s.vehicleId === v.id &&
+      new Date(s.departureDateTime).getTime() === departure.getTime()
+    )
+  );
+}
+
+
+  // Fill base fare when vehicle is selected
+  fillBaseFare(): void {
+  const departure = new Date(this.selectedDepartureDateTime);
+
+  const schedule = this.schedules.find(s =>
+    s.routeId === Number(this.selectedRouteCode) &&
+    s.vehicleId === Number(this.selectedVehicleCode) &&
+    new Date(s.departureDateTime).getTime() === departure.getTime()
+  );
+
+  if (schedule) {
+    this.selectedBaseFare = schedule.baseFare;
+  }
+}
+
+
+  emptyTicket(): TicketDto {
+    return {
+      id: 0,
       passengerName: '',
       passengerContact: '',
+      seatNumber: '',
       farePaid: 0,
       bookingDateTime: '',
-      status: 'Booked'
-    });
-    this.editingId = null;
-  }
-
-  edit(ticket: Ticket): void {
-    this.form.patchValue({
-      id: ticket.id,
-      userId: ticket.userId,
-      scheduleId: ticket.scheduleId,
-      seatCode: ticket.seatCode,
-      seatNumber: ticket.seatNumber,
-      bookingCounterId: ticket.bookingCounterId,
-      departureCounterId: ticket.departureCounterId,
-      arrivalCounterId: ticket.arrivalCounterId,
-      ticketCode: ticket.ticketCode,
-      passengerName: ticket.passengerName,
-      passengerContact: ticket.passengerContact,
-      farePaid: ticket.farePaid,
-      bookingDateTime: ticket.bookingDateTime?.slice(0, 16), // for datetime-local
-      status: ticket.status
-    });
-    this.editingId = ticket.id;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  delete(ticket: Ticket): void {
-    if (!confirm(`Delete ticket ${ticket.ticketCode}?`)) return;
-    this.ticketService.deleteTicket(ticket.id).subscribe({
-      next: () => this.loadTickets(),
-      error: (err) => console.error('Delete failed', err)
-    });
-  }
-
-  submit(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
-    const value = this.form.value;
-    const payload = {
-      userId: Number(value.userId),
-      scheduleId: Number(value.scheduleId),
-      seatCode: value.seatCode ?? null,
-      seatNumber: value.seatNumber ?? null,
-      bookingCounterId: Number(value.bookingCounterId),
-      departureCounterId: Number(value.departureCounterId),
-      arrivalCounterId: Number(value.arrivalCounterId),
-      ticketCode: value.ticketCode,
-      passengerName: value.passengerName,
-      passengerContact: value.passengerContact,
-      farePaid: Number(value.farePaid),
-      bookingDateTime: this.toIso(value.bookingDateTime),
-      status: value.status
+      bookingCounterId: '',
+      departureCounterId: '',
+      arrivalCounterId: '',
+      createdAt: '',
+      createdBy: ''
     };
-
-    this.saving = true;
-
-    if (this.editingId) {
-      this.ticketService
-        .updateTicket({ id: this.editingId, ...payload })
-        .pipe(finalize(() => (this.saving = false)))
-        .subscribe({
-          next: () => {
-            this.resetForm();
-            this.loadTickets();
-          },
-          error: (err) => console.error('Update failed', err)
-        });
-    } else {
-      this.ticketService
-        .createTicket(payload)
-        .pipe(finalize(() => (this.saving = false)))
-        .subscribe({
-          next: () => {
-            this.resetForm();
-            this.loadTickets();
-          },
-          error: (err) => console.error('Create failed', err)
-        });
-    }
   }
 
-  private toIso(dtLocal: string): string {
-    // dtLocal from input[type=datetime-local] => 'YYYY-MM-DDTHH:mm'
-    if (!dtLocal) return new Date().toISOString();
-    const withSeconds = dtLocal.length === 16 ? `${dtLocal}:00` : dtLocal;
-    return withSeconds;
+  save(): void {
+    if (this.selectedTicket.id) {
+      const index = this.tickets.findIndex(t => t.id === this.selectedTicket.id);
+      if (index !== -1) {
+        this.tickets[index] = { ...this.selectedTicket };
+        this.modalSuccessMessage = 'Ticket updated successfully!';
+        setTimeout(() => {
+          this.modalSuccessMessage = null;
+          this.closeModal();
+        }, 1500);
+      }
+    } else {
+      this.selectedTicket.id = Date.now();
+      // Attach inherited schedule fields
+      this.selectedTicket.departureCounterId = this.selectedDepartureDateTime;
+      this.selectedTicket.arrivalCounterId = this.selectedArrivalDateTime;
+      this.selectedTicket.farePaid = this.selectedBaseFare;
+
+      this.tickets.push({ ...this.selectedTicket });
+      this.successMessage = 'Ticket added successfully!';
+      setTimeout(() => (this.successMessage = null), 2000);
+    }
+
+    this.reset();
+    this.updatePagination();
+  }
+
+  reset(): void {
+    this.selectedTicket = this.emptyTicket();
+    this.selectedRouteCode = '';
+    this.selectedVehicleCode = '';
+    this.selectedDepartureDateTime = '';
+    this.selectedArrivalDateTime = '';
+    this.selectedBaseFare = 0;
+    this.availableVehicles = [];
+  }
+
+  openModal(ticket: TicketDto): void {
+    this.selectedTicket = { ...ticket };
+    this.showModal = true;
+  }
+
+  closeModal(): void {
+    this.showModal = false;
+    this.selectedTicket = this.emptyTicket();
+  }
+
+  confirmDelete(ticket: TicketDto): void {
+    this.ticketToDelete = ticket;
+    this.showDeleteConfirmModal = true;
+  }
+
+  cancelDelete(): void {
+    this.showDeleteConfirmModal = false;
+    this.ticketToDelete = null;
+  }
+
+  deleteConfirmed(): void {
+    if (this.ticketToDelete) {
+      this.tickets = this.tickets.filter(t => t.id !== this.ticketToDelete!.id);
+      this.successMessage = 'Ticket deleted successfully!';
+      setTimeout(() => (this.successMessage = null), 2000);
+      this.updatePagination();
+    }
+    this.cancelDelete();
+  }
+
+  sortBy(field: keyof TicketDto): void {
+    this.tickets.sort((a, b) => {
+      const valA = a[field] ?? '';
+      const valB = b[field] ?? '';
+      return valA > valB ? 1 : valA < valB ? -1 : 0;
+    });
+    this.updatePagination();
+  }
+
+  updatePagination(): void {
+    this.totalPages = Math.ceil(this.tickets.length / this.itemsPerPage) || 1;
+    this.pages = Array.from({ length: this.totalPages }, (_, i) => i + 1);
+    this.goToPage(this.currentPage);
+  }
+
+  goToPage(page: number): void {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+    const start = (page - 1) * this.itemsPerPage;
+    const end = start + this.itemsPerPage;
+    this.paginatedTickets = this.tickets.slice(start, end);
+  }
+
+  goToPreviousPage(): void {
+    this.goToPage(this.currentPage - 1);
+  }
+
+  goToNextPage(): void {
+    this.goToPage(this.currentPage + 1);
   }
 }

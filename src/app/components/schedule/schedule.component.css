@@ -1,112 +1,90 @@
-/* Overall Container */
-.ticket-container {
-  max-width: 1100px;
+/* Container */
+.schedule-container {
+  max-width: 1000px;
   margin: 30px auto;
   padding: 25px;
   background: #ffffff;
   border-radius: 10px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   font-family: "Segoe UI", Arial, sans-serif;
-  animation: fadeInPage 0.6s ease-in-out;
-}
-
-@keyframes fadeInPage {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Page Title */
 .page-title {
   text-align: center;
-  font-size: 26px;
-  font-weight: 700;
+  font-size: 24px;
+  font-weight: bold;
   color: #0078d7;
-  margin-bottom: 25px;
-  position: relative;
-}
-.page-title::after {
-  content: "";
-  display: block;
-  width: 60px;
-  height: 3px;
-  background: #0078d7;
-  margin: 8px auto 0;
-  border-radius: 2px;
-  animation: slideIn 1s ease forwards;
-}
-@keyframes slideIn {
-  from { width: 0; opacity: 0; }
-  to { width: 60px; opacity: 1; }
+  margin-bottom: 20px;
 }
 
 /* Alerts */
-.alert {
-  padding: 12px 18px;
-  border-radius: 6px;
-  margin-bottom: 20px;
-  font-weight: 600;
-  opacity: 0;
-  animation: fadeIn 0.6s forwards;
-}
-.success-alert {
-  background-color: #e6ffed;
+.alert.success-alert {
+  background: #e6ffed;
   border: 1px solid #38a169;
   color: #2f855a;
-}
-@keyframes fadeIn {
-  to { opacity: 1; }
+  padding: 10px 15px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  font-weight: 600;
 }
 
 /* Card Section */
-.ticket-card {
+.schedule-card {
   margin-bottom: 25px;
 }
+
 .card-title {
-  font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 15px;
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 12px;
   color: #333;
 }
 
 /* Form Styling */
-.ticket-form {
+.schedule-form {
   background: #f9fafb;
   padding: 20px;
   border-radius: 8px;
   border: 1px solid #ddd;
 }
+
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 15px;
 }
+
 .form-group {
   display: flex;
   flex-direction: column;
 }
+
 .form-group label {
   font-weight: 600;
   margin-bottom: 6px;
   color: #444;
 }
+
 .form-group input,
-.form-group select {
+.form-group select,
+.form-group textarea {
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 6px;
-  transition: border 0.3s, box-shadow 0.3s, transform 0.2s;
+  transition: border 0.3s, box-shadow 0.3s;
 }
-.form-group input:hover,
-.form-group select:hover {
-  border-color: #0078d7;
-  box-shadow: 0 0 6px rgba(0,120,215,0.3);
-  transform: scale(1.02);
-}
+
 .form-group input:focus,
-.form-group select:focus {
+.form-group select:focus,
+.form-group textarea:focus {
   border-color: #0078d7;
   box-shadow: 0 0 4px rgba(0,120,215,0.4);
   outline: none;
+}
+
+.form-group.full-width {
+  grid-column: span 2;
 }
 
 /* Buttons */
@@ -115,6 +93,7 @@
   display: flex;
   gap: 12px;
 }
+
 .btn {
   padding: 10px 16px;
   border-radius: 6px;
@@ -124,65 +103,73 @@
   font-weight: 600;
   transition: background 0.3s, transform 0.2s;
 }
+
 .btn.primary {
   background: #0078d7;
   color: #fff;
 }
+
 .btn.primary:hover {
   background: #005a9e;
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
+
 .btn.secondary {
   background: #e2e8f0;
   color: #333;
 }
+
 .btn.secondary:hover {
   background: #cbd5e0;
-  transform: translateY(-2px);
 }
+
 .btn.delete {
   background: #e53e3e;
   color: #fff;
 }
+
 .btn.delete:hover {
   background: #c53030;
-  transform: translateY(-2px);
 }
+
 .btn.small {
   padding: 6px 12px;
   font-size: 12px;
 }
 
 /* Table Styling */
-.ticket-table {
+.schedule-table {
   width: 100%;
   border-collapse: collapse;
   background: #fff;
   border-radius: 6px;
   overflow: hidden;
 }
-.ticket-table th,
-.ticket-table td {
+
+.schedule-table th,
+.schedule-table td {
   border: 1px solid #ddd;
   padding: 10px;
   text-align: left;
 }
-.ticket-table th {
+
+.schedule-table th {
   background: #f1f5f9;
   cursor: pointer;
   font-weight: 600;
   color: #333;
-  transition: background 0.3s;
 }
-.ticket-table th:hover {
+
+.schedule-table th:hover {
   background: #e2e8f0;
 }
-.ticket-table tr:nth-child(even) {
+
+.schedule-table tr:nth-child(even) {
   background: #fafafa;
 }
-.ticket-table tr:hover {
-  background: #e6f7ff;
-  transform: scale(1.01);
+
+.schedule-table tr:hover {
+  background: #f0f9ff;
 }
 
 /* Pagination */
@@ -192,15 +179,7 @@
   gap: 6px;
   margin-top: 20px;
 }
-.page-btn {
-  border: 1px solid #ddd;
-  transition: transform 0.2s;
-}
-.page-btn:hover {
-  background: #0078d7;
-  color: #fff;
-  transform: translateY(-2px);
-}
+
 .page-btn.active {
   background: #0078d7;
   color: #fff;
@@ -219,6 +198,7 @@
   justify-content: center;
   z-index: 999;
 }
+
 .modal {
   background: #fff;
   padding: 25px;
@@ -226,22 +206,15 @@
   width: 520px;
   position: relative;
   box-shadow: 0 6px 20px rgba(0,0,0,0.2);
-  transform: translateY(-30px);
-  opacity: 0;
-  animation: modalIn 0.4s forwards;
 }
-@keyframes modalIn {
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
+
 .modal-title {
   margin-bottom: 15px;
   font-size: 20px;
   font-weight: 700;
   color: #333;
 }
+
 .modal-close {
   position: absolute;
   top: 12px;
@@ -251,12 +224,12 @@
   font-size: 22px;
   cursor: pointer;
   color: #666;
-  transition: color 0.3s, transform 0.2s;
 }
+
 .modal-close:hover {
   color: #000;
-  transform: rotate(90deg);
 }
+
 .modal-alert {
   margin-bottom: 10px;
 }
@@ -265,6 +238,7 @@
 .delete-modal {
   max-width: 400px;
 }
+
 .delete-message {
   margin-bottom: 15px;
   font-size: 14px;
