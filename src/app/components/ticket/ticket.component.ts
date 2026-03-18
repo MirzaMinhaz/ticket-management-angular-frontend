@@ -6,7 +6,8 @@ import {
   RouteDto,
   Vehicle,
   OperatorDto,
-  ScheduleDto
+  ScheduleDto,
+  SeatDto
 } from '../../models/common';
 import { RouteService } from '../../services/route.service';
 import { VehicleService } from '../../services/vehicle.service';
@@ -25,7 +26,6 @@ export class TicketComponent implements OnInit {
   paginatedTickets: TicketDto[] = [];
   selectedTicket: TicketDto = this.emptyTicket();
 
-  // Inherited schedule fields
   routes: RouteDto[] = [];
   vehicles: Vehicle[] = [];
   operators: OperatorDto[] = [];
@@ -33,8 +33,9 @@ export class TicketComponent implements OnInit {
 
   selectedRouteCode: string = '';
   selectedVehicleCode: string = '';
-  selectedDepartureDateTime: string = '';
-  selectedArrivalDateTime: string = '';
+  selectedDepartureDate: string = '';
+  selectedArrivalDate: string = '';
+  todayString: string = '';
   selectedBaseFare: number = 0;
 
   availableVehicles: Vehicle[] = [];
@@ -46,11 +47,17 @@ export class TicketComponent implements OnInit {
   showDeleteConfirmModal = false;
   ticketToDelete: TicketDto | null = null;
 
-  // Pagination
   currentPage = 1;
   itemsPerPage = 5;
   totalPages = 1;
   pages: number[] = [];
+
+  // 🔹 Seat Booking State
+  seatBookingBusId: number | null = null;
+  seats: SeatDto[] = [];
+  seatMap: Record<string, SeatDto> = {};
+  selectedSeats: SeatDto[] = [];
+  rows: string[] = [];
 
   constructor(
     private ngZone: NgZone,
@@ -66,6 +73,10 @@ export class TicketComponent implements OnInit {
     this.loadOperators();
     this.loadSchedules();
     this.updatePagination();
+
+    const today = new Date();
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    this.todayString = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
   }
 
   // Load data
@@ -103,45 +114,32 @@ export class TicketComponent implements OnInit {
     return op ? op.name : '';
   }
 
-  // Calculate arrival time based on route duration
-  calculateArrivalTime(): void {
-  if (!this.selectedDepartureDateTime || !this.selectedRouteCode) return;
+  calculateArrivalDate(): void {
+    if (!this.selectedDepartureDate || !this.selectedRouteCode) return;
 
-  const route = this.routes.find(r => r.id === Number(this.selectedRouteCode));
-  if (!route || !route.estimatedDurationHours) return;
+    const route = this.routes.find(r => r.id === Number(this.selectedRouteCode));
+    if (!route || !route.estimatedDurationHours) return;
 
-  const departure = new Date(this.selectedDepartureDateTime);
-  const arrival = new Date(departure.getTime() + route.estimatedDurationHours * 60 * 60 * 1000);
+    const departureDate = new Date(this.selectedDepartureDate);
+    const arrivalDate = new Date(departureDate.getTime() + route.estimatedDurationHours * 60 * 60 * 1000);
 
-  const pad = (n: number) => n.toString().padStart(2, '0');
-  this.selectedArrivalDateTime = `${arrival.getFullYear()}-${pad(arrival.getMonth() + 1)}-${pad(arrival.getDate())}T${pad(arrival.getHours())}:${pad(arrival.getMinutes())}`;
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    this.selectedArrivalDate = `${arrivalDate.getFullYear()}-${pad(arrivalDate.getMonth() + 1)}-${pad(arrivalDate.getDate())}`;
 
-  // ✅ Fix: normalize schedule departure times
-  this.availableVehicles = this.vehicles.filter(v =>
-    this.schedules.some(s =>
-      s.routeId === Number(this.selectedRouteCode) &&
-      s.vehicleId === v.id &&
-      new Date(s.departureDateTime).getTime() === departure.getTime()
-    )
-  );
-}
-
-
-  // Fill base fare when vehicle is selected
-  fillBaseFare(): void {
-  const departure = new Date(this.selectedDepartureDateTime);
-
-  const schedule = this.schedules.find(s =>
-    s.routeId === Number(this.selectedRouteCode) &&
-    s.vehicleId === Number(this.selectedVehicleCode) &&
-    new Date(s.departureDateTime).getTime() === departure.getTime()
-  );
-
-  if (schedule) {
-    this.selectedBaseFare = schedule.baseFare;
+    this.availableVehicles = this.vehicles.filter(v =>
+      this.schedules.some(s => s.routeId === Number(this.selectedRouteCode) && s.vehicleId === v.id)
+    );
   }
-}
 
+  fillBaseFare(): void {
+    const schedule = this.schedules.find(s =>
+      s.routeId === Number(this.selectedRouteCode) &&
+      s.vehicleId === this.vehicles.find(v => v.vehicleCode === this.selectedVehicleCode)?.id
+    );
+    if (schedule) {
+      this.selectedBaseFare = schedule.baseFare;
+    }
+  }
 
   emptyTicket(): TicketDto {
     return {
@@ -172,9 +170,8 @@ export class TicketComponent implements OnInit {
       }
     } else {
       this.selectedTicket.id = Date.now();
-      // Attach inherited schedule fields
-      this.selectedTicket.departureCounterId = this.selectedDepartureDateTime;
-      this.selectedTicket.arrivalCounterId = this.selectedArrivalDateTime;
+      this.selectedTicket.departureCounterId = this.selectedDepartureDate;
+      this.selectedTicket.arrivalCounterId = this.selectedArrivalDate;
       this.selectedTicket.farePaid = this.selectedBaseFare;
 
       this.tickets.push({ ...this.selectedTicket });
@@ -190,10 +187,14 @@ export class TicketComponent implements OnInit {
     this.selectedTicket = this.emptyTicket();
     this.selectedRouteCode = '';
     this.selectedVehicleCode = '';
-    this.selectedDepartureDateTime = '';
-    this.selectedArrivalDateTime = '';
+    this.selectedDepartureDate = '';
+    this.selectedArrivalDate = '';
     this.selectedBaseFare = 0;
     this.availableVehicles = [];
+    this.seatBookingBusId = null;
+    this.seats = [];
+    this.selectedSeats = [];
+    this.rows = [];
   }
 
   openModal(ticket: TicketDto): void {
@@ -256,4 +257,156 @@ export class TicketComponent implements OnInit {
   goToNextPage(): void {
     this.goToPage(this.currentPage + 1);
   }
+
+  getDepartureTimeForVehicle(vehicleId: number): string {
+    const schedule = this.schedules.find(
+      s => s.vehicleId === vehicleId && s.routeId === Number(this.selectedRouteCode)
+    );
+    if (!schedule) return '';
+    return new Date(schedule.departureDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+    getArrivalTimeForVehicle(vehicleId: number): string {
+    const schedule = this.schedules.find(
+      s => s.vehicleId === vehicleId && s.routeId === Number(this.selectedRouteCode)
+    );
+    return schedule
+      ? new Date(schedule.arrivalDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      : '';
+  }
+
+  getBaseFareForVehicle(vehicleId: number): number | null {
+    const schedule = this.schedules.find(
+      s => s.vehicleId === vehicleId && s.routeId === Number(this.selectedRouteCode)
+    );
+    return schedule ? schedule.baseFare : null;
+  }
+
+  getSeatsForVehicle(vehicleId: number): number | null {
+    const vehicle = this.vehicles.find(v => v.id === vehicleId);
+    return vehicle ? vehicle.capacity : null;
+  }
+
+  openDatePicker(event: FocusEvent): void {
+    const input = event.target as HTMLInputElement;
+    if (input && typeof input.showPicker === 'function') {
+      input.showPicker();
+    }
+  }
+
+  getSeatClass(vehicleId: any): string {
+    const seats = this.getSeatsForVehicle(vehicleId);
+    if (seats === null || seats === undefined) {
+      return 'high';
+    }
+    return seats < 5 ? 'low' : 'high';
+  }
+
+  // 🔹 Seat Booking Methods
+  toggleSeatBooking(vehicleId: number): void {
+    if (this.seatBookingBusId === vehicleId) {
+      // collapse if already open
+      this.seatBookingBusId = null;
+      this.seats = [];
+      this.selectedSeats = [];
+      this.rows = [];
+    } else {
+      this.seatBookingBusId = vehicleId;
+      const vehicle = this.vehicles.find(v => v.id === vehicleId);
+      if (vehicle) {
+        this.generateSeats(vehicle.capacity ?? 40);
+      }
+    }
+  }
+
+  private generateSeats(capacity: number): void {
+    const seats: SeatDto[] = [];
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let count = 0;
+
+    for (let r = 0; count < capacity && r < alphabet.length; r++) {
+      const row = alphabet[r];
+      for (let c = 1; c <= 4 && count < capacity; c++) {
+        count++;
+        seats.push({
+          id: count,
+          seatNumber: `${row}${c}`,
+          seatCode: `${row}${c}`,
+          isBooked: false,
+          status: 'available'
+        });
+      }
+    }
+
+    if (capacity % 2 !== 0) {
+      const idx = seats.findIndex(s => s.seatNumber === 'A1');
+      if (idx !== -1) seats.splice(idx, 1);
+    }
+
+    if (seats.length) {
+      const lastRow = seats[seats.length - 1].seatNumber.charAt(0);
+      const lastRowSeats = seats.filter(s => s.seatNumber.charAt(0) === lastRow);
+      const existingCols = new Set(lastRowSeats.map(s => parseInt(s.seatNumber.substring(1), 10)));
+      for (let c = 1; c <= 4; c++) {
+        if (!existingCols.has(c)) {
+          count++;
+          seats.push({
+            id: count,
+            seatNumber: `${lastRow}${c}`,
+            seatCode: `${lastRow}${c}`,
+            isBooked: false,
+            status: 'available'
+          });
+        }
+      }
+    }
+
+    this.seats = seats;
+    this.prepareSeatMap(seats);
+  }
+
+  private prepareSeatMap(seats: SeatDto[]): void {
+    seats.sort((a, b) => {
+      const ra = a.seatNumber.charAt(0);
+      const rb = b.seatNumber.charAt(0);
+      if (ra !== rb) return ra.charCodeAt(0) - rb.charCodeAt(0);
+      return parseInt(a.seatNumber.substring(1), 10) - parseInt(b.seatNumber.substring(1), 10);
+    });
+
+    this.rows = Array.from(new Set(seats.map(s => s.seatNumber.charAt(0))));
+    this.seatMap = {};
+    for (const s of seats) {
+      this.seatMap[s.seatNumber] = s;
+    }
+  }
+
+  getSeatByPosition(row: string, col: number): SeatDto | undefined {
+    return this.seatMap?.[`${row}${col}`];
+  }
+
+  toggleSeat(seat: SeatDto): void {
+    if (!seat || seat.status === 'reserved') return;
+
+    if (seat.status === 'selected') {
+      seat.status = 'available';
+      this.selectedSeats = this.selectedSeats.filter(s => s.id !== seat.id);
+    } else {
+      seat.status = 'selected';
+      this.selectedSeats = [...this.selectedSeats, seat];
+    }
+  }
+
+  clearSelection(): void {
+    this.selectedSeats.forEach(s => (s.status = 'available'));
+    this.selectedSeats = [];
+  }
+
+  confirmBooking(): void {
+    if (!this.selectedSeats.length) return;
+    this.selectedSeats.forEach(s => (s.status = 'reserved'));
+    this.selectedSeats = [];
+  }
+
+  trackRow(index: number, row: string) { return row; }
+  trackCol(index: number, col: number) { return col; }
 }

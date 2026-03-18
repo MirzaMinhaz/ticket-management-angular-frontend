@@ -37,23 +37,15 @@
         <!-- Departure Time -->
         <div class="form-group">
           <label for="departureTime">Departure Time</label>
-          <input [(ngModel)]="selectedSchedule.departureDateTime"
-                 name="departureTime"
-                 id="departureTime"
-                 type="time"
-                 required
-                 (change)="calculateArrivalTime()" />
+          <input [(ngModel)]="selectedSchedule.departureDateTime" name="departureTime" id="departureTime" type="time"
+            required (change)="calculateArrivalTime()" />
         </div>
 
         <!-- Arrival Time -->
         <div class="form-group">
           <label for="arrivalTime">Arrival Time</label>
-          <input [(ngModel)]="selectedSchedule.arrivalDateTime"
-                 name="arrivalTime"
-                 id="arrivalTime"
-                 type="time"
-                 required
-                 readonly />
+          <input [(ngModel)]="selectedSchedule.arrivalDateTime" name="arrivalTime" id="arrivalTime" type="time" required
+            readonly />
         </div>
 
         <!-- Base Fare -->
@@ -131,7 +123,8 @@
           <!-- Route -->
           <div class="form-group">
             <label for="edit-route">Route</label>
-            <select [(ngModel)]="selectedRouteCode" name="editRoute" id="edit-route" required (change)="calculateArrivalTime()">
+            <select [(ngModel)]="selectedRouteCode" name="editRoute" id="edit-route" required
+              (change)="calculateArrivalTime()">
               <option value="" disabled selected>Select Route</option>
               <option *ngFor="let r of routes" [value]="r.id">
                 {{ r.routeName }}
@@ -153,29 +146,22 @@
           <!-- Departure Time -->
           <div class="form-group">
             <label for="edit-departureTime">Departure Time</label>
-            <input [(ngModel)]="selectedSchedule.departureDateTime"
-                   name="editDepartureTime"
-                   id="edit-departureTime"
-                   type="time"
-                   required
-                   (change)="calculateArrivalTime()" />
+            <input [(ngModel)]="selectedSchedule.departureDateTime" name="editDepartureTime" id="edit-departureTime"
+              type="time" required (change)="calculateArrivalTime()" />
           </div>
 
           <!-- Arrival Time -->
           <div class="form-group">
             <label for="edit-arrivalTime">Arrival Time</label>
-            <input [(ngModel)]="selectedSchedule.arrivalDateTime"
-                   name="editArrivalTime"
-                   id="edit-arrivalTime"
-                   type="time"
-                   required
-                   readonly />
+            <input [(ngModel)]="selectedSchedule.arrivalDateTime" name="editArrivalTime" id="edit-arrivalTime"
+              type="time" required readonly />
           </div>
 
           <!-- Base Fare -->
           <div class="form-group">
             <label for="edit-baseFare">Base Fare</label>
-            <input [(ngModel)]="selectedSchedule.baseFare" name="editBaseFare" id="edit-baseFare" type="number" required />
+            <input [(ngModel)]="selectedSchedule.baseFare" name="editBaseFare" id="edit-baseFare" type="number"
+              required />
           </div>
         </div>
 
@@ -196,7 +182,8 @@
         <strong>
           {{ scheduleToDelete?.routeName ? scheduleToDelete?.routeName : getRouteName(scheduleToDelete?.routeId!) }}
         </strong>
-        ({{ scheduleToDelete?.vehicleName ? scheduleToDelete?.vehicleName : getVehicleModel(scheduleToDelete?.vehicleId!) }})
+        ({{ scheduleToDelete?.vehicleName ? scheduleToDelete?.vehicleName :
+        getVehicleModel(scheduleToDelete?.vehicleId!) }})
       </p>
 
       <div class="form-actions">
