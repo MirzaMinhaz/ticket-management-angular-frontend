@@ -2,7 +2,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Ticket, TicketCreateRequest, TicketUpdateRequest } from '../models/common';
+import { Ticket, CreateTicketDto, UpdateTicketDto } from '../models/common';
 
 @Injectable({ providedIn: 'root' })
 export class TicketService {
@@ -23,11 +23,11 @@ export class TicketService {
     return this.http.get<Ticket>(`${this.baseUrl}/${id}`);
   }
 
-  createTicket(payload: TicketCreateRequest): Observable<Ticket> {
+  createTicket(payload: CreateTicketDto): Observable<Ticket> {
     return this.http.post<Ticket>(this.baseUrl, payload);
   }
 
-  updateTicket(payload: TicketUpdateRequest): Observable<Ticket> {
+  updateTicket(payload: UpdateTicketDto): Observable<Ticket> {
     return this.http.put<Ticket>(`${this.baseUrl}/${payload.id}`, payload);
   }
 

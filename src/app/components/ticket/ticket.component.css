@@ -137,8 +137,9 @@ body {
   gap: 80px;
 }
 
+/* 🚍 VEHICLE CARD */
 .vehicle-card {
-  background: #ffffff;
+  background: linear-gradient(135deg, #fff5f7, #ffe4e6); /* light pink gradient */
   border-radius: 16px;
   border: 1px solid #e5e7eb;
   transition: all 0.25s ease;
@@ -147,13 +148,15 @@ body {
 .vehicle-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 25px rgba(0,0,0,0.08);
-  border-color: #2563eb;
+  border-color: #f472b6; /* soft pink border */
+  background: linear-gradient(135deg, #ffe4e6, #fbcfe8); /* slightly deeper pink */
 }
 
 .vehicle-card.selected {
-  border: 2px solid #2563eb;
-  background: #f8fbff;
+  border: 2px solid #ec4899; /* highlight border */
+  background: linear-gradient(135deg, #fdf2f8, #fbcfe8); /* highlight gradient */
 }
+
 
 /* GRID */
 .vehicle-info-main {

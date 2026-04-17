@@ -1,0 +1,209 @@
+/* Global Reset */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+/* Background */
+.auth-page {
+  position: relative;
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden; /* keep background contained */
+}
+
+.auth-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/assets/img/login_12.jpeg') center/cover no-repeat;
+  filter: blur(1.5px);
+  transform: scale(1.05); /* prevent edge gaps after blur */
+  z-index: 0;
+}
+
+/* Layout */
+.column-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 25px;
+  width: 100%;
+  position: relative;
+  z-index: 1; /* keep cards above blurred background */
+}
+
+/* Welcome Card */
+.welcome-card {
+  width: 400px;
+  background: linear-gradient(135deg, #2c3e50, #1a1a1a);
+  color: #fff;
+  border-radius: 14px;
+  padding: 40px 25px;
+  text-align: center;
+  box-shadow: 0 12px 35px rgba(0,0,0,0.35);
+  border: 2px solid #f1c40f; /* Gold border */
+}
+
+.welcome-title {
+  font-size: 34px;
+  font-weight: 700;
+  font-family: 'Cinzel', serif;
+  margin: 0;
+  letter-spacing: 1px;
+  color: #f1c40f;
+  text-shadow: 2px 2px 6px rgba(0,0,0,0.6);
+}
+
+.tagline {
+  font-size: 16px;
+  margin-top: 12px;
+  font-style: italic;
+  color: #ecf0f1;
+  letter-spacing: 0.5px;
+}
+
+/* Auth Card */
+.auth-container {
+  width: 350px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 25px;
+}
+
+.tabs button {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  background: none;
+  font-size: 16px;
+  cursor: pointer;
+  border-bottom: 2px solid #eee;
+  color: #888;
+}
+
+.tabs button.active {
+  border-bottom: 3px solid #4CAF50;
+  color: #4CAF50;
+  font-weight: bold;
+}
+
+/* Form */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-form input {
+  margin: 10px 0;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.submit {
+  margin-top: 15px;
+  padding: 12px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.submit:hover {
+  background: #45a049;
+}
+
+/* Password Toggle + Remember */
+.password-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.password-wrapper input {
+  flex: 1;
+}
+
+.toggle-btn {
+  background: none;
+  border: none;
+  color: #3498db;
+  cursor: pointer;
+  font-size: 0.9em;
+}
+
+.remember-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 0;
+  font-size: 0.9em;
+}
+
+/* Toast Notification */
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  min-width: 250px;
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  animation: slideIn 0.4s ease;
+  z-index: 9999;
+}
+
+.toast.success {
+  background-color: #d4edda;
+  color: #155724;
+  border-left: 5px solid #28a745;
+}
+
+.toast.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border-left: 5px solid #dc3545;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  color: inherit;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(100%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* Responsive */
+@media (max-width: 400px) {
+  .welcome-card,
+  .auth-container {
+    width: 90%;
+  }
+}

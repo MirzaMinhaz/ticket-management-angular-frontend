@@ -61,41 +61,45 @@ export interface TicketDto {
   id: number;
   passengerName: string;
   passengerContact: string;
-  seatNumber: string;
+  seatNumber?: string | null;
   farePaid: number;
-  bookingDateTime: string; // ISO string from backend
-  bookingCounterId: string;
-  departureCounterId: string;
-  arrivalCounterId: string;
-
-  // Optional metadata
-  createdAt: string;
-  lastModifiedAt?: string;
+  bookingDateTime: string;
+  bookingCounterId: number;
+  departureCounterId: number;
+  arrivalCounterId: number;
+  createdAt?: string;
+  lastModifiedAt?: string | null;   // ✅ allow null
   createdBy: string;
-  lastModifiedBy?: string;
+  lastModifiedBy?: string | null;   // ✅ allow null
 }
 
+
+
+
+
 export interface CreateTicketDto {
+  id: number;
   passengerName: string;
   passengerContact: string;
-  seatNumber: string;
+  seatNumber?: string | null;
   farePaid: number;
   bookingDateTime: string; // ISO string
-  bookingCounterId: string;
-  departureCounterId: string;
-  arrivalCounterId: string;
+  bookingCounterId: number;
+  departureCounterId: number;
+  arrivalCounterId: number;
   // createdBy is usually set by backend (current user/session)
 }
 
 export interface UpdateTicketDto {
+  id: number;
   passengerName: string;
   passengerContact: string;
-  seatNumber: string;
+  seatNumber?: string | null;
   farePaid: number;
   bookingDateTime: string; // ISO string
-  bookingCounterId: string;
-  departureCounterId: string;
-  arrivalCounterId: string;
+  bookingCounterId: number;
+  departureCounterId: number;
+  arrivalCounterId: number;
   // lastModifiedBy is typically set by backend
 }
 
@@ -210,9 +214,9 @@ export interface TicketCreateRequest {
   status: string;
 }
 
-export interface TicketUpdateRequest extends TicketCreateRequest {
-  id: number;
-}
+// export interface TicketUpdateRequest extends TicketCreateRequest {
+//   id: number;
+// }
 
 
 export interface RouteDto {

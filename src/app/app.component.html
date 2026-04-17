@@ -1,9 +1,15 @@
-<!-- src/app/app.component.html -->
-<nav class="navbar">
+<!-- Toast Notification -->
+<div *ngIf="notification" class="toast" [class.success]="notificationType==='success'" [class.error]="notificationType==='error'">
+  <span>{{ notification }}</span>
+  <button class="close-btn" (click)="closeNotification()">×</button>
+</div>
+
+<!-- Navbar -->
+<nav class="navbar" *ngIf="showNavbar()">
   <div class="navbar-container">
-    <a routerLink="/" class="navbar-brand">TMS</a>
+    <a routerLink="/home" class="navbar-brand">TMS</a>
     <div class="navbar-links">
-      <a routerLink="/seat-booking" class="nav-link" routerLinkActive="active-link">Seat Booking</a>
+      <!-- <a routerLink="/seat-booking" class="nav-link" routerLinkActive="active-link">Seat Booking</a> -->
       <a routerLink="/locations" class="nav-link" routerLinkActive="active-link">Locations</a>
       <a routerLink="/ticket-counters/entry" class="nav-link" routerLinkActive="active-link">Ticket Counters</a>
       <a routerLink="/vehicles" class="nav-link" routerLinkActive="active-link">Vehicles</a>
@@ -12,6 +18,9 @@
       <a routerLink="/routes" class="nav-link" routerLinkActive="active-link">Routes</a>
       <a routerLink="/schedules" class="nav-link" routerLinkActive="active-link">Schedules</a>
     </div>
+
+    <!-- ✅ Logout button -->
+    <button class="logout-btn" (click)="logout()">Logout</button>
   </div>
 </nav>
 
