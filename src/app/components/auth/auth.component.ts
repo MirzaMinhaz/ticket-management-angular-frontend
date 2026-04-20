@@ -20,7 +20,7 @@ export class AuthComponent {
   loginData = { username: '', password: '' };
   registerData = { username: '', email: '', password: '' };
 
-  constructor(private http: HttpClient, private router: Router, private notify: NotificationService) {}
+  constructor(private http: HttpClient, private router: Router, private notify: NotificationService) { }
 
   switchTab(login: boolean) {
     this.isLogin = login;
@@ -33,23 +33,25 @@ export class AuthComponent {
 
 
   onLogin() {
-  this.http.post('https://localhost:7139/api/Auth/login', this.loginData)
-    .subscribe({
-      next: (res: any) => {
-        localStorage.setItem('jwtToken', res.token);
-        this.notify.show('Login successful!', 'success');
-        this.router.navigate(['/home']);
-      },
-      error: err => {
-        // ✅ Show friendly message instead of raw stack trace
-        let msg = 'Incorrect username or password';
-        if (err.status === 0) {
-          msg = 'Server unreachable. Please try again later.';
+    this.http.post('https://localhost:7139/api/Auth/login', this.loginData)
+      .subscribe({
+        next: (res: any) => {
+          localStorage.setItem('jwtToken', res.token);
+          localStorage.setItem('username', res.username); // assuming backend sends it
+
+          this.notify.show('Login successful!', 'success');
+          this.router.navigate(['/home']);
+        },
+        error: err => {
+          // ✅ Show friendly message instead of raw stack trace
+          let msg = 'Incorrect username or password';
+          if (err.status === 0) {
+            msg = 'Server unreachable. Please try again later.';
+          }
+          this.notify.show(msg, 'error');
         }
-        this.notify.show(msg, 'error');
-      }
-    });
-}
+      });
+  }
 
 
   onRegister() {

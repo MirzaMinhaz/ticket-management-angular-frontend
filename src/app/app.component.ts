@@ -20,6 +20,11 @@ export class AppComponent {
     this.notify.type$.subscribe(type => this.notificationType = type);
   }
 
+  getLoggedInUser(): string | null {
+  return localStorage.getItem('username');
+}
+
+
   showNavbar() {
     return !!localStorage.getItem('jwtToken');
   }

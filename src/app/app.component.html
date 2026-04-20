@@ -1,5 +1,6 @@
 <!-- Toast Notification -->
-<div *ngIf="notification" class="toast" [class.success]="notificationType==='success'" [class.error]="notificationType==='error'">
+<div *ngIf="notification" class="toast" [class.success]="notificationType==='success'"
+  [class.error]="notificationType==='error'">
   <span>{{ notification }}</span>
   <button class="close-btn" (click)="closeNotification()">×</button>
 </div>
@@ -18,6 +19,11 @@
       <a routerLink="/routes" class="nav-link" routerLinkActive="active-link">Routes</a>
       <a routerLink="/schedules" class="nav-link" routerLinkActive="active-link">Schedules</a>
     </div>
+
+    <div class="navbar-user" *ngIf="getLoggedInUser()">
+      Logged in as <strong>{{ getLoggedInUser() }}</strong>
+    </div>
+
 
     <!-- ✅ Logout button -->
     <button class="logout-btn" (click)="logout()">Logout</button>

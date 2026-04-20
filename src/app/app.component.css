@@ -116,3 +116,11 @@ body, html {
   cursor: pointer;
 }
 
+.navbar-user {
+  margin-left: 5px;
+  font-size: 15px;
+  color: #f1c40f; /* gold accent */
+  font-family: 'Cinzel', serif;
+}
+
+
