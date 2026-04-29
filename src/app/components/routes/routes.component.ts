@@ -28,9 +28,12 @@ export class RoutesComponent implements OnInit {
   showModal: boolean = false;
 
   currentPage: number = 1;
-  itemsPerPage: number = 10;
+  itemsPerPage: number = 25;
   sortField: string = '';
   sortAsc: boolean = true;
+
+  routeToDelete: RouteDto | null = null;
+  showDeleteConfirmModal: boolean = false;
 
   constructor(
     private fb: FormBuilder,
@@ -80,6 +83,15 @@ export class RoutesComponent implements OnInit {
     });
   }
 
+   get paginatedCounters(): RouteDto[] {
+      const start = (this.currentPage - 1) * this.itemsPerPage;
+      return this.routes.slice(start, start + this.itemsPerPage);
+    }
+
+    getDepartureLocationName(code: string | undefined): string | undefined {
+    return this.locations.find(loc => loc.locationCode === code)?.name;
+  }
+
 
   openModal(route: RouteDto): void {
     this.selectedRoute = { ...route };
@@ -90,6 +102,18 @@ export class RoutesComponent implements OnInit {
     this.showModal = false;
     this.reset();
   }
+
+
+ confirmDelete(route: RouteDto): void {
+  this.routeToDelete = route;
+  this.showDeleteConfirmModal = true;
+}
+
+cancelDelete(): void {
+  this.routeToDelete = null;
+  this.showDeleteConfirmModal = false;
+}
+
 
   errorMessage: string = '';
 
@@ -180,5 +204,20 @@ export class RoutesComponent implements OnInit {
       });
     }, 3000);
   }
+
+  sortBy(field: keyof RouteDto): void {
+      if (this.sortField === field) {
+        this.sortAsc = !this.sortAsc;
+      } else {
+        this.sortField = field;
+        this.sortAsc = true;
+      }
+  
+      this.routes.sort((a, b) => {
+        const valA = a[field]?.toString().toLowerCase() ?? '';
+        const valB = b[field]?.toString().toLowerCase() ?? '';
+        return this.sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+      });
+    }
 
 }
