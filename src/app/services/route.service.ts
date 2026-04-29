@@ -37,8 +37,12 @@ export class RouteService {
   //   return this.http.put(`${this.apiUrl}/${id}`, updateDto);
   // }
 
-  updateRoute(id: number, updateDto: UpdateRouteDto) {
-  return this.http.put(`${this.apiUrl}/${id}`, updateDto);
+//   updateRoute(id: number, updateDto: UpdateRouteDto) {
+//   return this.http.put(`${this.apiUrl}/${id}`, updateDto);
+// }
+
+updateRoute(id: number, updateDto: UpdateRouteDto) {
+  return this.http.put(`${this.apiUrl}/update/${id}`, updateDto);
 }
 
 

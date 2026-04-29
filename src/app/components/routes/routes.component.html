@@ -8,9 +8,7 @@
             <label for="departureLocation">Departure Location:</label>
             <select formControlName="departureLocation" id="departureLocation">
                 <option value="" disabled selected>Select Location</option>
-                <option *ngFor="let loc of locations" [value]="loc.locationCode">
-                    {{ loc.name }}
-                </option>
+                <option *ngFor="let loc of locations" [value]="loc.locationCode">{{ loc.name }}</option>
             </select>
         </div>
 
@@ -18,9 +16,7 @@
             <label for="destinationLocation">Destination Location:</label>
             <select formControlName="destinationLocation" id="destinationLocation">
                 <option value="" disabled selected>Select Location</option>
-                <option *ngFor="let loc of locations" [value]="loc.locationCode">
-                    {{ loc.name }}
-                </option>
+                <option *ngFor="let loc of locations" [value]="loc.locationCode">{{ loc.name }}</option>
             </select>
         </div>
 
@@ -55,16 +51,10 @@
         <thead>
             <tr>
                 <th>SL</th>
-                <th (click)="sortBy('departureLocationCode')" style="cursor:pointer">
-                    Departure Location
-                </th>
-                <th (click)="sortBy('destinationLocationCode')" style="cursor:pointer">
-                    Destination Location
-                </th>
+                <th (click)="sortBy('departureLocationCode')" style="cursor:pointer">Departure Location</th>
+                <th (click)="sortBy('destinationLocationCode')" style="cursor:pointer">Destination Location</th>
                 <th (click)="sortBy('routeName')" style="cursor:pointer">Route Name</th>
-                <th (click)="sortBy('estimatedDurationHours')" style="cursor:pointer">
-                    Est. Duration (hrs)
-                </th>
+                <th (click)="sortBy('estimatedDurationHours')" style="cursor:pointer">Est. Duration (hrs)</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -86,12 +76,12 @@
 
 
 <!-- ── Edit modal ─────────────────────────────────────────── -->
-<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+<div class="modal-overlay" *ngIf="showModal">
     <div class="modal-box" (click)="$event.stopPropagation()">
 
         <div class="modal-header">
-            <h3>Edit Route</h3>
-            <button class="close-btn" (click)="closeModal()">&#x2715;</button>
+            <h3>✏️ Edit Route</h3>
+            <button class="close-btn" (click)="closeModal()">✕</button>
         </div>
 
         <form [formGroup]="routeForm" (ngSubmit)="save()">
@@ -100,9 +90,7 @@
                 <label>Departure Location</label>
                 <select formControlName="departureLocation">
                     <option value="" disabled>Select Location</option>
-                    <option *ngFor="let loc of locations" [value]="loc.locationCode">
-                        {{ loc.name }}
-                    </option>
+                    <option *ngFor="let loc of locations" [value]="loc.locationCode">{{ loc.name }}</option>
                 </select>
             </div>
 
@@ -110,9 +98,7 @@
                 <label>Destination Location</label>
                 <select formControlName="destinationLocation">
                     <option value="" disabled>Select Location</option>
-                    <option *ngFor="let loc of locations" [value]="loc.locationCode">
-                        {{ loc.name }}
-                    </option>
+                    <option *ngFor="let loc of locations" [value]="loc.locationCode">{{ loc.name }}</option>
                 </select>
             </div>
 
@@ -126,21 +112,12 @@
                 <input type="number" formControlName="estimatedDurationHours" step="0.1" min="0" />
             </div>
 
-            <!-- feedback inside modal -->
-            <div *ngIf="modalSuccessMessage" class="success-message">
-                {{ modalSuccessMessage }}
-            </div>
-            <div *ngIf="modalErrorMessage" class="error-message">
-                {{ modalErrorMessage }}
-            </div>
+            <div *ngIf="modalSuccessMessage" class="success-message">{{ modalSuccessMessage }}</div>
+            <div *ngIf="modalErrorMessage" class="error-message">{{ modalErrorMessage }}</div>
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-clear" (click)="closeModal()">
-                    Cancel
-                </button>
-                <button type="submit" class="btn btn-save" [disabled]="routeForm.invalid">
-                    Save Changes
-                </button>
+                <button type="button" class="btn btn-clear" (click)="closeModal()">Cancel</button>
+                <button type="submit" class="btn btn-save" [disabled]="routeForm.invalid">Save Changes</button>
             </div>
 
         </form>

@@ -25,8 +25,14 @@
 }
 
 .form-group {
+  margin-bottom: 0.8rem;
+}
+
+.modal-footer {
   display: flex;
-  flex-direction: column;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
 }
 
 label {
@@ -37,15 +43,22 @@ label {
 
 input,
 select {
-  padding: 0.5rem;
+  padding: 0.55rem;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+input:hover,
+select:hover {
+  border-color: #999;
 }
 
 input:focus,
 select:focus {
   border-color: #0078d7;
+  box-shadow: 0 0 0 3px rgba(0,120,215,0.15);
   outline: none;
 }
 
@@ -59,36 +72,53 @@ select:focus {
 }
 
 .btn {
-  padding: 0.6rem 1.2rem;
-  border: none;
-  border-radius: 4px;
-  font-size: 0.95rem;
+  padding: 0.55rem 1.2rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .btn-save {
-  background: #0078d7;
+  background: linear-gradient(135deg, #0078d7, #005fa3);
   color: #fff;
 }
-.btn-save:hover { background: #005fa3; }
+
+.btn-save:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0,120,215,0.3);
+}
 
 .btn-clear {
-  background: #f3f3f3;
-  color: #333;
+  background: #f4f4f4;
 }
-.btn-clear:hover { background: #e0e0e0; }
 
-.error-message {
-  color: red;
-  margin-top: 10px;
-  font-weight: bold;
+.btn-clear:hover {
+  background: #e2e2e2;
+}
+
+.btn-delete {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: #fff;
+}
+
+.btn-delete:hover {
+  transform: translateY(-1px);
 }
 
 .success-message {
-  color: green;
-  margin-top: 10px;
-  font-weight: bold;
+  color: #1e7e34;
+  background: #e6f4ea;
+  padding: 6px 10px;
+  border-radius: 6px;
+  animation: fadeIn 0.3s ease;
+}
+
+.error-message {
+  color: #c0392b;
+  background: #fdecea;
+  padding: 6px 10px;
+  border-radius: 6px;
 }
 
 /* Ticket Counter Table */
@@ -190,20 +220,39 @@ select:focus {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px); /* 🔥 glass effect */
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
+
+  animation: fadeIn 0.25s ease;
 }
 
 .modal-box {
-  background: white;
-  border-radius: 10px;
+  background: #fff;
+  border-radius: 14px;
   padding: 1.5rem;
   width: 100%;
   max-width: 480px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+
+  box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+
+  transform: scale(0.95);
+  animation: zoomIn 0.25s ease forwards;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes zoomIn {
+  to {
+    transform: scale(1);
+  }
 }
 
 .modal-box--sm {
@@ -282,3 +331,7 @@ select:focus {
 }
 
 .btn-delete:hover { background: #8a2222; }
+
+
+
+

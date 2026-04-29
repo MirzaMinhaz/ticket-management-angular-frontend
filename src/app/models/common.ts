@@ -241,6 +241,7 @@ export interface UpdateRouteDto {
   estimatedDurationHours: number;
 }
 
+
 export interface CreateScheduleDto {
   routeId: number;
   vehicleId: number;
@@ -275,6 +276,10 @@ export interface ScheduleDto {
   routeName?: string;
   vehicleName?: string;
 }
+
+
+
+
 
 
 

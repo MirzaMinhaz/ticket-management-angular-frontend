@@ -22,7 +22,6 @@ export class RoutesComponent implements OnInit {
   routeForm!: FormGroup;
   selectedRoute: RouteDto = this.getEmptyRoute();
 
-  // flags & messages
   showModal = false;
   showDeleteConfirmModal = false;
   routeToDelete: RouteDto | null = null;
@@ -32,20 +31,21 @@ export class RoutesComponent implements OnInit {
   modalSuccessMessage = '';
   modalErrorMessage = '';
 
-  // pagination
   currentPage = 1;
   itemsPerPage = 25;
-
-  // sorting
   sortField = '';
   sortAsc = true;
+  isSaving = false;
+
+  // flag to temporarily suppress valueChanges during patchValue
+  private suppressRouteNameUpdate = false;
 
   constructor(
     private fb: FormBuilder,
     private locationService: LocationService,
     private routeService: RouteService,
     private ngZone: NgZone
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.buildForm();
@@ -59,13 +59,16 @@ export class RoutesComponent implements OnInit {
     this.routeForm = this.fb.group({
       departureLocation:      ['', Validators.required],
       destinationLocation:    ['', Validators.required],
-      routeName:              [{ value: '', disabled: true }, Validators.required],
-      estimatedDurationHours: ['', [Validators.required, Validators.min(0)]]
+      routeName:              [{ value: '', disabled: true }],
+      estimatedDurationHours: [null, [Validators.required, Validators.min(0)]]
     });
 
-    // Auto-build route name whenever departure/destination changes
-    this.routeForm.get('departureLocation')!.valueChanges.subscribe(() => this.updateRouteName());
-    this.routeForm.get('destinationLocation')!.valueChanges.subscribe(() => this.updateRouteName());
+    this.routeForm.get('departureLocation')!.valueChanges.subscribe(() => {
+      if (!this.suppressRouteNameUpdate) this.updateRouteName();
+    });
+    this.routeForm.get('destinationLocation')!.valueChanges.subscribe(() => {
+      if (!this.suppressRouteNameUpdate) this.updateRouteName();
+    });
   }
 
   updateRouteName(): void {
@@ -75,8 +78,8 @@ export class RoutesComponent implements OnInit {
     const dstName = this.locations.find(l => l.locationCode === dst)?.name || '';
 
     let name = '';
-    if (depName && dstName)  name = `${depName} - ${dstName}`;
-    else if (depName)        name = `${depName} -`;
+    if (depName && dstName)   name = `${depName} - ${dstName}`;
+    else if (depName)         name = `${depName} -`;
 
     this.routeForm.get('routeName')!.setValue(name, { emitEvent: false });
   }
@@ -113,22 +116,24 @@ export class RoutesComponent implements OnInit {
   getEmptyRoute(): RouteDto {
     return {
       id: 0,
-      departureLocationCode: '',
+      departureLocationCode:   '',
       destinationLocationCode: '',
-      routeName: '',
-      estimatedDurationHours: 0
+      routeName:               '',
+      estimatedDurationHours:  0
     };
   }
 
   reset(): void {
     this.selectedRoute = this.getEmptyRoute();
+    this.suppressRouteNameUpdate = true;
     this.routeForm.reset({
       departureLocation:      '',
       destinationLocation:    '',
       routeName:              '',
-      estimatedDurationHours: ''
+      estimatedDurationHours: null
     });
-    this.errorMessage = '';
+    this.suppressRouteNameUpdate = false;
+    this.errorMessage   = '';
     this.successMessage = '';
   }
 
@@ -142,7 +147,7 @@ export class RoutesComponent implements OnInit {
   // ─── Sorting ──────────────────────────────────────────────────────────────
 
   sortBy(field: keyof RouteDto): void {
-    this.sortAsc = this.sortField === field ? !this.sortAsc : true;
+    this.sortAsc   = this.sortField === field ? !this.sortAsc : true;
     this.sortField = field;
     this.routes.sort((a, b) => {
       const va = a[field]?.toString().toLowerCase() ?? '';
@@ -151,48 +156,69 @@ export class RoutesComponent implements OnInit {
     });
   }
 
-  // ─── Create / Update (save) ───────────────────────────────────────────────
+  // ─── Save (create or update) ──────────────────────────────────────────────
 
   save(): void {
     if (this.routeForm.invalid) return;
 
-    const raw = this.routeForm.getRawValue();   // getRawValue() includes disabled controls
+    const raw = this.routeForm.getRawValue();
+
+    // Ensure routeName was generated (safety net)
+    if (!raw.routeName?.trim()) {
+      this.updateRouteName();
+      raw.routeName = this.routeForm.getRawValue().routeName;
+      if (!raw.routeName?.trim()) {
+        this.modalErrorMessage = '❌ Route name could not be generated. Please reselect locations.';
+        return;
+      }
+    }
+
+    // ── Explicitly cast to correct types ──────────────────────────────────
+    const departureLocationCode   = String(raw.departureLocation);
+    const destinationLocationCode = String(raw.destinationLocation);
+    const routeName               = String(raw.routeName).trim();
+    const estimatedDurationHours  = parseFloat(raw.estimatedDurationHours);
+
+    if (isNaN(estimatedDurationHours)) {
+      this.modalErrorMessage = '❌ Please enter a valid duration.';
+      return;
+    }
 
     if (this.selectedRoute.id > 0) {
-      // ── UPDATE ──
+      // ── UPDATE ───────────────────────────────────────────────────────────
       const dto: UpdateRouteDto = {
-        departureLocationCode:   raw.departureLocation,
-        destinationLocationCode: raw.destinationLocation,
-        routeName:               raw.routeName,
-        estimatedDurationHours:  raw.estimatedDurationHours
+        departureLocationCode,
+        destinationLocationCode,
+        routeName,
+        estimatedDurationHours
       };
+
+      console.log('Sending update DTO:', dto);  // ← remove after confirming
 
       this.routeService.updateRoute(this.selectedRoute.id, dto).subscribe({
         next: () => {
           this.modalSuccessMessage = '✅ Route updated successfully!';
           this.modalErrorMessage   = '';
           this.loadRoutes();
-
-          setTimeout(() => this.ngZone.run(() => {
-            this.closeModal();
-          }), 2000);
+          setTimeout(() => this.ngZone.run(() => this.closeModal()), 2000);
         },
         error: err => {
-          console.error('Failed to update route', err);
-          this.modalErrorMessage   = err.error?.message || '❌ Failed to update route.';
+          console.error('Update error:', err);
+          this.modalErrorMessage   = err.error?.message || err.error?.title || '❌ Failed to update route.';
           this.modalSuccessMessage = '';
-          this.autoClear('modal', 3000);
         }
       });
 
     } else {
-      // ── CREATE ──
+      // ── CREATE ───────────────────────────────────────────────────────────
       const dto: CreateRouteDto = {
-        departureLocationCode:   raw.departureLocation,
-        destinationLocationCode: raw.destinationLocation,
-        routeName:               raw.routeName,
-        estimatedDurationHours:  raw.estimatedDurationHours
+        departureLocationCode,
+        destinationLocationCode,
+        routeName,
+        estimatedDurationHours
       };
+
+      console.log('Sending create DTO:', dto);  // ← remove after confirming
 
       this.routeService.createRoute(dto).subscribe({
         next: () => {
@@ -203,8 +229,8 @@ export class RoutesComponent implements OnInit {
           this.autoClear('page', 3000);
         },
         error: err => {
-          console.error('Failed to create route', err);
-          this.errorMessage   = err.error?.message || '❌ Failed to create route.';
+          console.error('Create error:', err);
+          this.errorMessage   = err.error?.message || err.error?.title || '❌ Failed to create route.';
           this.successMessage = '';
           this.autoClear('page', 3000);
         }
@@ -219,22 +245,18 @@ export class RoutesComponent implements OnInit {
     this.modalSuccessMessage = '';
     this.modalErrorMessage   = '';
 
-    // Reset first so valueChanges subscribers don't fire with stale state
-    this.routeForm.reset({
-      departureLocation:      '',
-      destinationLocation:    '',
-      routeName:              '',
-      estimatedDurationHours: ''
-    }, { emitEvent: false });
+    // Suppress valueChanges during patch so routeName isn't wiped
+    this.suppressRouteNameUpdate = true;
 
-    // Patch departure & destination; updateRouteName() will rebuild the name
     this.routeForm.patchValue({
       departureLocation:      route.departureLocationCode,
       destinationLocation:    route.destinationLocationCode,
       estimatedDurationHours: route.estimatedDurationHours
     });
 
-    // Explicitly set routeName in case locations loaded before patch fired
+    this.suppressRouteNameUpdate = false;
+
+    // Now manually build the route name with correct location data
     this.updateRouteName();
 
     this.showModal = true;
@@ -264,13 +286,13 @@ export class RoutesComponent implements OnInit {
 
     this.routeService.deleteRoute(this.routeToDelete.id).subscribe({
       next: () => {
-        this.routes        = this.routes.filter(r => r.id !== this.routeToDelete!.id);
+        this.routes         = this.routes.filter(r => r.id !== this.routeToDelete!.id);
         this.successMessage = '✅ Route deleted successfully!';
         this.cancelDelete();
         this.autoClear('page', 3000);
       },
       error: err => {
-        console.error('Failed to delete route', err);
+        console.error('Delete error:', err);
         this.errorMessage = '❌ Failed to delete route.';
         this.cancelDelete();
         this.autoClear('page', 3000);
