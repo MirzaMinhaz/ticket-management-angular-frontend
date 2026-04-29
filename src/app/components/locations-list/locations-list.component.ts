@@ -29,7 +29,7 @@ export class LocationsListComponent implements OnInit {
   showModal: boolean = false;
 
   currentPage: number = 1;
-  itemsPerPage: number = 10;
+  itemsPerPage: number = 30;
   sortField: string = '';
   sortAsc: boolean = true;
 

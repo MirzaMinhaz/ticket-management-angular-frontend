@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { TicketCounterService } from '../../services/ticket-counter.service';
 import { TicketCounterDto, CreateTicketCounterDto, UpdateTicketCounterDto, LocationDto } from '../../models/common';
 import { LocationService } from '../../services/location.service';
+import { Observable, shareReplay, map } from 'rxjs';  
 
 @Component({
   selector: 'app-ticket-counter-entry',
@@ -23,7 +24,7 @@ export class TicketCounterEntryComponent implements OnInit {
   showModal: boolean = false;
 
   currentPage: number = 1;
-  itemsPerPage: number = 10;
+  itemsPerPage: number = 30;
   sortField: string = '';
   sortAsc: boolean = true;
 

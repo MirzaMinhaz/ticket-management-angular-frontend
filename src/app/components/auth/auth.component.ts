@@ -15,7 +15,9 @@ import { NotificationService } from '../../services/notification.service';
 export class AuthComponent {
   isLogin = true;
   showPassword = false;
-  rememberPassword = false;
+  // rememberPassword = false;
+  rememberPassword: boolean = true;
+
 
   loginData = { username: '', password: '' };
   registerData = { username: '', email: '', password: '' };
