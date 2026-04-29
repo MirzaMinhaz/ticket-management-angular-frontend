@@ -185,3 +185,100 @@ select:focus {
     color: #555;
   }
 }
+
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-box {
+  background: white;
+  border-radius: 10px;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+}
+
+.modal-box--sm {
+  max-width: 360px;
+  text-align: center;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #888;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.close-btn:hover { background: #f0f0f0; }
+
+.modal-footer {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 1.25rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #eee;
+}
+
+.delete-body {
+  padding: 1rem 0;
+}
+
+.delete-icon { font-size: 36px; margin-bottom: 0.75rem; }
+
+.delete-msg {
+  font-size: 15px;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.delete-sub {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 0.75rem;
+}
+
+.route-badge {
+  display: inline-block;
+  background: #e8f0fe;
+  color: #1a56a0;
+  border-radius: 6px;
+  padding: 3px 12px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.btn-delete {
+  background: #a32d2d;
+  color: #fff;
+  border: none;
+}
+
+.btn-delete:hover { background: #8a2222; }
