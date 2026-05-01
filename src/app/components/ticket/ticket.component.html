@@ -218,7 +218,7 @@
           </div>
           <div class="form-group">
             <label for="seatNumber">Seat Number</label>
-            <input [(ngModel)]="selectedTicket.seatNumber" name="seatNumber" id="seatNumber" required />
+            <input [(ngModel)]="selectedTicket.seatNumber" name="seatNumber" id="seatNumber" readonly required />
           </div>
           <div class="form-group">
             <label for="farePaid">Fare</label>
@@ -235,7 +235,7 @@
               <option [ngValue]="null" disabled>Select Booking Counter</option>
               <option *ngFor="let c of counters" [ngValue]="c.id">{{ c.counterName }}</option>
             </select>
-          </div>  
+          </div>
           <div class="form-group">
             <label for="route">Departure Counter</label>
             <select [(ngModel)]="selectedTicket.departureCounterId" name="departureCounterId" required>

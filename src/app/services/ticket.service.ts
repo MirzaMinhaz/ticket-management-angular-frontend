@@ -1,34 +1,28 @@
-// src/app/services/ticket.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Ticket, CreateTicketDto, UpdateTicketDto } from '../models/common';
+import { TicketDto, CreateTicketDto, UpdateTicketDto } from '../models/common';
 
 @Injectable({ providedIn: 'root' })
 export class TicketService {
-  private baseUrl = '/api/tickets';
+  private baseUrl = 'https://localhost:7139/api/Ticket';
 
   constructor(private http: HttpClient) {}
 
-  // List with simple optional filters
-  getTickets(filter?: { status?: string; scheduleId?: number; passengerName?: string }): Observable<Ticket[]> {
-    let params = new HttpParams();
-    if (filter?.status) params = params.set('status', filter.status);
-    if (filter?.scheduleId) params = params.set('scheduleId', filter.scheduleId.toString());
-    if (filter?.passengerName) params = params.set('passengerName', filter.passengerName);
-    return this.http.get<Ticket[]>(this.baseUrl, { params });
+  getTickets(): Observable<TicketDto[]> {
+    return this.http.get<TicketDto[]>(this.baseUrl);
   }
 
-  getTicket(id: number): Observable<Ticket> {
-    return this.http.get<Ticket>(`${this.baseUrl}/${id}`);
+  getTicket(id: number): Observable<TicketDto> {
+    return this.http.get<TicketDto>(`${this.baseUrl}/${id}`);
   }
 
-  createTicket(payload: CreateTicketDto): Observable<Ticket> {
-    return this.http.post<Ticket>(this.baseUrl, payload);
+  createTicket(payload: CreateTicketDto): Observable<TicketDto> {
+    return this.http.post<TicketDto>(this.baseUrl, payload);
   }
 
-  updateTicket(payload: UpdateTicketDto): Observable<Ticket> {
-    return this.http.put<Ticket>(`${this.baseUrl}/${payload.id}`, payload);
+  updateTicket(payload: UpdateTicketDto): Observable<TicketDto> {
+    return this.http.put<TicketDto>(`${this.baseUrl}/${payload.id}`, payload);
   }
 
   deleteTicket(id: number): Observable<void> {

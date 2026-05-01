@@ -10,7 +10,7 @@ import {
   OperatorDto,
   ScheduleDto,
   TicketCounterDto,
-  SeatDto
+  SeatDto,
 } from '../../models/common';
 import { RouteService } from '../../services/route.service';
 import { VehicleService } from '../../services/vehicle.service';
@@ -24,7 +24,7 @@ import { TicketService } from '../../services/ticket.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './ticket.component.html',
-  styleUrls: ['./ticket.component.css']
+  styleUrls: ['./ticket.component.css'],
 })
 export class TicketComponent implements OnInit {
   tickets: TicketDto[] = [];
@@ -74,7 +74,7 @@ export class TicketComponent implements OnInit {
     private scheduleService: ScheduleService,
     private ticketCounterService: TicketCounterService,
     private ticketService: TicketService,
-  ) { }
+  ) {}
 
   ngOnInit(): void {
     this.loadRoutes();
@@ -82,6 +82,7 @@ export class TicketComponent implements OnInit {
     this.loadOperators();
     this.loadSchedules();
     this.loadCounters();
+    this.loadTickets();
     this.updatePagination();
 
     const today = new Date();
@@ -92,53 +93,48 @@ export class TicketComponent implements OnInit {
   // Load data
   loadRoutes(): void {
     this.routeService.getAllRoutes().subscribe({
-      next: data => this.routes = data,
-      error: err => console.error('Failed to load routes', err)
+      next: (data) => (this.routes = data),
+      error: (err) => console.error('Failed to load routes', err),
     });
   }
 
   loadVehicles(): void {
     this.vehicleService.getAll().subscribe({
-      next: data => this.vehicles = data,
-      error: err => console.error('Failed to load vehicles', err)
+      next: (data) => (this.vehicles = data),
+      error: (err) => console.error('Failed to load vehicles', err),
     });
   }
 
   loadOperators(): void {
     this.operatorService.getAll().subscribe({
-      next: data => this.operators = data,
-      error: err => console.error('Failed to load operators', err)
+      next: (data) => (this.operators = data),
+      error: (err) => console.error('Failed to load operators', err),
     });
   }
 
   loadSchedules(): void {
     this.scheduleService.getAllSchedules().subscribe({
-      next: data => this.schedules = data,
-      error: err => console.error('Failed to load schedules', err)
+      next: (data) => (this.schedules = data),
+      error: (err) => console.error('Failed to load schedules', err),
     });
   }
 
   loadCounters(): void {
     this.ticketCounterService.getAllTicketCounters().subscribe({
-      next: data => this.counters = data,
-      error: err => console.error('Failed to load counters', err)
+      next: (data) => (this.counters = data),
+      error: (err) => console.error('Failed to load counters', err),
     });
   }
-
 
   loadTickets(): void {
     this.ticketService.getTickets().subscribe({
-      next: data => {
-        this.tickets = data.map(t => ({
-          ...t,
-          createdBy: t.createdBy ?? 'System'  // fallback value
-        }));
+      next: (data) => {
+        this.tickets = data;
+        this.updatePagination(); // ← refresh table after load
       },
-      error: err => console.error('Failed to load tickets', err)
+      error: (err) => console.error('Failed to load tickets', err),
     });
   }
-
-
 
   //   loadTickets(): void {
   //   this.ticketService.getTickets().subscribe({
@@ -149,35 +145,43 @@ export class TicketComponent implements OnInit {
   //   });
   // }
 
-
-
   getOperatorName(operatorCode: string | undefined): string {
     if (!operatorCode) return '';
-    const op = this.operators.find(o => o.operatorCode === operatorCode);
+    const op = this.operators.find((o) => o.operatorCode === operatorCode);
     return op ? op.name : '';
   }
 
   calculateArrivalDate(): void {
     if (!this.selectedDepartureDate || !this.selectedRouteCode) return;
 
-    const route = this.routes.find(r => r.id === Number(this.selectedRouteCode));
+    const route = this.routes.find(
+      (r) => r.id === Number(this.selectedRouteCode),
+    );
     if (!route || !route.estimatedDurationHours) return;
 
     const departureDate = new Date(this.selectedDepartureDate);
-    const arrivalDate = new Date(departureDate.getTime() + route.estimatedDurationHours * 60 * 60 * 1000);
+    const arrivalDate = new Date(
+      departureDate.getTime() + route.estimatedDurationHours * 60 * 60 * 1000,
+    );
 
     const pad = (n: number) => n.toString().padStart(2, '0');
     this.selectedArrivalDate = `${arrivalDate.getFullYear()}-${pad(arrivalDate.getMonth() + 1)}-${pad(arrivalDate.getDate())}`;
 
-    this.availableVehicles = this.vehicles.filter(v =>
-      this.schedules.some(s => s.routeId === Number(this.selectedRouteCode) && s.vehicleId === v.id)
+    this.availableVehicles = this.vehicles.filter((v) =>
+      this.schedules.some(
+        (s) =>
+          s.routeId === Number(this.selectedRouteCode) && s.vehicleId === v.id,
+      ),
     );
   }
 
   fillBaseFare(): void {
-    const schedule = this.schedules.find(s =>
-      s.routeId === Number(this.selectedRouteCode) &&
-      s.vehicleId === this.vehicles.find(v => v.vehicleCode === this.selectedVehicleCode)?.id
+    const schedule = this.schedules.find(
+      (s) =>
+        s.routeId === Number(this.selectedRouteCode) &&
+        s.vehicleId ===
+          this.vehicles.find((v) => v.vehicleCode === this.selectedVehicleCode)
+            ?.id,
     );
     if (schedule) {
       this.selectedBaseFare = schedule.baseFare;
@@ -196,7 +200,7 @@ export class TicketComponent implements OnInit {
       departureCounterId: 0,
       arrivalCounterId: 0,
       createdAt: '',
-      createdBy: ''
+      createdBy: '',
     };
   }
 
@@ -228,13 +232,13 @@ export class TicketComponent implements OnInit {
 
   save(): void {
     if (this.selectedTicket.id) {
-      // Build the update request object
+      // ── UPDATE ────────────────────────────────────────────────
       const updateRequest: UpdateTicketDto = {
         id: this.selectedTicket.id,
         passengerName: this.selectedTicket.passengerName,
         passengerContact: this.selectedTicket.passengerContact,
         seatNumber: this.selectedTicket.seatNumber,
-        farePaid: this.selectedTicket.farePaid,
+        farePaid: Number(this.selectedTicket.farePaid),
         bookingDateTime: this.selectedTicket.bookingDateTime,
         bookingCounterId: Number(this.selectedTicket.bookingCounterId),
         departureCounterId: Number(this.selectedTicket.departureCounterId),
@@ -244,22 +248,23 @@ export class TicketComponent implements OnInit {
       this.ticketService.updateTicket(updateRequest).subscribe({
         next: () => {
           this.loadTickets();
-          this.modalSuccessMessage = 'Ticket updated successfully!';
+          this.modalSuccessMessage = '✅ Ticket updated successfully!';
           setTimeout(() => {
             this.modalSuccessMessage = null;
             this.closeModal();
           }, 1500);
+          // ← NO reset() here, modal handles its own close
         },
-        error: err => console.error('Failed to update ticket', err)
+        error: (err) => console.error('Failed to update ticket', err),
       });
     } else {
-      // Build the create request object
+      // ── CREATE ────────────────────────────────────────────────
       const createRequest: CreateTicketDto = {
         id: 0,
         passengerName: this.selectedTicket.passengerName,
         passengerContact: this.selectedTicket.passengerContact,
         seatNumber: this.selectedTicket.seatNumber,
-        farePaid: this.selectedTicket.farePaid,
+        farePaid: Number(this.selectedTicket.farePaid),
         bookingDateTime: this.selectedTicket.bookingDateTime,
         bookingCounterId: Number(this.selectedTicket.bookingCounterId),
         departureCounterId: Number(this.selectedTicket.departureCounterId),
@@ -269,22 +274,22 @@ export class TicketComponent implements OnInit {
       this.ticketService.createTicket(createRequest).subscribe({
         next: () => {
           this.loadTickets();
-          this.successMessage = 'Ticket added successfully!';
-          setTimeout(() => (this.successMessage = null), 2000);
+          this.successMessage = '✅ Ticket saved successfully!';
+          setTimeout(() => (this.successMessage = null), 3000);
+          this.reset(); // ← reset ONLY after success, ONLY for create
         },
-        error: err => console.error('Failed to save ticket', err)
+        error: (err) => {
+          console.error('Failed to save ticket', err);
+          this.successMessage = '❌ Failed to save ticket. Check console.';
+        },
       });
     }
-
-    this.reset();
+    // ← removed reset() from here — this was the main bug
   }
-
-
-
 
   reset(): void {
     if (this.selectedSeats.length) {
-      this.selectedSeats.forEach(s => (s.status = 'available'));
+      this.selectedSeats.forEach((s) => (s.status = 'available'));
     }
     this.selectedTicket = this.emptyTicket();
     this.selectedRouteCode = '';
@@ -320,13 +325,21 @@ export class TicketComponent implements OnInit {
   }
 
   deleteConfirmed(): void {
-    if (this.ticketToDelete) {
-      this.tickets = this.tickets.filter(t => t.id !== this.ticketToDelete!.id);
-      this.successMessage = 'Ticket deleted successfully!';
-      setTimeout(() => (this.successMessage = null), 2000);
-      this.updatePagination();
-    }
-    this.cancelDelete();
+    if (!this.ticketToDelete) return;
+
+    // ← actually call the API, don't just filter locally
+    this.ticketService.deleteTicket(this.ticketToDelete.id).subscribe({
+      next: () => {
+        this.tickets = this.tickets.filter(
+          (t) => t.id !== this.ticketToDelete!.id,
+        );
+        this.successMessage = '✅ Ticket deleted successfully!';
+        setTimeout(() => (this.successMessage = null), 3000);
+        this.updatePagination();
+        this.cancelDelete();
+      },
+      error: (err) => console.error('Failed to delete ticket', err),
+    });
   }
 
   sortBy(field: keyof TicketDto): void {
@@ -362,30 +375,42 @@ export class TicketComponent implements OnInit {
 
   getDepartureTimeForVehicle(vehicleId: number): string {
     const schedule = this.schedules.find(
-      s => s.vehicleId === vehicleId && s.routeId === Number(this.selectedRouteCode)
+      (s) =>
+        s.vehicleId === vehicleId &&
+        s.routeId === Number(this.selectedRouteCode),
     );
     if (!schedule) return '';
-    return new Date(schedule.departureDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return new Date(schedule.departureDateTime).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   }
 
   getArrivalTimeForVehicle(vehicleId: number): string {
     const schedule = this.schedules.find(
-      s => s.vehicleId === vehicleId && s.routeId === Number(this.selectedRouteCode)
+      (s) =>
+        s.vehicleId === vehicleId &&
+        s.routeId === Number(this.selectedRouteCode),
     );
     return schedule
-      ? new Date(schedule.arrivalDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      ? new Date(schedule.arrivalDateTime).toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+        })
       : '';
   }
 
   getBaseFareForVehicle(vehicleId: number): number | null {
     const schedule = this.schedules.find(
-      s => s.vehicleId === vehicleId && s.routeId === Number(this.selectedRouteCode)
+      (s) =>
+        s.vehicleId === vehicleId &&
+        s.routeId === Number(this.selectedRouteCode),
     );
     return schedule ? schedule.baseFare : null;
   }
 
   getSeatsForVehicle(vehicleId: number): number | null {
-    const vehicle = this.vehicles.find(v => v.id === vehicleId);
+    const vehicle = this.vehicles.find((v) => v.id === vehicleId);
     return vehicle ? vehicle.capacity : null;
   }
 
@@ -414,7 +439,7 @@ export class TicketComponent implements OnInit {
       this.rows = [];
     } else {
       this.seatBookingBusId = vehicleId;
-      const vehicle = this.vehicles.find(v => v.id === vehicleId);
+      const vehicle = this.vehicles.find((v) => v.id === vehicleId);
       if (vehicle) {
         this.generateSeats(vehicle.capacity ?? 40);
       }
@@ -435,20 +460,24 @@ export class TicketComponent implements OnInit {
           seatNumber: `${row}${c}`,
           seatCode: `${row}${c}`,
           isBooked: false,
-          status: 'available'
+          status: 'available',
         });
       }
     }
 
     if (capacity % 2 !== 0) {
-      const idx = seats.findIndex(s => s.seatNumber === 'A1');
+      const idx = seats.findIndex((s) => s.seatNumber === 'A1');
       if (idx !== -1) seats.splice(idx, 1);
     }
 
     if (seats.length) {
       const lastRow = seats[seats.length - 1].seatNumber.charAt(0);
-      const lastRowSeats = seats.filter(s => s.seatNumber.charAt(0) === lastRow);
-      const existingCols = new Set(lastRowSeats.map(s => parseInt(s.seatNumber.substring(1), 10)));
+      const lastRowSeats = seats.filter(
+        (s) => s.seatNumber.charAt(0) === lastRow,
+      );
+      const existingCols = new Set(
+        lastRowSeats.map((s) => parseInt(s.seatNumber.substring(1), 10)),
+      );
       for (let c = 1; c <= 4; c++) {
         if (!existingCols.has(c)) {
           count++;
@@ -457,7 +486,7 @@ export class TicketComponent implements OnInit {
             seatNumber: `${lastRow}${c}`,
             seatCode: `${lastRow}${c}`,
             isBooked: false,
-            status: 'available'
+            status: 'available',
           });
         }
       }
@@ -472,10 +501,13 @@ export class TicketComponent implements OnInit {
       const ra = a.seatNumber.charAt(0);
       const rb = b.seatNumber.charAt(0);
       if (ra !== rb) return ra.charCodeAt(0) - rb.charCodeAt(0);
-      return parseInt(a.seatNumber.substring(1), 10) - parseInt(b.seatNumber.substring(1), 10);
+      return (
+        parseInt(a.seatNumber.substring(1), 10) -
+        parseInt(b.seatNumber.substring(1), 10)
+      );
     });
 
-    this.rows = Array.from(new Set(seats.map(s => s.seatNumber.charAt(0))));
+    this.rows = Array.from(new Set(seats.map((s) => s.seatNumber.charAt(0))));
     this.seatMap = {};
     for (const s of seats) {
       this.seatMap[s.seatNumber] = s;
@@ -488,20 +520,20 @@ export class TicketComponent implements OnInit {
     return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
   }
 
-
   private updateSeatNumberField(): void {
     // 1. Sync the Seat Number string
     const seatString = this.selectedSeats
-      .map(s => s.seatNumber)
+      .map((s) => s.seatNumber)
       .sort()
       .join(', ');
     this.selectedTicket.seatNumber = seatString;
 
     // 2. Ensure we have the fare from the active schedule
     if (this.seatBookingBusId) {
-      const schedule = this.schedules.find(s =>
-        s.vehicleId === this.seatBookingBusId &&
-        s.routeId === Number(this.selectedRouteCode)
+      const schedule = this.schedules.find(
+        (s) =>
+          s.vehicleId === this.seatBookingBusId &&
+          s.routeId === Number(this.selectedRouteCode),
       );
       if (schedule) {
         this.selectedBaseFare = schedule.baseFare;
@@ -509,10 +541,9 @@ export class TicketComponent implements OnInit {
     }
 
     // 3. Calculate Total
-    this.selectedTicket.farePaid = (this.selectedBaseFare || 0) * this.selectedSeats.length;
+    this.selectedTicket.farePaid =
+      (this.selectedBaseFare || 0) * this.selectedSeats.length;
   }
-
-
 
   getSeatByPosition(row: string, col: number): SeatDto | undefined {
     return this.seatMap?.[`${row}${col}`];
@@ -526,7 +557,9 @@ export class TicketComponent implements OnInit {
 
     if (mapSeat.status === 'selected') {
       mapSeat.status = 'available'; // Mark it available in the grid
-      this.selectedSeats = this.selectedSeats.filter(s => s.seatNumber !== seat.seatNumber);
+      this.selectedSeats = this.selectedSeats.filter(
+        (s) => s.seatNumber !== seat.seatNumber,
+      );
     } else {
       if (this.selectedSeats.length >= 5) {
         alert('You can only select a maximum of 5 seats.');
@@ -539,9 +572,8 @@ export class TicketComponent implements OnInit {
     this.updateSeatNumberField();
   }
 
-
   clearSelection(): void {
-    this.selectedSeats.forEach(s => (s.status = 'available'));
+    this.selectedSeats.forEach((s) => (s.status = 'available'));
     this.selectedSeats = [];
     this.selectedTicket.seatNumber = '';
   }
@@ -563,15 +595,19 @@ export class TicketComponent implements OnInit {
     this.updateSeatNumberField();
 
     // We keep the status as 'selected' so the CSS class stays active
-    this.selectedSeats.forEach(s => (s.status = 'selected'));
+    this.selectedSeats.forEach((s) => (s.status = 'selected'));
 
     // Close the seat picker UI
     this.seatBookingBusId = null;
 
-    // ⚠️ CRITICAL: Do NOT clear this.selectedSeats = []; 
+    // ⚠️ CRITICAL: Do NOT clear this.selectedSeats = [];
     // If you clear it, the [class.selected] in your HTML will disappear.
   }
 
-  trackRow(index: number, row: string) { return row; }
-  trackCol(index: number, col: number) { return col; }
+  trackRow(index: number, row: string) {
+    return row;
+  }
+  trackCol(index: number, col: number) {
+    return col;
+  }
 }
