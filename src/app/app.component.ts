@@ -18,7 +18,31 @@ export class AppComponent {
   constructor(private router: Router, private notify: NotificationService) {
     this.notify.message$.subscribe(msg => this.notification = msg);
     this.notify.type$.subscribe(type => this.notificationType = type);
+    this.setupActivityListener();
+    this.checkSessionInterval();
   }
+
+
+  setupActivityListener() {
+  const updateActivity = () => localStorage.setItem('lastActivity', Date.now().toString());
+  ['click', 'mousemove', 'keydown'].forEach(evt =>
+    window.addEventListener(evt, updateActivity)
+  );
+  updateActivity(); // initialize on load
+}
+
+checkSessionInterval() {
+  setInterval(() => {
+    const lastActivity = Number(localStorage.getItem('lastActivity') || 0);
+    const now = Date.now();
+    const THIRTY_MINUTES = 30 * 60 * 1000;
+
+    if (lastActivity && now - lastActivity > THIRTY_MINUTES) {
+      this.logout(); // reuse your existing logout method
+    }
+  }, 60 * 1000); // check every minute
+}
+
 
   getLoggedInUser(): string | null {
   return localStorage.getItem('username');

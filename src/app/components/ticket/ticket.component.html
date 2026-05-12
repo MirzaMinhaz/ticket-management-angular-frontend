@@ -1,12 +1,16 @@
 <div class="ticket-container">
   <h2 class="page-title">🎟️ Ticket Management</h2>
 
-  <!-- Success Message -->
-  <div *ngIf="successMessage" class="alert success-alert">
+  <!-- Success / Error Message -->
+  <div *ngIf="successMessage" class="alert"
+    [class.success-alert]="successMessage.startsWith('✅')"
+    [class.error-alert]="successMessage.startsWith('❌')">
     {{ successMessage }}
   </div>
 
-  <!-- Add Ticket Form -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- ADD TICKET FORM                                  -->
+  <!-- ═══════════════════════════════════════════════ -->
   <div class="ticket-card">
     <h3 class="card-title">Add New Ticket</h3>
 
@@ -14,11 +18,14 @@
 
       <!-- SECTION 1: Route & Dates -->
       <div class="section section-route-dates">
-        <h4 class="section-title">Route & Dates</h4>
+        <h4 class="section-title">
+          <span class="section-icon">📍</span> Route &amp; Dates
+        </h4>
         <div class="form-grid">
           <div class="form-group">
             <label for="route">Route</label>
-            <select [(ngModel)]="selectedRouteCode" name="route" id="route" required (change)="calculateArrivalDate()">
+            <select [(ngModel)]="selectedRouteCode" name="route" id="route"
+              required (change)="calculateArrivalDate()">
               <option value="" disabled selected>Select Route</option>
               <option *ngFor="let r of routes" [value]="r.id">{{ r.routeName }}</option>
             </select>
@@ -26,226 +33,231 @@
 
           <div class="form-group">
             <label for="departureDate">Departure Date</label>
-            <input [(ngModel)]="selectedDepartureDate" name="departureDate" id="departureDate" type="date" required
-              (change)="calculateArrivalDate()" [attr.min]="todayString" (focus)="openDatePicker($event)" />
+            <input [(ngModel)]="selectedDepartureDate" name="departureDate"
+              id="departureDate" type="date" required
+              (change)="calculateArrivalDate()" [attr.min]="todayString"
+              (focus)="openDatePicker($event)" />
           </div>
 
           <div class="form-group">
             <label for="arrivalDate">Arrival Date</label>
-            <input [(ngModel)]="selectedArrivalDate" name="arrivalDate" id="arrivalDate" type="date" required
-              readonly />
+            <input [(ngModel)]="selectedArrivalDate" name="arrivalDate"
+              id="arrivalDate" type="date" required readonly />
           </div>
         </div>
       </div>
 
       <!-- SECTION 2: Vehicle Cards -->
-      <div class="vehicle-list">
+      <div class="section section-vehicles" *ngIf="availableVehicles.length">
+        <h4 class="section-title">
+          <span class="section-icon">🚌</span> Available Vehicles
+        </h4>
+        <div class="vehicle-list">
+          <div *ngFor="let v of availableVehicles" class="vehicle-wrapper">
 
-        <div *ngFor="let v of availableVehicles" class="vehicle-wrapper">
+            <!-- VEHICLE CARD -->
+            <div class="vehicle-card"
+              [class.selected]="selectedVehicleCode === v.vehicleCode">
+              <div class="vehicle-info-main">
 
-          <!-- ✅ VEHICLE CARD -->
-          <div class="vehicle-card" [class.selected]="selectedVehicleCode === v.vehicleCode">
+                <!-- LEFT -->
+                <div class="vehicle-left">
+                  <p class="operator-name">{{ getOperatorName(v.operatorCode) }}</p>
+                  <p class="bus-model">{{ v.model }}</p>
+                  <span class="type-tag">{{ v.type }}</span>
+                </div>
 
-            <div class="vehicle-info-main">
-
-              <!-- LEFT -->
-              <div class="vehicle-left">
-                <p class="operator-name">{{ getOperatorName(v.operatorCode) }}</p>
-                <p class="bus-model">{{ v.model }}</p>
-                <span class="type-tag">{{ v.type }}</span>
-              </div>
-
-              <!-- MIDDLE -->
-              <div class="vehicle-middle">
-                <div class="time-point">
-                  <div class="time-block">
-                    <span class="time">{{ getDepartureTimeForVehicle(v.id) }}</span>
-                    <span class="station">Departure</span>
+                <!-- MIDDLE -->
+                <div class="vehicle-middle">
+                  <div class="time-point">
+                    <div class="time-block">
+                      <span class="time">{{ getDepartureTimeForVehicle(v.id) }}</span>
+                      <span class="station">Departure</span>
+                    </div>
+                  </div>
+                  <div class="journey-path"></div>
+                  <div class="time-point">
+                    <div class="time-block">
+                      <span class="time">{{ getArrivalTimeForVehicle(v.id) }}</span>
+                      <span class="station">Arrival</span>
+                    </div>
                   </div>
                 </div>
 
-                <div class="journey-path"></div>
-
-                <div class="time-point">
-                  <div class="time-block">
-                    <span class="time">{{ getArrivalTimeForVehicle(v.id) }}</span>
-                    <span class="station">Arrival</span>
+                <!-- RIGHT -->
+                <div class="vehicle-right">
+                  <div class="price-container">
+                    <span class="currency">৳</span>
+                    <span class="amount">{{ getBaseFareForVehicle(v.id) }}</span>
                   </div>
-                </div>
-              </div>
 
-              <!-- RIGHT -->
-              <div class="vehicle-right">
-                <div class="price-container">
-                  <span class="currency">৳</span>
-                  <span class="amount">{{ getBaseFareForVehicle(v.id) }}</span>
-                </div>
-
-                <div class="seat-indicator" [ngClass]="getSeatClass(v.id)">
-                  {{ getSeatsForVehicle(v.id) }} seats left
-                </div>
-
-                <!-- <button type="button" class="btn primary small" (click)="toggleSeatBooking(v.id)">
-                  Book Seats
-                </button> -->
-                <button type="button" class="btn primary small"
-                  (click)="selectedVehicleCode = v.vehicleCode; fillBaseFare(); toggleSeatBooking(v.id)">
-                  Book Seats
-                </button>
-              </div>
-
-            </div>
-          </div>
-
-          <!-- ✅ SEPARATE SEAT CARD -->
-          <div class="seat-card-container" *ngIf="seatBookingBusId === v.id">
-
-            <div class="seat-card">
-
-              <!-- HEADER -->
-              <div class="seat-card-header">
-                <h5 class="seat-title">Seat Booking - {{ v.model }}</h5>
-
-                <div class="legend">
-                  <span><span class="dot available"></span> Available</span>
-                  <span><span class="dot selected"></span> Selected</span>
-                  <span><span class="dot booked"></span> Booked</span>
-                </div>
-              </div>
-
-
-              <!-- DRIVER -->
-              <div class="driver-row">
-
-                <!-- Column 1 -->
-                <div></div>
-
-                <!-- Column 2 -->
-                <div></div>
-
-                <!-- Aisle -->
-                <div></div>
-
-                <!-- Column 3 -->
-                <div></div>
-
-                <!-- Column 4 (🔥 DRIVER HERE = A4 position) -->
-                <div class="driver-cell">
-                  <div class="driver-circle"></div>
-                  <span class="driver-text">Driver</span>
-                </div>
-
-              </div>
-
-
-
-              <div class="seat-grid">
-                <div class="seat-row" *ngFor="let row of rows">
-
-                  <!-- LEFT SIDE (2 seats) -->
-                  <div class="seat-group">
-                    <ng-container *ngFor="let col of [1,2]">
-                      <ng-container *ngIf="getSeatByPosition(row,col) as seat">
-                        <button type="button" class="seat-btn" [class.available]="seat.status === 'available'"
-                          [class.selected]="seat.status === 'selected'" [class.reserved]="seat.status === 'reserved'"
-                          (click)="toggleSeat(seat)">
-                          {{ seat.seatNumber }}
-                        </button>
-                      </ng-container>
+                  <!--
+                    ── CHANGED: getSeatsForVehicle() now returns AVAILABLE seats
+                       (capacity minus already-booked on the selected date).
+                       getSeatClass() returns 'full' / 'low' / 'high' accordingly.
+                  -->
+                  <div class="seat-indicator" [ngClass]="getSeatClass(v.id)">
+                    <ng-container *ngIf="getSeatsForVehicle(v.id) === 0; else seatsAvailable">
+                      🚫 Fully Booked
                     </ng-container>
+                    <ng-template #seatsAvailable>
+                      {{ getSeatsForVehicle(v.id) }} seats left
+                    </ng-template>
                   </div>
 
-                  <!-- AISLE -->
-                  <div class="aisle"></div>
-
-                  <!-- RIGHT SIDE (2 seats) -->
-                  <div class="seat-group">
-                    <ng-container *ngFor="let col of [3,4]">
-                      <ng-container *ngIf="getSeatByPosition(row,col) as seat">
-                        <button type="button" class="seat-btn" [class.available]="seat.status==='available'"
-                          [class.selected]="seat.status==='selected'" [class.reserved]="seat.status==='reserved'"
-                          (click)="toggleSeat(seat)">
-                          {{ seat.seatNumber }}
-                        </button>
-                      </ng-container>
-                    </ng-container>
-                  </div>
-
-                </div>
-              </div>
-
-              <!-- FOOTER -->
-              <div class="seat-footer">
-
-                <div class="selected-summary">
-                  Selected:
-                  <span *ngFor="let s of selectedSeats" class="chip">
-                    {{ s.seatNumber }}
-                  </span>
-                  <span *ngIf="!selectedSeats.length"><em>None</em></span>
-                </div>
-
-                <div class="footer-actions">
-                  <button class="btn secondary" (click)="clearSelection()" [disabled]="!selectedSeats.length">
-                    Clear
-                  </button>
-
-                  <button class="btn primary" (click)="confirmBooking()" [disabled]="!selectedSeats.length">
-                    Confirm
+                  <button type="button" class="btn primary small"
+                    [disabled]="getSeatsForVehicle(v.id) === 0"
+                    (click)="selectedVehicleCode = v.vehicleCode; fillBaseFare(); toggleSeatBooking(v.id)">
+                    Book Seats
                   </button>
                 </div>
 
               </div>
-
             </div>
-          </div>
 
+            <!-- SEAT CARD -->
+            <div class="seat-card-container" *ngIf="seatBookingBusId === v.id">
+              <div class="seat-card">
+
+                <div class="seat-card-header">
+                  <h5 class="seat-title">Seat Booking — {{ v.model }}</h5>
+                  <div class="legend">
+                    <span><span class="dot available"></span> Available</span>
+                    <span><span class="dot selected"></span> Selected</span>
+                    <!--
+                      ── CHANGED: legend now shows "Booked" instead of "Reserved"
+                         to make it clearer to the end user.
+                    -->
+                    <span><span class="dot booked"></span> Booked</span>
+                  </div>
+                </div>
+
+                <!-- DRIVER ROW -->
+                <div class="driver-row">
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div class="driver-cell">
+                    <div class="driver-circle"></div>
+                    <span class="driver-text">Driver</span>
+                  </div>
+                </div>
+
+                <div class="seat-grid">
+                  <div class="seat-row" *ngFor="let row of rows">
+                    <div class="seat-group">
+                      <ng-container *ngFor="let col of [1,2]">
+                        <ng-container *ngIf="getSeatByPosition(row, col) as seat">
+                          <!--
+                            ── CHANGED: 'booked' CSS class is now also applied when
+                               status === 'reserved', which means the seat was already
+                               bought and saved to the database.
+                               Clicking a reserved seat does nothing (toggleSeat guards it).
+                          -->
+                          <button type="button" class="seat-btn"
+                            [class.available]="seat.status === 'available'"
+                            [class.selected]="seat.status === 'selected'"
+                            [class.booked]="seat.status === 'reserved'"
+                            [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
+                            (click)="toggleSeat(seat)">
+                            {{ seat.seatNumber }}
+                          </button>
+                        </ng-container>
+                      </ng-container>
+                    </div>
+                    <div class="aisle"></div>
+                    <div class="seat-group">
+                      <ng-container *ngFor="let col of [3,4]">
+                        <ng-container *ngIf="getSeatByPosition(row, col) as seat">
+                          <button type="button" class="seat-btn"
+                            [class.available]="seat.status === 'available'"
+                            [class.selected]="seat.status === 'selected'"
+                            [class.booked]="seat.status === 'reserved'"
+                            [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
+                            (click)="toggleSeat(seat)">
+                            {{ seat.seatNumber }}
+                          </button>
+                        </ng-container>
+                      </ng-container>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="seat-footer">
+                  <div class="selected-summary">
+                    Selected:
+                    <span *ngFor="let s of selectedSeats" class="chip">{{ s.seatNumber }}</span>
+                    <span *ngIf="!selectedSeats.length"><em>None</em></span>
+                  </div>
+                  <div class="footer-actions">
+                    <button class="btn secondary small" type="button"
+                      (click)="clearSelection()"
+                      [disabled]="!selectedSeats.length">Clear</button>
+                    <button class="btn primary small" type="button"
+                      (click)="confirmBooking()"
+                      [disabled]="!selectedSeats.length">Confirm</button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
         </div>
       </div>
 
       <!-- SECTION 3: Ticket Details -->
       <div class="section section-ticket-details">
-        <h4 class="section-title">Ticket Details</h4>
+        <h4 class="section-title">
+          <span class="section-icon">🧾</span> Ticket Details
+        </h4>
         <div class="form-grid">
           <div class="form-group">
             <label for="passengerName">Passenger Name</label>
-            <input [(ngModel)]="selectedTicket.passengerName" name="passengerName" id="passengerName" required />
+            <input [(ngModel)]="selectedTicket.passengerName" name="passengerName"
+              id="passengerName" required placeholder="Enter full name" />
           </div>
           <div class="form-group">
             <label for="passengerContact">Passenger Contact</label>
-            <input [(ngModel)]="selectedTicket.passengerContact" name="passengerContact" id="passengerContact"
-              required />
+            <input [(ngModel)]="selectedTicket.passengerContact" name="passengerContact"
+              id="passengerContact" required placeholder="+880 1X XX XXX XXX" />
           </div>
           <div class="form-group">
             <label for="seatNumber">Seat Number</label>
-            <input [(ngModel)]="selectedTicket.seatNumber" name="seatNumber" id="seatNumber" readonly required />
+            <input [(ngModel)]="selectedTicket.seatNumber" name="seatNumber"
+              id="seatNumber" readonly required placeholder="Select seats above" />
           </div>
           <div class="form-group">
-            <label for="farePaid">Fare</label>
-            <input [(ngModel)]="selectedTicket.farePaid" name="farePaid" id="farePaid" type="number" required />
+            <label for="farePaid">Fare (৳)</label>
+            <input [(ngModel)]="selectedTicket.farePaid" name="farePaid"
+              id="farePaid" type="number" required />
           </div>
           <div class="form-group">
             <label for="bookingDateTime">Booking Date</label>
-            <input [(ngModel)]="selectedTicket.bookingDateTime" name="bookingDateTime" id="bookingDateTime" type="date"
-              [min]="todayString" required />
+            <input [(ngModel)]="selectedTicket.bookingDateTime" name="bookingDateTime"
+              id="bookingDateTime" type="date" [min]="todayString" required />
           </div>
           <div class="form-group">
-            <label for="route">Booking Counter</label>
-            <select [(ngModel)]="selectedTicket.bookingCounterId" name="bookingCounterId" required>
+            <label>Booking Counter</label>
+            <select [(ngModel)]="selectedTicket.bookingCounterId"
+              name="bookingCounterId" required>
               <option [ngValue]="null" disabled>Select Booking Counter</option>
               <option *ngFor="let c of counters" [ngValue]="c.id">{{ c.counterName }}</option>
             </select>
           </div>
           <div class="form-group">
-            <label for="route">Departure Counter</label>
-            <select [(ngModel)]="selectedTicket.departureCounterId" name="departureCounterId" required>
+            <label>Departure Counter</label>
+            <select [(ngModel)]="selectedTicket.departureCounterId"
+              name="departureCounterId" required>
               <option [ngValue]="null" disabled>Select Departure Counter</option>
               <option *ngFor="let cd of counters" [ngValue]="cd.id">{{ cd.counterName }}</option>
             </select>
           </div>
           <div class="form-group">
-            <label for="route">Arrival Counter</label>
-            <select [(ngModel)]="selectedTicket.arrivalCounterId" name="arrivalCounterId" required>
+            <label>Arrival Counter</label>
+            <select [(ngModel)]="selectedTicket.arrivalCounterId"
+              name="arrivalCounterId" required>
               <option [ngValue]="null" disabled>Select Arrival Counter</option>
               <option *ngFor="let ca of counters" [ngValue]="ca.id">{{ ca.counterName }}</option>
             </select>
@@ -260,179 +272,243 @@
     </form>
   </div>
 
-  <!-- Ticket List -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- TICKET LIST TABLE                               -->
+  <!-- ═══════════════════════════════════════════════ -->
   <div class="list-section">
     <h3 class="card-title">Ticket List</h3>
-    <table class="ticket-table">
-      <thead>
-        <tr>
-          <th>SL</th>
-          <th (click)="sortBy('passengerName')">Passenger Name</th>
-          <th (click)="sortBy('passengerContact')">Contact</th>
-          <th (click)="sortBy('seatNumber')">Seat</th>
-          <th (click)="sortBy('farePaid')">Fare</th>
-          <th (click)="sortBy('bookingDateTime')">Booking Date</th>
-          <th (click)="sortBy('bookingCounterId')">Booking Counter</th>
-          <th (click)="sortBy('departureCounterId')">Departure</th>
-          <th (click)="sortBy('arrivalCounterId')">Arrival</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let t of paginatedTickets; let i = index">
-          <td>{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
-          <td>{{ t.passengerName }}</td>
-          <td>{{ t.passengerContact }}</td>
-          <td>{{ t.seatNumber }}</td>
-          <td>{{ t.farePaid | currency:'BDT':'symbol' }}</td>
-          <td>{{ t.bookingDateTime | date:'short' }}</td>
-          <td>{{ t.bookingCounterId }}</td>
-          <td>{{ t.departureCounterId }}</td>
-          <td>{{ t.arrivalCounterId }}</td>
-          <td>
-            <button class="btn small edit" (click)="openModal(t)">✏️ Edit</button>
-            <button class="btn small delete" (click)="confirmDelete(t)">🗑️ Delete</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="table-wrapper">
+      <table class="ticket-table">
+        <thead>
+          <tr>
+            <th>SL</th>
+            <th (click)="sortBy('passengerName')" class="sortable">Passenger Name ↕</th>
+            <th (click)="sortBy('passengerContact')" class="sortable">Contact ↕</th>
+            <th (click)="sortBy('seatNumber')" class="sortable">Seat ↕</th>
+            <th (click)="sortBy('farePaid')" class="sortable">Fare ↕</th>
+            <th (click)="sortBy('bookingDateTime')" class="sortable">Booking Date ↕</th>
+            <th (click)="sortBy('bookingCounterId')" class="sortable">Booking Counter ↕</th>
+            <th (click)="sortBy('departureCounterId')" class="sortable">Departure ↕</th>
+            <th (click)="sortBy('arrivalCounterId')" class="sortable">Arrival ↕</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let t of paginatedTickets; let i = index">
+            <td class="sl-col">{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
+            <td><strong>{{ t.passengerName }}</strong></td>
+            <td>{{ t.passengerContact }}</td>
+            <td><span class="seat-chip">{{ t.seatNumber }}</span></td>
+            <td class="fare-col">৳{{ t.farePaid | number }}</td>
+            <td>{{ t.bookingDateTime | date:'mediumDate' }}</td>
+            <td>{{ getCounterName(t.bookingCounterId) }}</td>
+            <td>{{ getCounterName(t.departureCounterId) }}</td>
+            <td>{{ getCounterName(t.arrivalCounterId) }}</td>
+            <td class="actions-col">
+              <button class="btn-icon edit-btn" (click)="openModal(t)" title="Edit ticket">
+                <span class="icon">✏️</span>
+              </button>
+              <button class="btn-icon delete-btn" (click)="confirmDelete(t)" title="Delete ticket">
+                <span class="icon">🗑️</span>
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="paginatedTickets.length === 0">
+            <td colspan="10" class="empty-row">No tickets found.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
-  <!-- Pagination -->
+  <!-- PAGINATION -->
   <div class="pagination">
-    <button class="btn small" [disabled]="currentPage === 1" (click)="goToPreviousPage()">⬅ Prev</button>
+    <button class="page-btn nav-btn" [disabled]="currentPage === 1"
+      (click)="goToPreviousPage()">‹ Prev</button>
     <ng-container *ngFor="let page of pages">
-      <button class="btn small page-btn" [class.active]="page === currentPage" (click)="goToPage(page)">
-        {{ page }}
-      </button>
+      <button class="page-btn" [class.active]="page === currentPage"
+        (click)="goToPage(page)">{{ page }}</button>
     </ng-container>
-    <button class="btn small" [disabled]="currentPage === totalPages" (click)="goToNextPage()">Next ➡</button>
+    <button class="page-btn nav-btn" [disabled]="currentPage === totalPages"
+      (click)="goToNextPage()">Next ›</button>
   </div>
 
-  <!-- Edit Modal -->
-  <div class="modal-backdrop" *ngIf="showModal">
-    <div class="modal">
-      <button class="modal-close" (click)="closeModal()">×</button>
-      <h3 class="modal-title">Edit Ticket</h3>
 
-      <form (ngSubmit)="save()" #editForm="ngForm" class="ticket-form">
-        <input type="hidden" [(ngModel)]="selectedTicket.id" name="editTicketId" />
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- EDIT MODAL                                      -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+    <div class="modal-panel" (click)="$event.stopPropagation()">
 
-        <!-- SECTION 1: Route & Dates -->
-        <div class="section section-route-dates">
-          <h4 class="section-title">Route & Dates</h4>
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="edit-route">Route</label>
-              <select [(ngModel)]="selectedRouteCode" name="editRoute" id="edit-route" required
-                (change)="calculateArrivalDate()">
-                <option value="" disabled selected>Select Route</option>
-                <option *ngFor="let r of routes" [value]="r.id">{{ r.routeName }}</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="edit-departureDate">Departure Date</label>
-              <input [(ngModel)]="selectedDepartureDate" name="editDepartureDate" id="edit-departureDate" type="date"
-                required (change)="calculateArrivalDate()" />
-            </div>
-
-            <div class="form-group">
-              <label for="edit-arrivalDate">Arrival Date</label>
-              <input [(ngModel)]="selectedArrivalDate" name="editArrivalDate" id="edit-arrivalDate" type="date" required
-                readonly />
-            </div>
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <div class="modal-icon edit-icon">✏️</div>
+          <div>
+            <h3 class="modal-title">Edit Ticket</h3>
+            <p class="modal-subtitle">Update passenger and journey details</p>
           </div>
         </div>
-
-        <!-- SECTION 2: Vehicle Cards -->
-        <div class="section section-vehicle">
-          <h4 class="section-title">Available Vehicles</h4>
-          <div class="vehicle-list">
-            <div *ngFor="let v of availableVehicles" class="vehicle-card"
-              [class.selected]="selectedVehicleCode === v.vehicleCode"
-              (click)="selectedVehicleCode = v.vehicleCode; fillBaseFare()">
-              <h5>{{ getOperatorName(v.operatorCode) }} - {{ v.model }} ({{ v.vehicleCode }})</h5>
-              <p>Departure: {{ getDepartureTimeForVehicle(v.id) }}</p>
-              <p>Base Fare: {{ getBaseFareForVehicle(v.id) }} BDT</p>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="edit-baseFare">Selected Base Fare</label>
-            <input [(ngModel)]="selectedBaseFare" name="editBaseFare" id="edit-baseFare" type="number" required
-              readonly />
-          </div>
-        </div>
-
-        <!-- SECTION 3: Ticket Details -->
-        <div class="section section-ticket-details">
-          <h4 class="section-title">Ticket Details</h4>
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="edit-passengerName">Passenger Name</label>
-              <input [(ngModel)]="selectedTicket.passengerName" name="editPassengerName" id="edit-passengerName"
-                required />
-            </div>
-            <div class="form-group">
-              <label for="edit-passengerContact">Passenger Contact</label>
-              <input [(ngModel)]="selectedTicket.passengerContact" name="editPassengerContact"
-                id="edit-passengerContact" required />
-            </div>
-            <div class="form-group">
-              <label for="seatNumber">Seat Number</label>
-              <input [(ngModel)]="selectedTicket.seatNumber" name="seatNumber" id="seatNumber"
-                placeholder="Select seats from vehicle card" readonly required />
-            </div>
-            <div class="form-group">
-              <label for="edit-farePaid">Fare Paid</label>
-              <input [(ngModel)]="selectedTicket.farePaid" name="editFarePaid" id="edit-farePaid" type="number"
-                required />
-            </div>
-            <div class="form-group">
-              <label for="edit-bookingDateTime">Booking Date</label>
-              <input [(ngModel)]="selectedTicket.bookingDateTime" name="editBookingDateTime" id="edit-bookingDateTime"
-                type="date" [min]="todayString" required />
-            </div>
-            <div class="form-group">
-              <label for="edit-bookingCounterId">Booking Counter</label>
-              <input [(ngModel)]="selectedTicket.bookingCounterId" name="editBookingCounterId"
-                id="edit-bookingCounterId" required />
-            </div>
-            <div class="form-group">
-              <label for="edit-departureCounterId">Departure Counter</label>
-              <input [(ngModel)]="selectedTicket.departureCounterId" name="editDepartureCounterId"
-                id="edit-departureCounterId" required />
-            </div>
-            <div class="form-group">
-              <label for="edit-arrivalCounterId">Arrival Counter</label>
-              <input [(ngModel)]="selectedTicket.arrivalCounterId" name="editArrivalCounterId"
-                id="edit-arrivalCounterId" required />
-            </div>
-          </div>
-        </div>
-
-        <div class="form-actions">
-          <button type="submit" class="btn primary">💾 Update</button>
-          <button type="button" class="btn secondary" (click)="closeModal()">Cancel</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Delete Confirmation -->
-  <div class="modal-backdrop" *ngIf="showDeleteConfirmModal">
-    <div class="modal delete-modal">
-      <h3 class="modal-title">Confirm Deletion</h3>
-      <p class="delete-message">
-        Are you sure you want to delete
-        <strong>{{ ticketToDelete?.passengerName }}</strong>
-        (Seat {{ ticketToDelete?.seatNumber }})?
-      </p>
-      <div class="form-actions">
-        <button class="btn delete" (click)="deleteConfirmed()">Yes, Delete</button>
-        <button class="btn secondary" (click)="cancelDelete()">Cancel</button>
+        <button class="modal-close-btn" (click)="closeModal()">✕</button>
       </div>
+
+      <div *ngIf="modalSuccessMessage" class="alert success-alert modal-alert">
+        {{ modalSuccessMessage }}
+      </div>
+
+      <div class="modal-body">
+        <form (ngSubmit)="save()" #editForm="ngForm" class="ticket-form modal-form">
+          <input type="hidden" [(ngModel)]="selectedTicket.id" name="editTicketId" />
+
+          <!-- SECTION 1: Route & Dates -->
+          <div class="section section-route-dates">
+            <h4 class="section-title">
+              <span class="section-icon">📍</span> Route &amp; Dates
+            </h4>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Route</label>
+                <select [(ngModel)]="selectedRouteCode" name="editRoute" required
+                  (change)="calculateArrivalDate()">
+                  <option value="" disabled selected>Select Route</option>
+                  <option *ngFor="let r of routes" [value]="r.id">{{ r.routeName }}</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Departure Date</label>
+                <input [(ngModel)]="selectedDepartureDate" name="editDepartureDate"
+                  type="date" required (change)="calculateArrivalDate()" />
+              </div>
+              <div class="form-group">
+                <label>Arrival Date</label>
+                <input [(ngModel)]="selectedArrivalDate" name="editArrivalDate"
+                  type="date" required readonly />
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 2: Vehicle Selection (compact) -->
+          <div class="section section-vehicle" *ngIf="availableVehicles.length">
+            <h4 class="section-title">
+              <span class="section-icon">🚌</span> Available Vehicles
+            </h4>
+            <div class="vehicle-list compact">
+              <div *ngFor="let v of availableVehicles" class="vehicle-card compact-card"
+                [class.selected]="selectedVehicleCode === v.vehicleCode"
+                (click)="selectedVehicleCode = v.vehicleCode; fillBaseFare()">
+                <div class="compact-vehicle-info">
+                  <div>
+                    <span class="operator-name">{{ getOperatorName(v.operatorCode) }}</span>
+                    <span class="bus-model"> — {{ v.model }}</span>
+                    <span class="vehicle-code"> ({{ v.vehicleCode }})</span>
+                  </div>
+                  <div class="compact-meta">
+                    <span>🕐 {{ getDepartureTimeForVehicle(v.id) }}</span>
+                    <span class="fare-badge">৳ {{ getBaseFareForVehicle(v.id) }}</span>
+                    <!-- ── CHANGED: show available seats count ── -->
+                    <span class="seat-badge" [ngClass]="getSeatClass(v.id)">
+                      {{ getSeatsForVehicle(v.id) }} left
+                    </span>
+                  </div>
+                </div>
+                <div class="selected-checkmark" *ngIf="selectedVehicleCode === v.vehicleCode">✓</div>
+              </div>
+            </div>
+            <div class="form-group base-fare-group">
+              <label>Selected Base Fare (৳)</label>
+              <input [(ngModel)]="selectedBaseFare" name="editBaseFare" type="number"
+                required readonly class="fare-input" />
+            </div>
+          </div>
+
+          <!-- SECTION 3: Ticket Details -->
+          <div class="section section-ticket-details">
+            <h4 class="section-title">
+              <span class="section-icon">🧾</span> Ticket Details
+            </h4>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Passenger Name</label>
+                <input [(ngModel)]="selectedTicket.passengerName" name="editPassengerName" required />
+              </div>
+              <div class="form-group">
+                <label>Passenger Contact</label>
+                <input [(ngModel)]="selectedTicket.passengerContact" name="editPassengerContact" required />
+              </div>
+              <div class="form-group">
+                <label>Seat Number</label>
+                <input [(ngModel)]="selectedTicket.seatNumber" name="editSeatNumber"
+                  readonly required placeholder="Select seats from vehicle card" />
+              </div>
+              <div class="form-group">
+                <label>Fare Paid (৳)</label>
+                <input [(ngModel)]="selectedTicket.farePaid" name="editFarePaid" type="number" required />
+              </div>
+              <div class="form-group">
+                <label>Booking Date</label>
+                <input [(ngModel)]="selectedTicket.bookingDateTime" name="editBookingDateTime"
+                  type="date" [min]="todayString" required />
+              </div>
+              <div class="form-group">
+                <label>Booking Counter</label>
+                <select [(ngModel)]="selectedTicket.bookingCounterId"
+                  name="editBookingCounterId" required>
+                  <option [ngValue]="null" disabled>Select Booking Counter</option>
+                  <option *ngFor="let c of counters" [ngValue]="c.id">{{ c.counterName }}</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Departure Counter</label>
+                <select [(ngModel)]="selectedTicket.departureCounterId"
+                  name="editDepartureCounterId" required>
+                  <option [ngValue]="null" disabled>Select Departure Counter</option>
+                  <option *ngFor="let cd of counters" [ngValue]="cd.id">{{ cd.counterName }}</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Arrival Counter</label>
+                <select [(ngModel)]="selectedTicket.arrivalCounterId"
+                  name="editArrivalCounterId" required>
+                  <option [ngValue]="null" disabled>Select Arrival Counter</option>
+                  <option *ngFor="let ca of counters" [ngValue]="ca.id">{{ ca.counterName }}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn secondary" (click)="closeModal()">Cancel</button>
+            <button type="submit" class="btn primary">💾 Update Ticket</button>
+          </div>
+        </form>
+      </div>
+
     </div>
   </div>
+
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- DELETE CONFIRMATION MODAL                       -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div class="modal-overlay" *ngIf="showDeleteConfirmModal" (click)="cancelDelete()">
+    <div class="modal-panel delete-modal-panel" (click)="$event.stopPropagation()">
+
+      <div class="delete-modal-icon">🗑️</div>
+
+      <h3 class="delete-modal-title">Delete Ticket?</h3>
+      <p class="delete-modal-message">
+        You are about to permanently delete the ticket for
+        <strong>{{ ticketToDelete?.passengerName }}</strong>.
+        <br />
+        <span class="delete-meta">Seat: <strong>{{ ticketToDelete?.seatNumber }}</strong></span>
+      </p>
+      <p class="delete-warning">⚠️ This action cannot be undone.</p>
+
+      <div class="delete-modal-actions">
+        <button class="btn secondary" (click)="cancelDelete()">Cancel</button>
+        <button class="btn danger" (click)="deleteConfirmed()">Yes, Delete</button>
+      </div>
+
+    </div>
+  </div>
+
 </div>

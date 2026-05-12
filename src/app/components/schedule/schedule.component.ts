@@ -39,7 +39,7 @@ export class ScheduleComponent implements OnInit {
 
   // Pagination
   currentPage: number = 1;
-  itemsPerPage: number = 10;
+  itemsPerPage: number = 25;
   sortField: string = '';
   sortAsc: boolean = true;
 

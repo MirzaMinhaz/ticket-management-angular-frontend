@@ -34,26 +34,55 @@ export class AuthComponent {
 
 
 
-  onLogin() {
-    this.http.post('https://localhost:7139/api/Auth/login', this.loginData)
-      .subscribe({
-        next: (res: any) => {
-          localStorage.setItem('jwtToken', res.token);
-          localStorage.setItem('username', res.username); // assuming backend sends it
+  // onLogin() {
+  //   this.http.post('https://localhost:7139/api/Auth/login', this.loginData)
+  //     .subscribe({
+  //       next: (res: any) => {
+  //         localStorage.setItem('jwtToken', res.token);
+  //         localStorage.setItem('username', res.username); // assuming backend sends it
 
-          this.notify.show('Login successful!', 'success');
-          this.router.navigate(['/home']);
-        },
-        error: err => {
-          // ✅ Show friendly message instead of raw stack trace
-          let msg = 'Incorrect username or password';
-          if (err.status === 0) {
-            msg = 'Server unreachable. Please try again later.';
-          }
-          this.notify.show(msg, 'error');
+  //         this.notify.show('Login successful!', 'success');
+  //         this.router.navigate(['/home']);
+  //       },
+  //       error: err => {
+  //         // ✅ Show friendly message instead of raw stack trace
+  //         let msg = 'Incorrect username or password';
+  //         if (err.status === 0) {
+  //           msg = 'Server unreachable. Please try again later.';
+  //         }
+  //         this.notify.show(msg, 'error');
+  //       }
+  //     });
+  // }
+
+
+  loading = false;
+
+onLogin() {
+  this.loading = true; // start spinner
+  this.http.post('https://localhost:7139/api/Auth/login', this.loginData)
+    .subscribe({
+      next: (res: any) => {
+        localStorage.setItem('jwtToken', res.token);
+        localStorage.setItem('username', res.username);
+        // ✅ Start session activity tracking
+        localStorage.setItem('lastActivity', Date.now().toString());
+
+        this.notify.show('Login successful!', 'success');
+        this.router.navigate(['/home']);
+        this.loading = false; // stop spinner
+      },
+      error: err => {
+        let msg = 'Incorrect username or password';
+        if (err.status === 0) {
+          msg = 'Server unreachable. Please try again later.';
         }
-      });
-  }
+        this.notify.show(msg, 'error');
+        this.loading = false; // stop spinner
+      }
+    });
+}
+
 
 
   onRegister() {
@@ -69,4 +98,8 @@ export class AuthComponent {
         }
       });
   }
+
+
+
+  
 }
