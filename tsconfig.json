@@ -3,6 +3,7 @@
   "compileOnSave": false,
   "compilerOptions": {
     "outDir": "./dist/out-tsc",
+    "rootDir": "./src",
     "strict": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
@@ -14,6 +15,7 @@
     "declaration": false,
     "experimentalDecorators": true,
     "moduleResolution": "node",
+    // "ignoreDeprecations": "6.0",
     "importHelpers": true,
     "target": "ES2022",
     "module": "ES2022",

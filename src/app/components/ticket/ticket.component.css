@@ -142,14 +142,12 @@ body {
   gap: 6px;
 }
 
-/* Labels — clear, dark */
 .form-group label {
   font-size: 13px;
   font-weight: 600;
   color: #374151;
 }
 
-/* Inputs & selects — dark text on white bg */
 .form-group input,
 .form-group select {
   padding: 10px 14px;
@@ -175,7 +173,6 @@ body {
   outline: none;
 }
 
-/* Readonly inputs */
 .form-group input[readonly] {
   background: #f3f4f6;
   color: #374151;
@@ -402,6 +399,7 @@ body {
   line-height: 1;
 }
 
+/* ── Seat indicator badges ── */
 .seat-indicator {
   font-size: 0.75rem;
   font-weight: 700;
@@ -409,16 +407,32 @@ body {
   border-radius: 99px;
 }
 
-.seat-indicator.high {
+.seat-indicator.high,
+.seat-badge.high {
   background: #dcfce7;
   color: #166534;
   border: 1px solid #86efac;
 }
 
-.seat-indicator.low {
+.seat-indicator.low,
+.seat-badge.low {
   background: #fff7ed;
   color: #92400e;
   border: 1px solid #fed7aa;
+}
+
+.seat-indicator.full,
+.seat-badge.full {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.seat-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 99px;
 }
 
 /* ─────────────────────────────────────────────── */
@@ -500,6 +514,8 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .seat-title {
@@ -513,6 +529,7 @@ body {
   display: flex;
   gap: 16px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .legend span {
@@ -536,12 +553,54 @@ body {
 .dot.selected  { background: #2563eb; }
 .dot.booked    { background: #ef4444; }
 
-/* Driver */
+/* ─────────────────────────────────────────────── */
+/*  SEAT LOADING & EMPTY STATES                     */
+/* ─────────────────────────────────────────────── */
+
+.seat-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.seat-loading-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid #e5e7eb;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.seat-empty {
+  text-align: center;
+  color: #9ca3af;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 24px 0;
+  font-style: italic;
+}
+
+/* ─────────────────────────────────────────────── */
+/*  DRIVER ROW                                      */
+/* ─────────────────────────────────────────────── */
+
 .driver-row {
-  display: grid;
-  grid-template-columns: 50px 50px 40px 50px 50px;
-  justify-content: center;
-  margin-bottom: 8px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0 8px 8px;
+  border-bottom: 2px dashed #e5e7eb;
+  margin-bottom: 12px;
 }
 
 .driver-cell {
@@ -556,6 +615,7 @@ body {
   height: 28px;
   border: 2.5px solid #374151;
   border-radius: 50%;
+  background: #f3f4f6;
 }
 
 .driver-text {
@@ -564,23 +624,41 @@ body {
   font-weight: 700;
 }
 
-/* Seat grid */
+/* ─────────────────────────────────────────────── */
+/*  SEAT GRID                                       */
+/* ─────────────────────────────────────────────── */
+
 .seat-grid {
   display: flex;
   flex-direction: column;
   gap: 8px;
   margin-bottom: 16px;
+  overflow-x: auto;
+  padding-bottom: 4px;
 }
 
 .seat-row {
   display: flex;
   justify-content: center;
   align-items: center;
+  gap: 0;
+  min-width: max-content;
+  margin: 0 auto;
 }
 
-.seat-group { display: flex; gap: 8px; }
+.seat-group {
+  display: flex;
+  gap: 8px;
+}
 
-.aisle { width: 40px; }
+.aisle {
+  width: 40px;
+  flex-shrink: 0;
+}
+
+/* ─────────────────────────────────────────────── */
+/*  SEAT BUTTONS                                    */
+/* ─────────────────────────────────────────────── */
 
 .seat-btn {
   width: 44px;
@@ -592,8 +670,13 @@ body {
   border: none;
   cursor: pointer;
   transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
+/* Available — green */
 .seat-btn.available {
   background: #dcfce7;
   color: #14532d;
@@ -607,18 +690,33 @@ body {
   box-shadow: 0 4px 10px rgba(22,163,74,0.35);
 }
 
+/* Selected — blue */
 .seat-btn.selected {
   background: #2563eb;
   color: #fff;
+  border: 1.5px solid #1d4ed8;
   box-shadow: 0 4px 10px rgba(37,99,235,0.35);
 }
 
+/* Booked / Reserved — red */
+.seat-btn.booked,
 .seat-btn.reserved {
-  background: #f3f4f6;
-  color: #9ca3af;
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1.5px solid #fca5a5;
   cursor: not-allowed;
-  border: 1.5px solid #e5e7eb;
+  opacity: 0.85;
 }
+
+.seat-btn.booked:hover,
+.seat-btn.reserved:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* ─────────────────────────────────────────────── */
+/*  SEAT FOOTER                                     */
+/* ─────────────────────────────────────────────── */
 
 .seat-footer {
   display: flex;
@@ -626,6 +724,8 @@ body {
   align-items: center;
   padding-top: 14px;
   border-top: 1.5px solid #e5e7eb;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .selected-summary {
@@ -674,7 +774,6 @@ body {
   font-size: 14px;
 }
 
-/* Header — bold and clearly visible */
 .ticket-table th {
   background: #f3f4f6;
   color: #1f2937;
@@ -698,7 +797,6 @@ body {
   background: #eff6ff;
 }
 
-/* Body cells — dark, fully readable */
 .ticket-table td {
   padding: 13px 16px;
   border-bottom: 1px solid #f3f4f6;
@@ -744,7 +842,6 @@ body {
   padding: 40px !important;
 }
 
-/* Action icon buttons */
 .btn-icon {
   display: inline-flex;
   align-items: center;
