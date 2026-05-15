@@ -31,6 +31,9 @@ export interface Vehicle {
   licensePlate: string;
   capacity: number;
   vehicleCode: string;
+  acType: string;       // e.g., 'AC', 'Non AC'
+  busCategory: string;  // e.g., 'Single Decker', 'Sleeper'
+  deckLevel: string;    // e.g., 'Lower Deck', 'Upper Deck'
   operatorId?: number;
   operatorCode?: string;
   operatorName?: string;
@@ -45,6 +48,9 @@ export interface CreateVehicleDto {
   model: string;
   licensePlate: string;
   capacity: number;
+  acType: string;
+  busCategory: string;
+  deckLevel: string;
 }
 
 export interface UpdateVehicleDto {
@@ -54,6 +60,9 @@ export interface UpdateVehicleDto {
   licensePlate: string;
   capacity: number;
   isActive: boolean;
+  acType: string;
+  busCategory: string;
+  deckLevel: string;
 }
 
 // ── Ticket ────────────────────────────────────────────────────────────────────
