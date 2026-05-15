@@ -215,7 +215,7 @@ export class VehicleComponent implements OnInit {
     });
   }
 
-  // ─── Save (create or update) ──────────────────────────────────────────────
+  // ─── Save (create or update) ────────────────────────────────────────────── save part
   save(): void {
     if (this.selectedVehicle.id > 0) {
       const updateDto: UpdateVehicleDto = {
