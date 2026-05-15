@@ -55,8 +55,11 @@ export class TicketComponent implements OnInit {
   successMessage: string | null = null;
   modalSuccessMessage: string | null = null;
   showModal = false;
-  showDeleteConfirmModal = false;
-  ticketToDelete: TicketDto | null = null;
+
+  // ── Cancel modal state ───────────────────────────────────────────────────────
+  showCancelConfirmModal = false;
+  ticketToCancel: TicketDto | null = null;
+  cancelReason: string = 'Counter request';
 
   /** True while the seat panel is loading from the backend */
   seatPanelLoading = false;
@@ -82,6 +85,24 @@ export class TicketComponent implements OnInit {
 
   /** Available-seat counts per vehicleId, refreshed after date selection. */
   private availableSeatCounts: Record<number, number> = {};
+
+  /**
+   * The original ticket being edited — used to exclude its own seats
+   * from the "booked" list so the passenger can re-select them.
+   */
+  private editingOriginalSeats: string[] = [];
+
+  /**
+   * Tracks which vehicleId the edit modal originally belonged to.
+   * Used to decide whether to pre-select seats when the panel opens.
+   */
+  private editingOriginalVehicleId: number | null = null;
+
+  /**
+   * Tracks whether the edit modal has already pre-selected the original seats.
+   * Prevents re-applying pre-selection on subsequent seat panel opens.
+   */
+  private editSeatsPreSelected = false;
 
   constructor(
     private routeService: RouteService,
@@ -165,10 +186,6 @@ export class TicketComponent implements OnInit {
 
   // ── Available-seat count helpers ─────────────────────────────────────────────
 
-  /**
-   * For every vehicle on this route+date, resolve its Trip then fetch
-   * booked seats so the badge on each vehicle card is accurate.
-   */
   private refreshAvailableSeatCounts(): void {
     this.availableSeatCounts = {};
 
@@ -190,19 +207,22 @@ export class TicketComponent implements OnInit {
             this.tripService.getBookedSeats(trip.id).subscribe({
               next: (booked) => {
                 const capacity = vehicle.capacity ?? 0;
+                const effectiveBooked = this.showModal
+                  ? booked.filter(
+                      (s) => !this.editingOriginalSeats.includes(s),
+                    )
+                  : booked;
                 this.availableSeatCounts[vehicle.id] = Math.max(
                   0,
-                  capacity - booked.length,
+                  capacity - effectiveBooked.length,
                 );
               },
               error: () => {
-                // Fallback: show full capacity if we can't fetch booked seats
                 this.availableSeatCounts[vehicle.id] = vehicle.capacity ?? 0;
               },
             });
           },
           error: () => {
-            // Fallback: show full capacity if trip resolution fails
             this.availableSeatCounts[vehicle.id] = vehicle.capacity ?? 0;
           },
         });
@@ -232,6 +252,25 @@ export class TicketComponent implements OnInit {
     return route?.routeName ?? '—';
   }
 
+  getOperatorNameByTripId(tripId: number): string {
+    const trip = this.trips.find((t) => t.id === tripId);
+    if (!trip) return '—';
+    const schedule = this.schedules.find((s) => s.id === trip.scheduleId);
+    if (!schedule) return '—';
+    const vehicle = this.vehicles.find((v) => v.id === schedule.vehicleId);
+    if (!vehicle) return '—';
+    return this.operators.find((o) => o.operatorCode === vehicle.operatorCode)?.name ?? '—';
+  }
+
+  getVehicleModelByTripId(tripId: number): string {
+    const trip = this.trips.find((t) => t.id === tripId);
+    if (!trip) return '';
+    const schedule = this.schedules.find((s) => s.id === trip.scheduleId);
+    if (!schedule) return '';
+    const vehicle = this.vehicles.find((v) => v.id === schedule.vehicleId);
+    return vehicle?.model ?? '';
+  }
+
   calculateArrivalDate(): void {
     if (!this.selectedDepartureDate || !this.selectedRouteCode) return;
 
@@ -247,7 +286,6 @@ export class TicketComponent implements OnInit {
     const pad = (n: number) => n.toString().padStart(2, '0');
 
     this.selectedArrivalDate = `${arr.getFullYear()}-${pad(arr.getMonth() + 1)}-${pad(arr.getDate())}`;
-
     this.selectedTicket.bookingDateTime = this.selectedDepartureDate;
 
     this.availableVehicles = this.vehicles.filter((v) =>
@@ -257,7 +295,17 @@ export class TicketComponent implements OnInit {
       ),
     );
 
+    // Close any open seat panel and clear seat selection when date/route changes
     this.closeSeatPanel();
+
+    // Clear seat selection — passenger must re-select seats for new date/route
+    this.selectedTicket.seatNumber = '';
+    this.selectedTicket.farePaid = 0;
+    this.selectedVehicleCode = '';
+    this.selectedBaseFare = 0;
+    // Reset pre-selection flag since date/route changed
+    this.editSeatsPreSelected = false;
+
     this.refreshAvailableSeatCounts();
   }
 
@@ -269,7 +317,14 @@ export class TicketComponent implements OnInit {
       (s) =>
         s.routeId === Number(this.selectedRouteCode) && s.vehicleId === vid,
     );
-    if (s) this.selectedBaseFare = s.baseFare;
+    if (s) {
+      this.selectedBaseFare = s.baseFare;
+      if (this.selectedSeats.length > 0) {
+        this.selectedTicket.farePaid = s.baseFare * this.selectedSeats.length;
+      } else {
+        this.selectedTicket.farePaid = s.baseFare;
+      }
+    }
   }
 
   getDepartureTimeForVehicle(vehicleId: number): string {
@@ -310,10 +365,6 @@ export class TicketComponent implements OnInit {
     );
   }
 
-  /**
-   * Returns available seat count for a vehicle badge.
-   * Falls back to full capacity while the async fetch is in flight.
-   */
   getSeatsForVehicle(vehicleId: number): number {
     if (vehicleId in this.availableSeatCounts) {
       return this.availableSeatCounts[vehicleId];
@@ -336,27 +387,23 @@ export class TicketComponent implements OnInit {
   // ── Seat booking ─────────────────────────────────────────────────────────────
 
   /**
-   * Called from the template "Book Seats" button.
-   * vehicleCode and vehicleId are passed in explicitly so we don't
-   * rely on selectedVehicleCode being set before this method runs
-   * (Angular evaluates compound click expressions left-to-right but
-   * component property assignment happens synchronously, so it's fine —
-   * however passing explicitly is safer and avoids confusion).
+   * Opens the seat panel for a vehicle.
    *
-   * KEY FIX: We now call generateSeats() immediately with whatever
-   * capacity we know from local data, showing the grid right away.
-   * We then overlay live booked-seat data from the backend asynchronously.
-   * This means the seat grid is ALWAYS visible, even if the network call
-   * is slow or fails.
+   * Edit mode behaviour (FIX #2):
+   * - When the panel opens for the SAME vehicle that the ticket was originally
+   *   booked on (and pre-selection hasn't happened yet), the original seats are
+   *   pre-selected automatically.
+   * - As soon as the user clicks ANY other seat (or opens a different vehicle),
+   *   the original seats are released — the editingOriginalSeats list is cleared
+   *   so the user starts fresh. This models "exchange seat" flow cleanly.
    */
   openSeatPanel(vehicleCode: string, vehicleId: number): void {
-    // If already open for this vehicle, close it
+    // Toggle off if already open for this vehicle
     if (this.seatBookingBusId === vehicleId) {
       this.closeSeatPanel();
       return;
     }
 
-    // Guard — route and departure date must be selected
     if (!this.selectedRouteCode) {
       this.showError('Please select a route before booking seats.');
       return;
@@ -366,7 +413,15 @@ export class TicketComponent implements OnInit {
       return;
     }
 
-    // Set selected vehicle code so fillBaseFare works correctly
+    // If switching to a DIFFERENT vehicle while editing, clear original seat
+    // selection so the user starts with a blank slate on the new vehicle.
+    if (this.showModal && this.editingOriginalVehicleId !== null && this.editingOriginalVehicleId !== vehicleId) {
+      this.editingOriginalSeats = [];
+      this.editSeatsPreSelected = false;
+      this.selectedTicket.seatNumber = '';
+      this.selectedTicket.farePaid = 0;
+    }
+
     this.selectedVehicleCode = vehicleCode;
     this.fillBaseFare();
 
@@ -384,18 +439,16 @@ export class TicketComponent implements OnInit {
 
     const capacity = vehicle.capacity ?? 40;
 
-    // ── Step 1: Show the seat grid immediately with local data ────────────────
-    // Reset panel state
+    // ── Step 1: Show seat grid immediately ────────────────────────────────────
     this.liveBookedSeats = [];
     this.activeTripId = null;
     this.selectedSeats = [];
     this.seatBookingBusId = vehicleId;
     this.seatPanelLoading = true;
 
-    // Generate seats right away so the grid appears instantly
     this.generateSeats(capacity);
 
-    // ── Step 2: Fetch live booked seats from backend asynchronously ───────────
+    // ── Step 2: Fetch live booked seats asynchronously ────────────────────────
     this.tripService
       .findOrCreate({
         scheduleId: schedule.id,
@@ -408,43 +461,58 @@ export class TicketComponent implements OnInit {
           this.tripService.getBookedSeats(trip.id).subscribe({
             next: (bookedSeats) => {
               this.seatPanelLoading = false;
-              this.liveBookedSeats = bookedSeats;
 
-              // Update badge count with accurate live data
-              this.availableSeatCounts[vehicleId] = Math.max(
-                0,
-                capacity - bookedSeats.length,
+              // Exclude original ticket seats from booked list
+              // so they appear as "available" and can be re-selected
+              this.liveBookedSeats = bookedSeats.filter(
+                (s) => !this.editingOriginalSeats.includes(s),
               );
 
-              // Re-generate seats now that we have live booked data
-              // (only if panel is still open for this vehicle)
+              // Update badge with accurate count
+              this.availableSeatCounts[vehicleId] = Math.max(
+                0,
+                capacity - this.liveBookedSeats.length,
+              );
+
               if (this.seatBookingBusId === vehicleId) {
                 this.generateSeats(capacity);
+
+                // ── FIX #2: Pre-select original seats when editing ────────────
+                // Only if: edit mode, haven't pre-selected yet, same vehicle,
+                // and there are original seats to restore.
+                const isSameVehicle = this.editingOriginalVehicleId === vehicleId;
+                if (
+                  this.showModal &&
+                  !this.editSeatsPreSelected &&
+                  isSameVehicle &&
+                  this.editingOriginalSeats.length > 0
+                ) {
+                  this.editSeatsPreSelected = true;
+                  for (const seatNum of this.editingOriginalSeats) {
+                    const seat = this.seatMap[seatNum];
+                    if (seat && seat.status === 'available') {
+                      seat.status = 'selected';
+                      this.selectedSeats.push(seat);
+                    }
+                  }
+                  this.updateSeatNumberField();
+                }
               }
             },
             error: (e) => {
-              console.error(
-                'Failed to load booked seats — showing all as available',
-                e,
-              );
+              console.error('Failed to load booked seats', e);
               this.seatPanelLoading = false;
-              // Grid already shown from Step 1; just stop the spinner
             },
           });
         },
         error: (e) => {
-          console.error(
-            'Failed to resolve trip — showing all seats as available',
-            e,
-          );
+          console.error('Failed to resolve trip', e);
           this.seatPanelLoading = false;
-          // Grid already shown from Step 1; seats will all appear available
-          // which is safe — the server will reject double-bookings anyway
         },
       });
   }
 
-  /** Legacy method kept for any code that still calls it; delegates to openSeatPanel */
+  /** Legacy shim */
   toggleSeatBooking(vehicleId: number): void {
     const vehicle = this.vehicles.find((v) => v.id === vehicleId);
     if (vehicle) {
@@ -469,18 +537,14 @@ export class TicketComponent implements OnInit {
   }
 
   /**
-   * Builds the full seat grid from capacity, then marks seats that
-   * appear in liveBookedSeats as 'reserved'.
-   *
-   * Layout: 4 seats per row (cols 1-4), lettered rows A, B, C…
-   * The seat grid is a 2+aisle+2 layout rendered in the template.
+   * Builds the full seat grid from capacity, marking seats in liveBookedSeats
+   * as 'reserved'. Layout: 4 seats per row (cols 1–4), lettered rows A, B, C…
    */
   private generateSeats(capacity: number): void {
     const seats: SeatDto[] = [];
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     let count = 0;
 
-    // Build exactly `capacity` real seats
     outer: for (let r = 0; r < alphabet.length; r++) {
       const row = alphabet[r];
       for (let c = 1; c <= 4; c++) {
@@ -492,7 +556,6 @@ export class TicketComponent implements OnInit {
           seatNumber: seatNum,
           seatCode: seatNum,
           isBooked: false,
-          // Mark reserved immediately if in liveBookedSeats
           status: this.liveBookedSeats.includes(seatNum)
             ? 'reserved'
             : 'available',
@@ -500,7 +563,7 @@ export class TicketComponent implements OnInit {
       }
     }
 
-    // Pad the last row to a full block of 4 so the grid renders evenly
+    // Pad last row to a full block of 4 for even grid rendering
     if (seats.length > 0) {
       const lastRow = seats[seats.length - 1].seatNumber.charAt(0);
       const existingCols = new Set(
@@ -518,7 +581,7 @@ export class TicketComponent implements OnInit {
             seatNumber: seatNum,
             seatCode: seatNum,
             isBooked: true,
-            status: 'reserved', // ghost/padding — not a real seat
+            status: 'reserved',
           });
         }
       }
@@ -529,7 +592,6 @@ export class TicketComponent implements OnInit {
   }
 
   private buildSeatMap(seats: SeatDto[]): void {
-    // Sort: row letter first, then column number
     seats.sort((a, b) => {
       const ra = a.seatNumber.charAt(0);
       const rb = b.seatNumber.charAt(0);
@@ -551,11 +613,25 @@ export class TicketComponent implements OnInit {
     return this.seatMap[`${row}${col}`];
   }
 
+  /**
+   * FIX #2 — toggleSeat:
+   * The moment the user manually clicks ANY seat while editing, release the
+   * original pre-selected seats lock so they behave like normal toggles.
+   * editingOriginalSeats is cleared so switching vehicle won't re-apply them.
+   */
   toggleSeat(seat: SeatDto): void {
     if (!seat || seat.status === 'reserved') return;
 
     const mapSeat = this.seatMap[seat.seatNumber];
     if (!mapSeat) return;
+
+    // Once the user manually interacts, release the "original seats" lock.
+    // This means: if they click another seat (or even re-click an original seat),
+    // the editingOriginalSeats no longer protect those seats as "pre-selected".
+    if (this.showModal && this.editSeatsPreSelected && this.editingOriginalSeats.length > 0) {
+      // Clear the original seats lock — user is now freely choosing
+      this.editingOriginalSeats = [];
+    }
 
     if (mapSeat.status === 'selected') {
       mapSeat.status = 'available';
@@ -564,7 +640,8 @@ export class TicketComponent implements OnInit {
       );
     } else {
       if (this.selectedSeats.length >= 5) {
-        alert('You can only select a maximum of 5 seats.');
+        this.showToast('error', '⚠️ Maximum 5 seats can be booked per ticket.', 5000);
+        // alert('You can only select a maximum of 5 seats.');
         return;
       }
       mapSeat.status = 'selected';
@@ -580,32 +657,11 @@ export class TicketComponent implements OnInit {
     });
     this.selectedSeats = [];
     this.selectedTicket.seatNumber = '';
-  }
-
-  confirmBooking(): void {
-    if (!this.selectedSeats.length) return;
-
-    this.updateSeatNumberField();
-
-    // Optimistically update liveBookedSeats so badge refreshes immediately
-    for (const s of this.selectedSeats) {
-      if (!this.liveBookedSeats.includes(s.seatNumber)) {
-        this.liveBookedSeats.push(s.seatNumber);
-      }
+    this.selectedTicket.farePaid = 0;
+    // Clear original seats lock when user explicitly clears
+    if (this.showModal) {
+      this.editingOriginalSeats = [];
     }
-
-    // Update badge count
-    if (this.seatBookingBusId !== null) {
-      const capacity =
-        this.vehicles.find((v) => v.id === this.seatBookingBusId)?.capacity ??
-        0;
-      this.availableSeatCounts[this.seatBookingBusId] = Math.max(
-        0,
-        capacity - this.liveBookedSeats.length,
-      );
-    }
-
-    this.closeSeatPanel();
   }
 
   private updateSeatNumberField(): void {
@@ -616,11 +672,13 @@ export class TicketComponent implements OnInit {
 
     if (this.seatBookingBusId) {
       const s = this.schedules.find(
-        (s) =>
-          s.vehicleId === this.seatBookingBusId &&
-          s.routeId === Number(this.selectedRouteCode),
+        (sch) =>
+          sch.vehicleId === this.seatBookingBusId &&
+          sch.routeId === Number(this.selectedRouteCode),
       );
-      if (s) this.selectedBaseFare = s.baseFare;
+      if (s) {
+        this.selectedBaseFare = s.baseFare;
+      }
     }
 
     this.selectedTicket.farePaid =
@@ -649,6 +707,35 @@ export class TicketComponent implements OnInit {
   }
 
   save(): void {
+    // ── Validation ──────────────────────────────────────────────
+    const setError = (msg: string) => {
+      const target = this.showModal ? 'modalSuccessMessage' : 'successMessage';
+      (this as any)[target] = `❌ ${msg}`;
+      setTimeout(() => ((this as any)[target] = null), 3000);
+    };
+
+    if (!this.selectedTicket.passengerName?.trim()) {
+      return setError('Please provide Passenger Name.');
+    }
+    if (!this.selectedTicket.passengerContact?.trim()) {
+      return setError('Please provide Passenger Contact.');
+    }
+    if (!this.selectedTicket.seatNumber?.trim()) {
+      return setError('Please select at least one seat.');
+    }
+    if (!this.selectedSeats.length && !this.selectedTicket.seatNumber?.trim()) {
+      return setError('Please select at least one seat from the vehicle seat map.');
+    }
+    if (!this.selectedTicket.bookingCounterId) {
+      return setError('Please select Booking Counter.');
+    }
+    if (!this.selectedTicket.departureCounterId) {
+      return setError('Please select Departure Counter.');
+    }
+    if (!this.selectedTicket.arrivalCounterId) {
+      return setError('Please select Arrival Counter.');
+    }
+
     const vehicleId = this.vehicles.find(
       (v) => v.vehicleCode === this.selectedVehicleCode,
     )?.id;
@@ -659,37 +746,55 @@ export class TicketComponent implements OnInit {
     );
 
     if (!schedule) {
-      this.successMessage =
-        '❌ Please select a valid vehicle/route combination.';
-      return;
+      return setError('Please select a valid vehicle/route combination.');
     }
 
     if (this.selectedTicket.id) {
-      // ── UPDATE ──────────────────────────────────────────────────────────────
-      const dto: UpdateTicketDto = {
-        id: this.selectedTicket.id,
-        tripId: this.selectedTicket.tripId,
-        passengerName: this.selectedTicket.passengerName,
-        passengerContact: this.selectedTicket.passengerContact,
-        seatNumber: this.selectedTicket.seatNumber,
-        farePaid: Number(this.selectedTicket.farePaid),
-        bookingDateTime: this.selectedTicket.bookingDateTime,
-        bookingCounterId: Number(this.selectedTicket.bookingCounterId),
-        departureCounterId: Number(this.selectedTicket.departureCounterId),
-        arrivalCounterId: Number(this.selectedTicket.arrivalCounterId),
-      };
+      // ── UPDATE ───────────────────────────────────────────────────────────────
+      this.tripService
+        .findOrCreate({
+          scheduleId: schedule.id,
+          tripDate: this.selectedDepartureDate,
+        })
+        .subscribe({
+          next: (trip) => {
+            const dto: UpdateTicketDto = {
+              id: this.selectedTicket.id,
+              tripId: trip.id,
+              passengerName: this.selectedTicket.passengerName,
+              passengerContact: this.selectedTicket.passengerContact,
+              seatNumber: this.selectedTicket.seatNumber,
+              farePaid: Number(this.selectedTicket.farePaid),
+              bookingDateTime: this.selectedTicket.bookingDateTime,
+              bookingCounterId: Number(this.selectedTicket.bookingCounterId),
+              departureCounterId: Number(this.selectedTicket.departureCounterId),
+              arrivalCounterId: Number(this.selectedTicket.arrivalCounterId),
+            };
 
-      this.ticketService.updateTicket(dto).subscribe({
-        next: () => {
-          this.loadTickets();
-          this.modalSuccessMessage = '✅ Ticket updated successfully!';
-          setTimeout(() => {
-            this.modalSuccessMessage = null;
-            this.closeModal();
-          }, 1500);
-        },
-        error: (e) => console.error('Update failed', e),
-      });
+            this.ticketService.updateTicket(dto).subscribe({
+              next: () => {
+                this.loadTickets();
+                this.loadTrips();
+                this.editingOriginalSeats = [];
+                this.editSeatsPreSelected = false;
+                this.editingOriginalVehicleId = null;
+                this.modalSuccessMessage = '✅ Ticket updated successfully!';
+                setTimeout(() => {
+                  this.modalSuccessMessage = null;
+                  this.closeModal();
+                }, 1500);
+              },
+              error: (e) => {
+                console.error('Update failed', e);
+                this.modalSuccessMessage = '❌ Failed to update ticket.';
+              },
+            });
+          },
+          error: (e) => {
+            console.error('Trip resolution failed during update', e);
+            this.modalSuccessMessage = '❌ Could not resolve trip. Check schedule/date.';
+          },
+        });
     } else {
       // ── CREATE ───────────────────────────────────────────────────────────────
       this.tripService
@@ -707,16 +812,14 @@ export class TicketComponent implements OnInit {
               farePaid: Number(this.selectedTicket.farePaid),
               bookingDateTime: this.selectedTicket.bookingDateTime,
               bookingCounterId: Number(this.selectedTicket.bookingCounterId),
-              departureCounterId: Number(
-                this.selectedTicket.departureCounterId,
-              ),
+              departureCounterId: Number(this.selectedTicket.departureCounterId),
               arrivalCounterId: Number(this.selectedTicket.arrivalCounterId),
             };
 
             this.ticketService.createTicket(dto).subscribe({
               next: () => {
                 this.loadTickets();
-                this.loadTrips(); // ← ADD THIS
+                this.loadTrips();
                 this.successMessage = '✅ Ticket saved successfully!';
                 setTimeout(() => (this.successMessage = null), 3000);
                 this.reset();
@@ -729,22 +832,44 @@ export class TicketComponent implements OnInit {
           },
           error: (e) => {
             console.error('Trip resolution failed', e);
-            this.successMessage =
-              '❌ Could not resolve trip. Check schedule/date.';
+            this.successMessage = '❌ Could not resolve trip. Check schedule/date.';
           },
         });
     }
   }
 
-  cancelTicket(ticket: TicketDto): void {
-    const dto: CancelTicketDto = { id: ticket.id, reason: 'Counter request' };
+  // ── Cancel ticket ─────────────────────────────────────────────────────────────
+
+  confirmCancel(ticket: TicketDto): void {
+    this.ticketToCancel = ticket;
+    this.cancelReason = 'Counter request';
+    this.showCancelConfirmModal = true;
+  }
+
+  cancelCancelAction(): void {
+    this.showCancelConfirmModal = false;
+    this.ticketToCancel = null;
+  }
+
+  cancelConfirmed(): void {
+    if (!this.ticketToCancel) return;
+    const dto: CancelTicketDto = {
+      id: this.ticketToCancel.id,
+      reason: this.cancelReason,
+    };
     this.ticketService.cancelTicket(dto).subscribe({
       next: () => {
         this.loadTickets();
-        this.successMessage = '✅ Ticket cancelled.';
+        this.loadTrips();
+        this.successMessage = '✅ Ticket cancelled successfully.';
         setTimeout(() => (this.successMessage = null), 3000);
+        this.cancelCancelAction();
       },
-      error: (e) => console.error('Cancel failed', e),
+      error: (e) => {
+        console.error('Cancel failed', e);
+        this.successMessage = '❌ Failed to cancel ticket.';
+        this.cancelCancelAction();
+      },
     });
   }
 
@@ -762,81 +887,99 @@ export class TicketComponent implements OnInit {
     this.selectedBaseFare = 0;
     this.availableVehicles = [];
     this.availableSeatCounts = {};
+    this.editingOriginalSeats = [];
+    this.editingOriginalVehicleId = null;
+    this.editSeatsPreSelected = false;
     this.closeSeatPanel();
   }
 
   openModal(ticket: TicketDto): void {
     this.selectedTicket = { ...ticket };
 
+    // Store original seats so they can be excluded from "booked" list
+    this.editingOriginalSeats = ticket.seatNumber
+      ? ticket.seatNumber.split(',').map((s) => s.trim()).filter(Boolean)
+      : [];
+
+    // Reset pre-selection flag — will be set to true once seats are loaded
+    this.editSeatsPreSelected = false;
+
     // Resolve trip → schedule → route to pre-populate dropdowns
     const trip = this.trips.find((t) => t.id === ticket.tripId);
     if (trip) {
       const schedule = this.schedules.find((s) => s.id === trip.scheduleId);
       if (schedule) {
-        // Pre-populate route
         this.selectedRouteCode = String(schedule.routeId);
 
-        // Pre-populate vehicle
         const vehicle = this.vehicles.find((v) => v.id === schedule.vehicleId);
         if (vehicle) {
           this.selectedVehicleCode = vehicle.vehicleCode;
+          // Track which vehicle this ticket originally belonged to
+          this.editingOriginalVehicleId = vehicle.id;
         }
 
-        // Pre-populate departure date (extract date part from schedule)
-        // Use tripDate from the trip as the departure date
         const tripDate = new Date(trip.tripDate);
         const pad = (n: number) => n.toString().padStart(2, '0');
         this.selectedDepartureDate = `${tripDate.getFullYear()}-${pad(tripDate.getMonth() + 1)}-${pad(tripDate.getDate())}`;
 
-        // Calculate arrival date and load available vehicles
-        this.calculateArrivalDate();
+        // Populate vehicle list and arrival date without clearing seats
+        this._populateVehiclesAndArrivalDate();
 
-        // Pre-populate base fare
         this.selectedBaseFare = schedule.baseFare;
       }
     }
 
-    // Pre-populate booking date (bookingDateTime may be full ISO or date-only)
     if (ticket.bookingDateTime) {
-      this.selectedTicket.bookingDateTime = ticket.bookingDateTime.substring(
-        0,
-        10,
-      );
+      this.selectedTicket.bookingDateTime = ticket.bookingDateTime.substring(0, 10);
     }
 
     this.showModal = true;
   }
 
+  /**
+   * Internal helper: populates availableVehicles and selectedArrivalDate
+   * from the current selectedRouteCode + selectedDepartureDate WITHOUT
+   * clearing the seat selection. Used when first opening the edit modal.
+   */
+  private _populateVehiclesAndArrivalDate(): void {
+    if (!this.selectedDepartureDate || !this.selectedRouteCode) return;
+
+    const route = this.routes.find(
+      (r) => r.id === Number(this.selectedRouteCode),
+    );
+    if (!route?.estimatedDurationHours) return;
+
+    const dep = new Date(this.selectedDepartureDate);
+    const arr = new Date(
+      dep.getTime() + route.estimatedDurationHours * 3_600_000,
+    );
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    this.selectedArrivalDate = `${arr.getFullYear()}-${pad(arr.getMonth() + 1)}-${pad(arr.getDate())}`;
+
+    this.availableVehicles = this.vehicles.filter((v) =>
+      this.schedules.some(
+        (s) =>
+          s.routeId === Number(this.selectedRouteCode) && s.vehicleId === v.id,
+      ),
+    );
+
+    this.refreshAvailableSeatCounts();
+  }
+
   closeModal(): void {
     this.showModal = false;
+    this.editingOriginalSeats = [];
+    this.editingOriginalVehicleId = null;
+    this.editSeatsPreSelected = false;
+    this.closeSeatPanel();
     this.selectedTicket = this.emptyTicket();
-  }
-
-  confirmDelete(ticket: TicketDto): void {
-    this.ticketToDelete = ticket;
-    this.showDeleteConfirmModal = true;
-  }
-
-  cancelDelete(): void {
-    this.showDeleteConfirmModal = false;
-    this.ticketToDelete = null;
-  }
-
-  deleteConfirmed(): void {
-    if (!this.ticketToDelete) return;
-    this.ticketService.deleteTicket(this.ticketToDelete.id).subscribe({
-      next: () => {
-        this.tickets = this.tickets.filter(
-          (t) => t.id !== this.ticketToDelete!.id,
-        );
-        this.successMessage = '✅ Ticket deleted successfully!';
-        setTimeout(() => (this.successMessage = null), 3000);
-        this.loadTrips(); // ← ADD THIS
-        this.updatePagination();
-        this.cancelDelete();
-      },
-      error: (e) => console.error('Failed to delete ticket', e),
-    });
+    this.selectedRouteCode = '';
+    this.selectedVehicleCode = '';
+    this.selectedDepartureDate = '';
+    this.selectedArrivalDate = '';
+    this.selectedBaseFare = 0;
+    this.availableVehicles = [];
+    this.availableSeatCounts = {};
   }
 
   // ── Sorting / pagination ──────────────────────────────────────────────────────
@@ -861,10 +1004,7 @@ export class TicketComponent implements OnInit {
     if (page < 1 || page > this.totalPages) return;
     this.currentPage = page;
     const start = (page - 1) * this.itemsPerPage;
-    this.paginatedTickets = this.tickets.slice(
-      start,
-      start + this.itemsPerPage,
-    );
+    this.paginatedTickets = this.tickets.slice(start, start + this.itemsPerPage);
   }
 
   goToPreviousPage(): void {
@@ -881,4 +1021,65 @@ export class TicketComponent implements OnInit {
     const pad = (n: number) => n.toString().padStart(2, '0');
     return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
   }
+
+
+// ─────────────────────────────────────────────────────────────
+//  TOAST SYSTEM — add to your component .ts
+//  Replace every `this.successMessage = '...'` call with
+//  `this.showToast('success' | 'error' | 'warn' | 'info', '...')`
+// ─────────────────────────────────────────────────────────────
+
+// 1. Add to your component class properties:
+
+toasts: { id: number; type: 'success' | 'error' | 'warn' | 'info'; message: string }[] = [];
+private _toastId = 0;
+
+// 2. Add these methods to your component class:
+
+showToast(type: 'success' | 'error' | 'warn' | 'info', message: string, durationMs = 4000): void {
+  const id = ++this._toastId;
+  this.toasts.push({ id, type, message });
+  setTimeout(() => this.dismissToast(id), durationMs);
+}
+
+dismissToast(id: number): void {
+  this.toasts = this.toasts.filter(t => t.id !== id);
+}
+
+trackToast(_: number, toast: { id: number }): number {
+  return toast.id;
+}
+
+// 3. In toggleSeat() — replace the 5-seat limit alert:
+//    BEFORE:  alert('Max 5 seats allowed');
+//    AFTER:
+// toggleSeat(seat: any): void {
+//   if (seat.status === 'reserved') return;
+
+//   if (seat.status === 'selected') {
+//     seat.status = 'available';
+//     this.selectedSeats = this.selectedSeats.filter(s => s.seatNumber !== seat.seatNumber);
+//   } else {
+//     if (this.selectedSeats.length >= 5) {
+//       this.showToast('error', '⚠️ Maximum 5 seats can be booked per ticket.', 5000);
+//       return;
+//     }
+//     seat.status = 'selected';
+//     this.selectedSeats.push(seat);
+//   }
+//   // update ticket fields...
+// }
+
+// 4. Replace save() success/error messages:
+//    BEFORE:  this.successMessage = '✅ Ticket saved!';
+//    AFTER:   this.showToast('success', 'Ticket saved successfully!');
+
+//    BEFORE:  this.successMessage = '❌ Please fill all fields.';
+//    AFTER:   this.showToast('error', 'Please fill all required fields.');
+
+// 5. Remove these from your template (no longer needed):
+//    <div *ngIf="successMessage" class="alert" ...>
+//    <div *ngIf="modalSuccessMessage" class="alert modal-alert" ...>
+
+
 }

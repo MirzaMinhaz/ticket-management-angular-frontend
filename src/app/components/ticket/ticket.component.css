@@ -13,11 +13,115 @@ body {
 }
 
 /* ─────────────────────────────────────────────── */
+/*  TOAST NOTIFICATION STACK (top-right)           */
+/* ─────────────────────────────────────────────── */
+
+.toast-stack {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 360px;
+  width: 100%;
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 13px 14px;
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.13);
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.45;
+  pointer-events: all;
+  animation: toastSlideIn 0.28s cubic-bezier(0.34,1.3,0.64,1) forwards;
+  position: relative;
+  border: 1.5px solid transparent;
+}
+
+@keyframes toastSlideIn {
+  from { opacity: 0; transform: translateX(40px) scale(0.95); }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+.toast-exiting {
+  animation: toastSlideOut 0.22s ease forwards;
+}
+
+@keyframes toastSlideOut {
+  from { opacity: 1; transform: translateX(0); max-height: 120px; }
+  to   { opacity: 0; transform: translateX(40px); max-height: 0; padding: 0; margin: 0; }
+}
+
+.toast-success {
+  background: #ecfdf5;
+  border-color: #6ee7b7;
+  color: #065f46;
+}
+
+.toast-error {
+  background: #fff0f0;
+  border-color: #fca5a5;
+  color: #991b1b;
+}
+
+.toast-warn {
+  background: #fffbeb;
+  border-color: #fcd34d;
+  color: #92400e;
+}
+
+.toast-info {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1e3a8a;
+}
+
+.toast-icon {
+  font-size: 16px;
+  line-height: 1.2;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.toast-msg {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  color: inherit;
+}
+
+.toast-close {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 11px;
+  color: inherit;
+  opacity: 0.55;
+  padding: 0 2px;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 1px;
+  transition: opacity 0.15s;
+  font-weight: 700;
+}
+
+.toast-close:hover {
+  opacity: 1;
+}
+
+/* ─────────────────────────────────────────────── */
 /*  CONTAINER                                       */
 /* ─────────────────────────────────────────────── */
 
 .ticket-container {
-  max-width: 1140px;
+  max-width: 1200px;
   margin: 36px auto;
   padding: 32px 28px;
   background: #ffffff;
@@ -47,35 +151,6 @@ body {
   margin: 10px auto 0;
   border-radius: 99px;
 }
-
-/* ─────────────────────────────────────────────── */
-/*  ALERT MESSAGES                                  */
-/* ─────────────────────────────────────────────── */
-
-.alert {
-  padding: 14px 18px;
-  border-radius: 10px;
-  margin-bottom: 20px;
-  font-weight: 600;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.success-alert {
-  background: #ecfdf5;
-  border: 1.5px solid #34d399;
-  color: #065f46;
-}
-
-.error-alert {
-  background: #fef2f2;
-  border: 1.5px solid #f87171;
-  color: #991b1b;
-}
-
-.modal-alert { margin: 0 0 18px; }
 
 /* ─────────────────────────────────────────────── */
 /*  CARD & FORM WRAPPER                             */
@@ -122,6 +197,7 @@ body {
   display: flex;
   align-items: center;
   gap: 7px;
+  flex-wrap: wrap;
 }
 
 .section-icon { font-size: 14px; }
@@ -238,11 +314,12 @@ body {
 }
 
 .btn.small {
-  padding: 7px 14px;
-  font-size: 13px;
+  padding: 6px 12px;
+  font-size: 12px;
 }
 
-.btn[disabled] {
+.btn[disabled],
+.btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
   transform: none !important;
@@ -263,13 +340,13 @@ body {
 .vehicle-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .vehicle-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .vehicle-card {
@@ -294,8 +371,8 @@ body {
 
 .vehicle-info-main {
   display: grid;
-  grid-template-columns: 220px 1fr 200px;
-  padding: 20px 24px;
+  grid-template-columns: 200px 1fr 190px;
+  padding: 16px 20px;
   gap: 16px;
   align-items: center;
 }
@@ -303,30 +380,30 @@ body {
 .vehicle-left {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .operator-name {
   font-weight: 800;
-  font-size: 1rem;
+  font-size: 0.95rem;
   color: #111827;
   margin: 0;
 }
 
 .bus-model {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   color: #374151;
   font-weight: 500;
   margin: 0;
 }
 
 .type-tag {
-  margin-top: 6px;
-  padding: 4px 10px;
+  margin-top: 5px;
+  padding: 3px 9px;
   background: #ede9fe;
   color: #5b21b6;
   border-radius: 99px;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
   display: inline-block;
   text-transform: uppercase;
@@ -337,25 +414,25 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 20px;
+  gap: 16px;
 }
 
 .time-block {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
 }
 
 .time {
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 800;
   font-family: 'DM Mono', monospace;
   color: #111827;
 }
 
 .station {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 600;
   color: #6b7280;
   text-transform: uppercase;
@@ -367,16 +444,16 @@ body {
   background: linear-gradient(90deg, #bfdbfe, #2563eb, #bfdbfe);
   flex: 1;
   border-radius: 99px;
-  min-width: 40px;
+  min-width: 30px;
 }
 
 .vehicle-right {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 10px;
+  gap: 8px;
   border-left: 1.5px dashed #d1d5db;
-  padding-left: 20px;
+  padding-left: 16px;
 }
 
 .price-container {
@@ -386,13 +463,13 @@ body {
 }
 
 .currency {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
   color: #374151;
 }
 
 .amount {
-  font-size: 1.9rem;
+  font-size: 1.6rem;
   font-weight: 800;
   font-family: 'DM Mono', monospace;
   color: #1d4ed8;
@@ -401,157 +478,104 @@ body {
 
 /* ── Seat indicator badges ── */
 .seat-indicator {
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 4px 12px;
-  border-radius: 99px;
-}
-
-.seat-indicator.high,
-.seat-badge.high {
-  background: #dcfce7;
-  color: #166534;
-  border: 1px solid #86efac;
-}
-
-.seat-indicator.low,
-.seat-badge.low {
-  background: #fff7ed;
-  color: #92400e;
-  border: 1px solid #fed7aa;
-}
-
-.seat-indicator.full,
-.seat-badge.full {
-  background: #fef2f2;
-  color: #991b1b;
-  border: 1px solid #fecaca;
-}
-
-.seat-badge {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
   padding: 3px 10px;
   border-radius: 99px;
 }
 
+.seat-indicator.high { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+.seat-indicator.low  { background: #fff7ed; color: #92400e; border: 1px solid #fed7aa; }
+.seat-indicator.full { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+
 /* ─────────────────────────────────────────────── */
-/*  COMPACT VEHICLE CARDS (inside modal)            */
+/*  SEAT PANEL — VEHICLE NAME HEADER               */
 /* ─────────────────────────────────────────────── */
 
-.vehicle-list.compact { gap: 8px; margin-bottom: 14px; }
-
-.compact-card {
-  cursor: pointer;
-  padding: 12px 16px;
-  position: relative;
+.seat-panel-container {
+  margin-top: 2px;
 }
 
-.compact-vehicle-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.vehicle-code {
-  font-size: 0.8rem;
-  color: #6b7280;
-  font-weight: 500;
-}
-
-.compact-meta {
-  display: flex;
-  gap: 16px;
-  font-size: 0.82rem;
-  color: #374151;
-  font-weight: 500;
-}
-
-.fare-badge {
-  font-weight: 700;
-  color: #1d4ed8;
-}
-
-.selected-checkmark {
-  position: absolute;
-  top: 12px;
-  right: 14px;
-  width: 22px;
-  height: 22px;
-  background: #2563eb;
-  color: #fff;
-  border-radius: 50%;
+.seat-panel-vehicle-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.base-fare-group { max-width: 200px; }
-
-.fare-input {
-  font-weight: 700 !important;
-  color: #1d4ed8 !important;
-  font-family: 'DM Mono', monospace !important;
-}
-
-/* ─────────────────────────────────────────────── */
-/*  SEAT CARD                                       */
-/* ─────────────────────────────────────────────── */
-
-.seat-card-container { margin-top: 4px; }
-
-.seat-card {
-  background: #ffffff;
-  border: 1.5px solid #e5e7eb;
-  border-radius: 14px;
-  padding: 20px;
-}
-
-.seat-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
   gap: 10px;
+  padding: 10px 16px;
+  background: linear-gradient(90deg, #eff6ff, #eef2ff);
+  border: 1.5px solid #bfdbfe;
+  border-bottom: none;
+  border-radius: 12px 12px 0 0;
+  flex-wrap: wrap;
 }
 
-.seat-title {
-  font-size: 15px;
-  font-weight: 700;
-  color: #111827;
-  margin: 0;
+.seat-panel-vehicle-icon {
+  font-size: 20px;
+  flex-shrink: 0;
 }
 
-.legend {
+.seat-panel-vehicle-name {
+  font-size: 16px;
+  font-weight: 800;
+  color: #1e40af;
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+}
+
+.seat-panel-vehicle-model {
+  font-size: 12px;
+  font-weight: 600;
+  color: #3b82f6;
+  font-family: 'DM Mono', monospace;
+  background: #dbeafe;
+  padding: 2px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+/* Legend inside the header */
+.seat-panel-vehicle-header .legend {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   align-items: center;
   flex-wrap: wrap;
 }
 
-.legend span {
+.seat-panel-vehicle-header .legend span {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.82rem;
+  gap: 5px;
+  font-size: 0.75rem;
   font-weight: 600;
   color: #374151;
 }
 
-.dot {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  flex-shrink: 0;
+/* ─────────────────────────────────────────────── */
+/*  SEAT PANEL LAYOUT (seat grid + fare side by side) */
+/* ─────────────────────────────────────────────── */
+
+.seat-panel-layout {
+  display: flex;
+  gap: 0;
+  align-items: flex-start;
+  border: 1.5px solid #bfdbfe;
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  overflow: hidden;
+  background: #f8faff;
 }
 
-.dot.available { background: #22c55e; }
-.dot.selected  { background: #2563eb; }
-.dot.booked    { background: #ef4444; }
+.seat-panel {
+  flex: 0 0 auto;        /* shrink to content — no wasted space */
+  min-width: 0;
+  padding: 12px 14px;
+  background: #f8faff;
+  animation: panelSlideDown 0.18s ease;
+}
+
+@keyframes panelSlideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
 /* ─────────────────────────────────────────────── */
 /*  SEAT LOADING & EMPTY STATES                     */
@@ -560,17 +584,17 @@ body {
 .seat-loading {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 0 14px;
-  font-size: 13px;
+  gap: 8px;
+  padding: 8px 0 10px;
+  font-size: 12px;
   font-weight: 600;
   color: #6b7280;
 }
 
 .seat-loading-spinner {
-  width: 18px;
-  height: 18px;
-  border: 2.5px solid #e5e7eb;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e5e7eb;
   border-top-color: #2563eb;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
@@ -584,99 +608,151 @@ body {
 .seat-empty {
   text-align: center;
   color: #9ca3af;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
-  padding: 24px 0;
+  padding: 16px 0;
   font-style: italic;
 }
 
 /* ─────────────────────────────────────────────── */
-/*  DRIVER ROW                                      */
+/*  BUS BODY WRAPPER                                */
 /* ─────────────────────────────────────────────── */
 
-.driver-row {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  padding: 0 8px 8px;
-  border-bottom: 2px dashed #e5e7eb;
-  margin-bottom: 12px;
+.bus-body {
+  background: #f0f6ff;
+  border: 1.5px solid #dbeafe;
+  border-radius: 10px;
+  padding: 8px 10px 10px;
+  display: inline-block;  /* shrink to content */
 }
 
-.driver-cell {
+/* ─────────────────────────────────────────────── */
+/*  DRIVER — integrated as last-column top cell    */
+/* ─────────────────────────────────────────────── */
+
+.driver-integrated-row {
+  margin-bottom: 4px;
+  padding-bottom: 6px;
+  border-bottom: 1.5px dashed #bfdbfe;
+}
+
+/* Transparent placeholder matching seat-btn dimensions */
+.seat-btn-placeholder {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+}
+
+/* Driver cell sits exactly where A4 would be */
+.driver-cell-inline {
+  width: 40px;
+  height: 40px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  justify-content: center;
+  gap: 1px;
+  flex-shrink: 0;
 }
 
 .driver-circle {
   width: 28px;
   height: 28px;
-  border: 2.5px solid #374151;
+  border: 2px solid #374151;
   border-radius: 50%;
-  background: #f3f4f6;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
 }
 
 .driver-text {
-  font-size: 10px;
+  font-size: 8px;
   color: #374151;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 /* ─────────────────────────────────────────────── */
-/*  SEAT GRID                                       */
+/*  SEAT GRID — A1,A2 | A3,A4 layout               */
 /* ─────────────────────────────────────────────── */
 
 .seat-grid {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 16px;
-  overflow-x: auto;
-  padding-bottom: 4px;
+  gap: 5px;
 }
 
 .seat-row {
   display: flex;
-  justify-content: center;
   align-items: center;
   gap: 0;
-  min-width: max-content;
-  margin: 0 auto;
+}
+
+.row-label {
+  width: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #6b7280;
+  font-family: 'DM Mono', monospace;
+  text-align: center;
+  flex-shrink: 0;
+  margin-right: 5px;
 }
 
 .seat-group {
   display: flex;
-  gap: 8px;
+  gap: 5px;
 }
 
-.aisle {
-  width: 40px;
+.aisle-gap {
+  width: 26px;
   flex-shrink: 0;
+  position: relative;
+}
+
+.aisle-gap::after {
+  content: '';
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 1px;
+  height: 60%;
+  background: #d1d5db;
+  border-radius: 99px;
 }
 
 /* ─────────────────────────────────────────────── */
-/*  SEAT BUTTONS                                    */
+/*  SEAT BUTTONS — compact                          */
 /* ─────────────────────────────────────────────── */
 
 .seat-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  font-size: 11px;
-  font-weight: 700;
-  font-family: 'DM Mono', monospace;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
   border: none;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.13s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  position: relative;
 }
 
-/* Available — green */
+.seat-label-num {
+  font-size: 10px;
+  font-weight: 700;
+  font-family: 'DM Mono', monospace;
+  line-height: 1;
+  letter-spacing: -0.3px;
+}
+
 .seat-btn.available {
   background: #dcfce7;
   color: #14532d;
@@ -686,119 +762,245 @@ body {
 .seat-btn.available:hover {
   background: #16a34a;
   color: #fff;
-  transform: scale(1.1);
+  transform: scale(1.12);
   box-shadow: 0 4px 10px rgba(22,163,74,0.35);
 }
 
-/* Selected — blue */
 .seat-btn.selected {
   background: #2563eb;
   color: #fff;
   border: 1.5px solid #1d4ed8;
-  box-shadow: 0 4px 10px rgba(37,99,235,0.35);
+  box-shadow: 0 3px 10px rgba(37,99,235,0.4);
 }
 
-/* Booked / Reserved — red */
+.seat-btn.selected:hover {
+  background: #1d4ed8;
+  transform: scale(1.05);
+}
+
 .seat-btn.booked,
-.seat-btn.reserved {
+.seat-btn[disabled] {
   background: #fee2e2;
   color: #b91c1c;
   border: 1.5px solid #fca5a5;
   cursor: not-allowed;
-  opacity: 0.85;
+  opacity: 0.75;
 }
 
-.seat-btn.booked:hover,
-.seat-btn.reserved:hover {
+.seat-btn.booked:hover {
   transform: none;
   box-shadow: none;
 }
 
 /* ─────────────────────────────────────────────── */
-/*  SEAT FOOTER                                     */
+/*  LEGEND (used in header)                         */
 /* ─────────────────────────────────────────────── */
 
-.seat-footer {
+.legend {
   display: flex;
-  justify-content: space-between;
+  gap: 12px;
   align-items: center;
-  padding-top: 14px;
-  border-top: 1.5px solid #e5e7eb;
   flex-wrap: wrap;
-  gap: 10px;
 }
 
-.selected-summary {
-  font-size: 13px;
+.legend span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
   font-weight: 600;
-  color: #1f2937;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
+  color: #374151;
 }
 
-.selected-summary em {
+.dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot.available { background: #22c55e; }
+.dot.selected  { background: #2563eb; }
+.dot.booked    { background: #ef4444; }
+
+/* ─────────────────────────────────────────────── */
+/*  CHIP                                            */
+/* ─────────────────────────────────────────────── */
+
+.chip {
+  background: #dbeafe;
+  color: #1e40af;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: 'DM Mono', monospace;
+}
+
+/* ─────────────────────────────────────────────── */
+/*  FARE SUMMARY PANEL — beside seat grid           */
+/* ─────────────────────────────────────────────── */
+
+.fare-summary-panel {
+  flex: 0 0 200px;   /* fixed width, no grow */
+  border-left: 1.5px solid #dbeafe;
+  background: #fff;
+  padding: 14px;
+  animation: panelSlideDown 0.2s ease;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+}
+
+.fare-summary-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.fare-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fare-section-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0;
+}
+
+.fare-seats-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  min-height: 22px;
+}
+
+.fare-none {
+  font-size: 12px;
   color: #9ca3af;
   font-style: italic;
   font-weight: 400;
 }
 
-.chip {
-  background: #dbeafe;
-  color: #1e40af;
-  padding: 4px 9px;
-  border-radius: 7px;
-  font-size: 12px;
-  font-weight: 700;
+.fare-divider {
+  height: 1.5px;
+  background: #e5e7eb;
+  border-radius: 99px;
+}
+
+.fare-divider.slim {
+  height: 1px;
+  background: #f3f4f6;
+  margin: 2px 0;
+}
+
+.fare-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+}
+
+.fare-line-desc {
+  font-size: 11px;
+  font-weight: 500;
+  color: #6b7280;
   font-family: 'DM Mono', monospace;
 }
 
-.footer-actions { display: flex; gap: 8px; }
+.fare-line-amount {
+  font-size: 12px;
+  font-weight: 700;
+  color: #111827;
+  font-family: 'DM Mono', monospace;
+  white-space: nowrap;
+}
+
+.fare-total-box {
+  background: linear-gradient(135deg, #eff6ff, #eef2ff);
+  border: 1.5px solid #bfdbfe;
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: auto;
+}
+
+.fare-total-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: #1e40af;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.fare-total-amount {
+  font-size: 17px;
+  font-weight: 800;
+  font-family: 'DM Mono', monospace;
+  color: #1d4ed8;
+  line-height: 1;
+}
 
 /* ─────────────────────────────────────────────── */
-/*  TABLE                                           */
+/*  TABLE — ENHANCED                                */
 /* ─────────────────────────────────────────────── */
 
 .list-section { margin-top: 8px; }
 
 .table-wrapper {
   overflow-x: auto;
-  border-radius: 12px;
+  border-radius: 14px;
   border: 1.5px solid #e5e7eb;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
 }
 
 .ticket-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: 13.5px;
+}
+
+.ticket-table thead tr {
+  background: linear-gradient(135deg, #f0f4ff 0%, #f5f3ff 100%);
 }
 
 .ticket-table th {
-  background: #f3f4f6;
-  color: #1f2937;
+  color: #374151;
   font-weight: 700;
-  font-size: 12.5px;
+  font-size: 11.5px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 14px 16px;
+  letter-spacing: 0.6px;
+  padding: 14px 14px;
   text-align: left;
   border-bottom: 2px solid #e5e7eb;
   white-space: nowrap;
 }
 
+.ticket-table th.col-sl    { width: 48px; }
+.ticket-table th.col-actions { width: 72px; }
+
 .ticket-table th.sortable {
   cursor: pointer;
   user-select: none;
+  transition: color 0.15s, background 0.15s;
 }
 
 .ticket-table th.sortable:hover {
   color: #1d4ed8;
-  background: #eff6ff;
+  background: #e0ecff;
 }
 
 .ticket-table td {
-  padding: 13px 16px;
+  padding: 12px 14px;
   border-bottom: 1px solid #f3f4f6;
   color: #111827;
   font-weight: 500;
@@ -807,13 +1009,94 @@ body {
 
 .ticket-table tbody tr:last-child td { border-bottom: none; }
 
-.ticket-table tbody tr:hover td { background: #f0f7ff; }
+.ticket-table tbody tr {
+  transition: background 0.12s;
+}
+
+.ticket-table tbody tr:hover td {
+  background: #f0f7ff;
+}
+
+.ticket-table tbody tr.cancelled-row td {
+  opacity: 0.55;
+}
+
+.ticket-table tbody tr.cancelled-row:hover td {
+  background: #fef2f2;
+  opacity: 0.7;
+}
+
+.passenger-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.passenger-name {
+  font-weight: 700;
+  color: #111827;
+  font-size: 13.5px;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  width: fit-content;
+}
+
+.status-booked    { background: #dbeafe; color: #1e40af; }
+.status-cancelled { background: #fee2e2; color: #991b1b; }
+.status-confirmed { background: #dcfce7; color: #166534; }
+.status-pending   { background: #fff7ed; color: #92400e; }
+
+.operator-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.op-name {
+  font-weight: 700;
+  color: #111827;
+  font-size: 13px;
+}
+
+.op-vehicle {
+  font-size: 11px;
+  color: #6b7280;
+  font-weight: 500;
+  font-family: 'DM Mono', monospace;
+}
+
+.route-cell {
+  font-weight: 600;
+  color: #374151;
+  white-space: nowrap;
+}
+
+.contact-cell {
+  font-family: 'DM Mono', monospace;
+  font-size: 12.5px;
+  color: #374151;
+}
+
+.date-cell {
+  font-size: 12.5px;
+  color: #374151;
+  white-space: nowrap;
+}
 
 .sl-col {
-  color: #6b7280;
-  font-size: 13px;
+  color: #9ca3af;
+  font-size: 12px;
   font-weight: 600;
   font-family: 'DM Mono', monospace;
+  text-align: center;
 }
 
 .seat-chip {
@@ -822,7 +1105,7 @@ body {
   padding: 3px 8px;
   border-radius: 6px;
   font-family: 'DM Mono', monospace;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
 }
 
@@ -830,30 +1113,62 @@ body {
   font-family: 'DM Mono', monospace;
   font-weight: 700;
   color: #059669;
+  white-space: nowrap;
 }
 
-.actions-col { white-space: nowrap; }
+.actions-col {
+  white-space: nowrap;
+  text-align: center;
+}
 
 .empty-row {
   text-align: center;
-  color: #6b7280;
+  padding: 0 !important;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 48px 0;
+}
+
+.empty-icon {
+  font-size: 32px;
+  opacity: 0.35;
+}
+
+.empty-state p {
+  color: #9ca3af;
   font-size: 14px;
   font-weight: 500;
-  padding: 40px !important;
+  margin: 0;
 }
+
+/* ─────────────────────────────────────────────── */
+/*  ACTION ICON BUTTONS                             */
+/* ─────────────────────────────────────────────── */
 
 .btn-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 8px;
   border: 1.5px solid transparent;
   cursor: pointer;
   transition: all 0.15s ease;
-  font-size: 15px;
-  margin-right: 4px;
+  font-size: 14px;
+  margin-right: 3px;
+  background: transparent;
+}
+
+.btn-icon:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  transform: none !important;
 }
 
 .edit-btn {
@@ -861,20 +1176,20 @@ body {
   border-color: #bfdbfe;
 }
 
-.edit-btn:hover {
+.edit-btn:hover:not(:disabled) {
   background: #dbeafe;
   border-color: #93c5fd;
   transform: scale(1.1);
 }
 
-.delete-btn {
-  background: #fef2f2;
-  border-color: #fecaca;
+.cancel-btn {
+  background: #fff7ed;
+  border-color: #fed7aa;
 }
 
-.delete-btn:hover {
-  background: #fee2e2;
-  border-color: #f87171;
+.cancel-btn:hover:not(:disabled) {
+  background: #ffedd5;
+  border-color: #fb923c;
   transform: scale(1.1);
 }
 
@@ -954,7 +1269,7 @@ body {
   background: #fff;
   border-radius: 18px;
   width: 100%;
-  max-width: 780px;
+  max-width: 900px;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
@@ -972,7 +1287,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 22px 28px 18px;
+  padding: 18px 24px 14px;
   border-bottom: 2px solid #f3f4f6;
   flex-shrink: 0;
 }
@@ -980,44 +1295,44 @@ body {
 .modal-header-left {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
 }
 
 .modal-icon {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 18px;
   flex-shrink: 0;
 }
 
 .modal-icon.edit-icon { background: #dbeafe; }
 
 .modal-title {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 800;
   color: #111827;
   margin: 0;
 }
 
 .modal-subtitle {
-  font-size: 13px;
+  font-size: 12px;
   color: #6b7280;
   font-weight: 500;
   margin: 2px 0 0;
 }
 
 .modal-close-btn {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border-radius: 9px;
   border: 1.5px solid #d1d5db;
   background: #fff;
   color: #374151;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1035,7 +1350,7 @@ body {
 
 .modal-body {
   overflow-y: auto;
-  padding: 24px 28px;
+  padding: 20px 24px;
   flex: 1;
 }
 
@@ -1043,79 +1358,160 @@ body {
   display: flex;
   gap: 12px;
   justify-content: flex-end;
-  padding-top: 20px;
+  padding-top: 16px;
   border-top: 2px solid #f3f4f6;
   margin-top: 4px;
 }
 
 /* ─────────────────────────────────────────────── */
-/*  DELETE MODAL PANEL                              */
+/*  CANCEL MODAL PANEL                              */
 /* ─────────────────────────────────────────────── */
 
-.delete-modal-panel {
-  max-width: 420px;
-  padding: 36px 32px 28px;
+.cancel-modal-panel {
+  max-width: 440px;
+  padding: 32px 28px 24px;
   text-align: center;
   flex-direction: column;
   align-items: center;
 }
 
-.delete-modal-icon {
-  font-size: 44px;
-  margin-bottom: 14px;
+.cancel-modal-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
   display: block;
 }
 
-.delete-modal-title {
-  font-size: 22px;
+.cancel-modal-title {
+  font-size: 21px;
   font-weight: 800;
   color: #111827;
   margin: 0 0 10px;
 }
 
-.delete-modal-message {
-  font-size: 15px;
+.cancel-modal-message {
+  font-size: 14px;
   color: #374151;
   line-height: 1.65;
   margin: 0 0 6px;
   font-weight: 500;
 }
 
-.delete-modal-message strong {
+.cancel-modal-message strong {
   color: #111827;
   font-weight: 700;
 }
 
-.delete-meta {
-  font-size: 13px;
+.cancel-meta {
+  font-size: 12px;
   color: #6b7280;
   font-weight: 500;
 }
 
-.delete-meta strong { color: #374151; }
+.cancel-meta strong { color: #374151; }
 
-.delete-warning {
+.cancel-reason-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 14px 0 8px;
+  text-align: left;
+}
+
+.cancel-reason-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.cancel-reason-group select {
+  padding: 8px 12px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  font-family: inherit;
   font-size: 13px;
+  font-weight: 500;
+  color: #111827;
+  background: #fff;
+  transition: border-color 0.18s;
+  width: 100%;
+}
+
+.cancel-reason-group select:focus {
+  border-color: #f97316;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(249,115,22,0.12);
+}
+
+.cancel-warning {
+  font-size: 12px;
   font-weight: 600;
   color: #92400e;
   background: #fffbeb;
   border: 1.5px solid #fcd34d;
   border-radius: 8px;
-  padding: 9px 16px;
-  margin: 16px 0 24px;
+  padding: 8px 14px;
+  margin: 10px 0 20px;
   display: inline-block;
+  width: 100%;
 }
 
-.delete-modal-actions {
+.cancel-modal-actions {
   display: flex;
   gap: 12px;
   justify-content: center;
   width: 100%;
 }
 
-.delete-modal-actions .btn {
+.cancel-modal-actions .btn {
   flex: 1;
-  max-width: 160px;
-  padding: 12px 20px;
-  font-size: 15px;
+  max-width: 180px;
+  padding: 11px 20px;
+  font-size: 14px;
+}
+
+/* ─────────────────────────────────────────────── */
+/*  RESCHEDULE HINT                                 */
+/* ─────────────────────────────────────────────── */
+
+.reschedule-hint {
+  font-size: 10px;
+  font-weight: 500;
+  color: #d97706;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 6px;
+  padding: 2px 7px;
+  margin-left: 4px;
+  text-transform: none;
+  letter-spacing: 0;
+  vertical-align: middle;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* ─────────────────────────────────────────────── */
+/*  RESPONSIVE                                      */
+/* ─────────────────────────────────────────────── */
+
+@media (max-width: 700px) {
+  .seat-panel-layout {
+    flex-direction: column;
+  }
+  .fare-summary-panel {
+    width: 100%;
+    flex: none;
+    border-left: none;
+    border-top: 1.5px solid #dbeafe;
+  }
+  .vehicle-info-main {
+    grid-template-columns: 1fr;
+  }
+  .seat-panel-vehicle-header {
+    gap: 7px;
+  }
+  .toast-stack {
+    max-width: calc(100vw - 32px);
+    right: 16px;
+    top: 12px;
+  }
 }
