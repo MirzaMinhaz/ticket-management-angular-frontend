@@ -695,25 +695,12 @@
   align-items: center;
   gap: .6rem;
 }
-.tms-nav__logo-mark {
-  width: 36px;
-  height: 36px;
-  background: var(--tms-blue);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Syne', sans-serif;
-  font-weight: 800;
-  font-size: 1.1rem;
-  color: #fff;
-}
 .tms-nav__logo-text {
   font-family: 'Syne', sans-serif;
   font-weight: 800;
   font-size: 1.25rem;
   letter-spacing: .04em;
-  color: var(--tms-text);
+  color: #ffffff;
 }
 
 .footer__tagline {
