@@ -6,20 +6,6 @@
 
 <div class="tms-root">
 
-  <!-- ─── NAV ─────────────────────────────────────────────────── -->
-  <nav class="tms-nav">
-    <div class="tms-nav__logo">
-      <span class="tms-nav__logo-mark">T</span>
-      <span class="tms-nav__logo-text">TMS</span>
-    </div>
-    <div class="tms-nav__links">
-      <a routerLink="/ticket" class="tms-nav__link">Book</a>
-      <a routerLink="/routes" class="tms-nav__link">Routes</a>
-      <a href="#faq" class="tms-nav__link">FAQ</a>
-      <a routerLink="/ticket" class="tms-nav__cta">Get Started →</a>
-    </div>
-  </nav>
-
   <!-- ─── HERO ─────────────────────────────────────────────────── -->
   <section class="hero">
     <div class="hero__bg-grid"></div>
@@ -89,7 +75,7 @@
         <div class="hc__details">
           <div class="hc__detail-item">
             <i class="fa-regular fa-clock"></i>
-            <span>8h 30m</span>
+            <span>6h</span>
           </div>
           <div class="hc__detail-item">
             <i class="fa-solid fa-couch"></i>
@@ -151,48 +137,82 @@
     </div>
   </section>
 
-  <!-- ─── CITIES ─────────────────────────────────────────────────── -->
+  <!-- ─── CITIES CAROUSEL ───────────────────────────────────────── -->
   <section class="cities">
     <div class="cities__header">
       <div class="features__label">Popular Destinations</div>
       <h2 class="features__heading">Explore Bangladesh</h2>
     </div>
 
-    <div class="cities__grid">
-      <div class="city-tile city-tile--wide">
-        <img src="assets/img/bus_ctg.jpeg" alt="Chattagram" class="city-tile__img">
-        <div class="city-tile__overlay"></div>
-        <div class="city-tile__body">
-          <div class="city-tile__tag">Most Popular</div>
-          <h3 class="city-tile__name">Chattagram</h3>
-          <p class="city-tile__routes">38 routes available</p>
+    <div class="cities__carousel-wrap">
+      <div class="cities__track">
+        <!-- Set 1 -->
+        <div class="city-card">
+          <img src="assets/img/bus_ctg.jpeg" alt="Chattagram" class="city-card__img">
+          <div class="city-card__overlay"></div>
+          <div class="city-card__body">
+            <div class="city-card__tag">Most Popular</div>
+            <h3 class="city-card__name">Chattagram</h3>
+            <p class="city-card__routes">38 routes available</p>
+          </div>
         </div>
-      </div>
-
-      <div class="city-tile">
-        <img src="assets/img/bus_cox_4.jpeg" alt="Cox's Bazar" class="city-tile__img">
-        <div class="city-tile__overlay"></div>
-        <div class="city-tile__body">
-          <h3 class="city-tile__name">Cox's Bazar</h3>
-          <p class="city-tile__routes">12 routes available</p>
+        <div class="city-card">
+          <img src="assets/img/bus_cox_4.jpeg" alt="Cox's Bazar" class="city-card__img">
+          <div class="city-card__overlay"></div>
+          <div class="city-card__body">
+            <h3 class="city-card__name">Cox's Bazar</h3>
+            <p class="city-card__routes">12 routes available</p>
+          </div>
         </div>
-      </div>
-
-      <div class="city-tile">
-        <img src="assets/img/bus_raj.jpeg" alt="Rajshahi" class="city-tile__img">
-        <div class="city-tile__overlay"></div>
-        <div class="city-tile__body">
-          <h3 class="city-tile__name">Rajshahi</h3>
-          <p class="city-tile__routes">9 routes available</p>
+        <div class="city-card">
+          <img src="assets/img/bus_raj.jpeg" alt="Rajshahi" class="city-card__img">
+          <div class="city-card__overlay"></div>
+          <div class="city-card__body">
+            <h3 class="city-card__name">Rajshahi</h3>
+            <p class="city-card__routes">9 routes available</p>
+          </div>
         </div>
-      </div>
-
-      <div class="city-tile">
-        <img src="assets/img/bus_syl.jpeg" alt="Sylhet" class="city-tile__img">
-        <div class="city-tile__overlay"></div>
-        <div class="city-tile__body">
-          <h3 class="city-tile__name">Sylhet</h3>
-          <p class="city-tile__routes">11 routes available</p>
+        <div class="city-card">
+          <img src="assets/img/bus_syl.jpeg" alt="Sylhet" class="city-card__img">
+          <div class="city-card__overlay"></div>
+          <div class="city-card__body">
+            <h3 class="city-card__name">Sylhet</h3>
+            <p class="city-card__routes">11 routes available</p>
+          </div>
+        </div>
+        <!-- Set 2 — duplicate for seamless infinite loop -->
+        <div class="city-card">
+          <img src="assets/img/bus_ctg.jpeg" alt="Chattagram" class="city-card__img">
+          <div class="city-card__overlay"></div>
+          <div class="city-card__body">
+            <div class="city-card__tag">Most Popular</div>
+            <h3 class="city-card__name">Chattagram</h3>
+            <p class="city-card__routes">38 routes available</p>
+          </div>
+        </div>
+        <div class="city-card">
+          <img src="assets/img/bus_cox_4.jpeg" alt="Cox's Bazar" class="city-card__img">
+          <div class="city-card__overlay"></div>
+          <div class="city-card__body">
+            <h3 class="city-card__name">Cox's Bazar</h3>
+            <p class="city-card__routes">12 routes available</p>
+          </div>
+        </div>
+        <div class="city-card">
+          <img src="assets/img/bus_raj.jpeg" alt="Rajshahi" class="city-card__img">
+          <div class="city-card__overlay"></div>
+          <div class="city-card__body">
+            <h3 class="city-card__name">Rajshahi</h3>
+            <p class="city-card__routes">9 routes available</p>
+          </div>
+        </div>
+        <div class="city-card">
+          <img src="assets/img/bus_syl.jpeg" alt="Sylhet" class="city-card__img">
+          <div class="city-card__overlay"></div>
+          <div class="city-card__body">
+            <h3 class="city-card__name">Sylhet</h3>
+            <p class="city-card__routes">11 routes available</p>
+          </div>
         </div>
       </div>
     </div>
