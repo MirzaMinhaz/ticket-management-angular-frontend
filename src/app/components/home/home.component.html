@@ -1,141 +1,335 @@
-<!-- Load Font Awesome for icons -->
+<!-- src/app/home/home.component.html -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-<div class="home-container">
+<div class="tms-root">
 
-  <!-- Hero Banner -->
-  <div class="hero-banner">
-    <h1>Book Your Journey, Anytime, Anywhere 🚍</h1>
-    <p>Fast, reliable, and hassle-free ticket booking for your next trip.</p>
-    <div class="button-group">
-      <!-- Use routerLink instead of href -->
-      <!-- <button routerLink="/ticket" class="btn btn-primary">Book Tickets</button>
-      <button routerLink="/routes" class="btn btn-secondary">View Routes</button> -->
-      <a routerLink="/ticket" class="btn btn-primary">Book Tickets</a>
-      <a routerLink="/routes" class="btn btn-secondary">View Routes</a>
+  <!-- ─── NAV ─────────────────────────────────────────────────── -->
+  <nav class="tms-nav">
+    <div class="tms-nav__logo">
+      <span class="tms-nav__logo-mark">T</span>
+      <span class="tms-nav__logo-text">TMS</span>
     </div>
+    <div class="tms-nav__links">
+      <a routerLink="/ticket" class="tms-nav__link">Book</a>
+      <a routerLink="/routes" class="tms-nav__link">Routes</a>
+      <a href="#faq" class="tms-nav__link">FAQ</a>
+      <a routerLink="/ticket" class="tms-nav__cta">Get Started →</a>
+    </div>
+  </nav>
 
-  </div>
+  <!-- ─── HERO ─────────────────────────────────────────────────── -->
+  <section class="hero">
+    <div class="hero__bg-grid"></div>
+    <div class="hero__glow hero__glow--1"></div>
+    <div class="hero__glow hero__glow--2"></div>
 
-  <!-- Features Section -->
-  <div class="features">
-    <div class="feature-card">
-      <i class="fa-solid fa-ticket fa-3x"></i>
-      <h3>Easy Booking</h3>
-      <p>Quick steps to reserve your seat without long queues.</p>
-    </div>
-    <div class="feature-card">
-      <i class="fa-solid fa-lock fa-3x"></i>
-      <h3>Secure Payments</h3>
-      <p>Multiple payment options with top-notch security.</p>
-    </div>
-    <div class="feature-card">
-      <i class="fa-solid fa-headset fa-3x"></i>
-      <h3>24/7 Support</h3>
-      <p>We’re here to help you anytime, anywhere.</p>
-    </div>
-  </div>
-
-  <!-- Explore Cities Section -->
-  <div class="explore-cities">
-    <h2>Explore Cities</h2>
-    <div class="city-gallery">
-      <div class="city-card">
-        <img src="assets/img/bus_ctg.jpeg" alt="Chattagram">
-        <h3>Chattagram</h3>
+    <div class="hero__content">
+      <div class="hero__badge">
+        <span class="hero__badge-dot"></span>
+        Live routes across Bangladesh
       </div>
-      <div class="city-card">
-        <img src="assets/img/bus_cox_4.jpeg" alt="Cox">
-        <h3>Coxs Bazar</h3>
-      </div>
-      <div class="city-card">
-        <img src="assets/img/bus_raj.jpeg" alt="Rajshahi">
-        <h3>Rajshahi</h3>
-      </div>
-      <div class="city-card">
-        <img src="assets/img/bus_syl.jpeg" alt="Sylhet">
-        <h3>Sylhet</h3>
-      </div>
-    </div>
-  </div>
+      <h1 class="hero__heading">
+        Your journey<br>
+        <em>starts here.</em>
+      </h1>
+      <p class="hero__sub">Fast, reliable, and hassle-free ticket booking for every trip — buses, trains, and beyond.</p>
 
-  <!-- Testimonials Section -->
-  <div class="testimonials">
-    <h2>What Our Customers Say</h2>
-    <div class="testimonial-card">
-      <p>"TMS made my trip so easy! Booking was smooth and quick."</p>
-      <span>- Rahim, Dhaka</span>
-    </div>
-    <div class="testimonial-card">
-      <p>"Secure payments and instant confirmation. Highly recommend TMS!"</p>
-      <span>- Ayesha, Chattagram</span>
-    </div>
-    <div class="testimonial-card">
-      <p>"I love the 24/7 support. They solved my issue in minutes."</p>
-      <span>- Karim, Sylhet</span>
-    </div>
-  </div>
+      <div class="hero__actions">
+        <a routerLink="/ticket" class="btn-hero btn-hero--primary">
+          <i class="fa-solid fa-ticket"></i>
+          Book a Ticket
+        </a>
+        <a routerLink="/routes" class="btn-hero btn-hero--ghost">
+          View All Routes <i class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
 
-  <!-- Partners Section -->
-  <div class="partners">
-    <h2>Our Trusted Partners</h2>
-    <div class="partner-logos">
-      <i class="fa-solid fa-bus"></i>
-      <i class="fa-solid fa-bus-simple"></i>
-      <i class="fa-solid fa-road"></i>
+      <div class="hero__stats">
+        <div class="hero__stat">
+          <span class="hero__stat-num">64+</span>
+          <span class="hero__stat-label">Routes</span>
+        </div>
+        <div class="hero__stat-div"></div>
+        <div class="hero__stat">
+          <span class="hero__stat-num">120+</span>
+          <span class="hero__stat-label">Vehicles</span>
+        </div>
+        <div class="hero__stat-div"></div>
+        <div class="hero__stat">
+          <span class="hero__stat-num">24/7</span>
+          <span class="hero__stat-label">Support</span>
+        </div>
+      </div>
     </div>
-  </div>
 
-  <!-- FAQ Preview -->
-  <div class="faq-preview">
-    <h2>Frequently Asked Questions</h2>
-    <ul>
-      <li>How do I buy a ticket?</li>
-      <li>Can I cancel my booking?</li>
-      <li>Is online payment safe?</li>
-      <li>How do I contact support?</li>
-    </ul>
-    <a href="#" class="btn btn-primary">View All FAQs</a>
-  </div>
+    <div class="hero__visual">
+      <div class="hero__card hero__card--main">
+        <div class="hc__route">
+          <div class="hc__stop">
+            <span class="hc__dot hc__dot--green"></span>
+            <div>
+              <div class="hc__stop-label">From</div>
+              <div class="hc__stop-name">Dhaka</div>
+            </div>
+          </div>
+          <div class="hc__line">
+            <div class="hc__bus-icon"><i class="fa-solid fa-bus"></i></div>
+          </div>
+          <div class="hc__stop">
+            <span class="hc__dot hc__dot--orange"></span>
+            <div>
+              <div class="hc__stop-label">To</div>
+              <div class="hc__stop-name">Chattagram</div>
+            </div>
+          </div>
+        </div>
+        <div class="hc__details">
+          <div class="hc__detail-item">
+            <i class="fa-regular fa-clock"></i>
+            <span>8h 30m</span>
+          </div>
+          <div class="hc__detail-item">
+            <i class="fa-solid fa-couch"></i>
+            <span>AC Sleeper</span>
+          </div>
+          <div class="hc__detail-item hc__detail-price">
+            ৳ 850
+          </div>
+        </div>
+        <a routerLink="/ticket" class="hc__book-btn">Reserve Seat</a>
+      </div>
+
+      <div class="hero__card hero__card--badge">
+        <i class="fa-solid fa-shield-halved"></i>
+        <span>Secure Payment</span>
+      </div>
+
+      <div class="hero__card hero__card--badge hero__card--badge2">
+        <i class="fa-solid fa-star"></i>
+        <span>4.8 Rating</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── FEATURES ─────────────────────────────────────────────── -->
+  <section class="features">
+    <div class="features__label">Why TMS?</div>
+    <h2 class="features__heading">Everything you need<br>for a smooth trip</h2>
+
+    <div class="features__grid">
+      <div class="feat-card">
+        <div class="feat-card__icon feat-card__icon--blue">
+          <i class="fa-solid fa-bolt"></i>
+        </div>
+        <h3 class="feat-card__title">Instant Booking</h3>
+        <p class="feat-card__body">Reserve your seat in under 60 seconds — no queues, no counters, no hassle.</p>
+      </div>
+      <div class="feat-card feat-card--accent">
+        <div class="feat-card__icon feat-card__icon--white">
+          <i class="fa-solid fa-lock"></i>
+        </div>
+        <h3 class="feat-card__title">Secure Payments</h3>
+        <p class="feat-card__body">Multiple payment gateways with bank-grade encryption on every transaction.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-card__icon feat-card__icon--green">
+          <i class="fa-solid fa-headset"></i>
+        </div>
+        <h3 class="feat-card__title">24 / 7 Support</h3>
+        <p class="feat-card__body">Real humans ready to help you anytime — before, during, and after your journey.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-card__icon feat-card__icon--amber">
+          <i class="fa-solid fa-rotate-left"></i>
+        </div>
+        <h3 class="feat-card__title">Easy Cancellations</h3>
+        <p class="feat-card__body">Plans change — cancel with one tap and get a hassle-free refund.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── CITIES ─────────────────────────────────────────────────── -->
+  <section class="cities">
+    <div class="cities__header">
+      <div class="features__label">Popular Destinations</div>
+      <h2 class="features__heading">Explore Bangladesh</h2>
+    </div>
+
+    <div class="cities__grid">
+      <div class="city-tile city-tile--wide">
+        <img src="assets/img/bus_ctg.jpeg" alt="Chattagram" class="city-tile__img">
+        <div class="city-tile__overlay"></div>
+        <div class="city-tile__body">
+          <div class="city-tile__tag">Most Popular</div>
+          <h3 class="city-tile__name">Chattagram</h3>
+          <p class="city-tile__routes">38 routes available</p>
+        </div>
+      </div>
+
+      <div class="city-tile">
+        <img src="assets/img/bus_cox_4.jpeg" alt="Cox's Bazar" class="city-tile__img">
+        <div class="city-tile__overlay"></div>
+        <div class="city-tile__body">
+          <h3 class="city-tile__name">Cox's Bazar</h3>
+          <p class="city-tile__routes">12 routes available</p>
+        </div>
+      </div>
+
+      <div class="city-tile">
+        <img src="assets/img/bus_raj.jpeg" alt="Rajshahi" class="city-tile__img">
+        <div class="city-tile__overlay"></div>
+        <div class="city-tile__body">
+          <h3 class="city-tile__name">Rajshahi</h3>
+          <p class="city-tile__routes">9 routes available</p>
+        </div>
+      </div>
+
+      <div class="city-tile">
+        <img src="assets/img/bus_syl.jpeg" alt="Sylhet" class="city-tile__img">
+        <div class="city-tile__overlay"></div>
+        <div class="city-tile__body">
+          <h3 class="city-tile__name">Sylhet</h3>
+          <p class="city-tile__routes">11 routes available</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── TESTIMONIALS ─────────────────────────────────────────── -->
+  <section class="testimonials">
+    <div class="features__label">Traveller Stories</div>
+    <h2 class="features__heading">People love TMS</h2>
+
+    <div class="testimonials__grid">
+      <div class="testi-card testi-card--large">
+        <div class="testi-card__stars">★★★★★</div>
+        <p class="testi-card__quote">"TMS made my trip so easy! Booking was smooth and the seat I wanted was confirmed instantly. Will not go back to counter booking ever again."</p>
+        <div class="testi-card__author">
+          <div class="testi-card__avatar">R</div>
+          <div>
+            <div class="testi-card__name">Rahim Uddin</div>
+            <div class="testi-card__loc"><i class="fa-solid fa-location-dot"></i> Dhaka</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testi-card">
+        <div class="testi-card__stars">★★★★★</div>
+        <p class="testi-card__quote">"Secure payments and instant confirmation. TMS is simply the best way to book a bus in Bangladesh."</p>
+        <div class="testi-card__author">
+          <div class="testi-card__avatar testi-card__avatar--b">A</div>
+          <div>
+            <div class="testi-card__name">Ayesha Khanam</div>
+            <div class="testi-card__loc"><i class="fa-solid fa-location-dot"></i> Chattagram</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testi-card">
+        <div class="testi-card__stars">★★★★★</div>
+        <p class="testi-card__quote">"I love the 24/7 support — they solved my cancellation issue in minutes. Outstanding service."</p>
+        <div class="testi-card__author">
+          <div class="testi-card__avatar testi-card__avatar--c">K</div>
+          <div>
+            <div class="testi-card__name">Karim Molla</div>
+            <div class="testi-card__loc"><i class="fa-solid fa-location-dot"></i> Sylhet</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── FAQ ──────────────────────────────────────────────────── -->
+  <section class="faq" id="faq">
+    <div class="features__label">Got Questions?</div>
+    <h2 class="features__heading">Frequently Asked</h2>
+
+    <div class="faq__list">
+      <details class="faq__item">
+        <summary class="faq__q">How do I buy a ticket? <i class="fa-solid fa-chevron-down"></i></summary>
+        <p class="faq__a">Head to the Book Tickets page, choose your route, pick a seat, and pay securely. You'll receive a confirmation instantly.</p>
+      </details>
+      <details class="faq__item">
+        <summary class="faq__q">Can I cancel my booking? <i class="fa-solid fa-chevron-down"></i></summary>
+        <p class="faq__a">Yes — cancellations are allowed up to 2 hours before departure. Refunds are processed within 3–5 business days.</p>
+      </details>
+      <details class="faq__item">
+        <summary class="faq__q">Is online payment safe? <i class="fa-solid fa-chevron-down"></i></summary>
+        <p class="faq__a">Absolutely. All transactions are encrypted and processed through certified payment gateways. We never store your card details.</p>
+      </details>
+      <details class="faq__item">
+        <summary class="faq__q">How do I contact support? <i class="fa-solid fa-chevron-down"></i></summary>
+        <p class="faq__a">You can reach us 24/7 through live chat on this site, by email, or by calling our helpline. We typically respond within 5 minutes.</p>
+      </details>
+    </div>
+  </section>
+
+  <!-- ─── CTA STRIP ─────────────────────────────────────────────── -->
+  <section class="cta-strip">
+    <div class="cta-strip__glow"></div>
+    <h2 class="cta-strip__heading">Ready to hit the road?</h2>
+    <p class="cta-strip__sub">Book your next journey in under a minute.</p>
+    <a routerLink="/ticket" class="btn-hero btn-hero--primary">
+      <i class="fa-solid fa-ticket"></i>
+      Book Now — It's Free
+    </a>
+  </section>
+
+  <!-- ─── FOOTER ────────────────────────────────────────────────── -->
+  <footer class="footer">
+    <div class="footer__top">
+      <div class="footer__brand">
+        <div class="tms-nav__logo footer__logo">
+          <span class="tms-nav__logo-mark">T</span>
+          <span class="tms-nav__logo-text">TMS</span>
+        </div>
+        <p class="footer__tagline">Your trusted travel companion across Bangladesh — fast, safe, and always on time.</p>
+        <div class="footer__social">
+          <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+          <a href="#" aria-label="Twitter"><i class="fa-brands fa-x-twitter"></i></a>
+          <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+          <a href="#" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+        </div>
+      </div>
+
+      <div class="footer__col">
+        <h4 class="footer__col-title">Company</h4>
+        <ul class="footer__links">
+          <li><a href="#">About TMS</a></li>
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">Contact Us</a></li>
+          <li><a href="#">Careers</a></li>
+        </ul>
+      </div>
+
+      <div class="footer__col">
+        <h4 class="footer__col-title">Legal</h4>
+        <ul class="footer__links">
+          <li><a href="#">Terms & Conditions</a></li>
+          <li><a href="#">Privacy Notice</a></li>
+          <li><a href="#">Cancellation Policy</a></li>
+          <li><a href="#">Refund Policy</a></li>
+        </ul>
+      </div>
+
+      <div class="footer__col">
+        <h4 class="footer__col-title">Help</h4>
+        <ul class="footer__links">
+          <li><a href="#faq">FAQ</a></li>
+          <li><a href="#">How to Buy a Ticket</a></li>
+          <li><a href="#">Support Center</a></li>
+          <li><a href="#">Report an Issue</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <span>© {{ currentYear }} TMS. All rights reserved.</span>
+      <span class="footer__version">Version 1.1.29</span>
+    </div>
+  </footer>
 
 </div>
-
-<!-- Footer -->
-<footer class="footer">
-  <div class="footer-container">
-    <div class="footer-logo">
-      <i class="fa-solid fa-ticket fa-2x"></i>
-      <h3>TMS</h3>
-      <p>TMS is your trusted travel companion, offering a seamless way to book tickets across Bangladesh with speed,
-        security, and convenience.</p>
-    </div>
-
-    <div class="footer-social">
-      <h4>Follow Us</h4>
-      <div class="social-icons">
-        <i class="fa-brands fa-facebook"></i>
-        <i class="fa-brands fa-twitter"></i>
-        <i class="fa-brands fa-instagram"></i>
-        <i class="fa-brands fa-youtube"></i>
-      </div>
-    </div>
-
-    <div class="footer-links">
-      <h4>Company Info</h4>
-      <ul>
-        <li><a href="#">Terms and Conditions</a></li>
-        <li><a href="#">FAQ</a></li>
-        <li><a href="#">Privacy Notice</a></li>
-        <li><a href="#">Cancelation Policy</a></li>
-        <li><a href="#">How To Buy Ticket</a></li>
-        <li><a href="#">About TMS</a></li>
-        <li><a href="#">About Us</a></li>
-        <li><a href="#">Contact Us</a></li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="footer-bottom">
-    <p>© {{ currentYear }} TMS. All rights reserved. Version 1.1.29</p>
-  </div>
-</footer>

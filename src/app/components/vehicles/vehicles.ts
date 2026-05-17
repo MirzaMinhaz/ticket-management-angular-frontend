@@ -13,32 +13,33 @@ import { OperatorDto } from '../../models/common';
 import { Router } from '@angular/router';
 
 /* ─── Brand logo map ───────────────────────────────────────────────────────
-   Maps lowercase brand keywords → publicly hosted SVG/PNG logo URLs.
-   We use brand logo APIs (logo.clearbit.com for generic fallback,
-   and Wikipedia SVG URLs for bus/transport brands).
-   Add more entries as needed.
+   Maps lowercase brand keywords → local asset paths.
+   Files must exist under src/assets/img/ with the filenames listed below.
+   Add more entries (keyword → filename) as you add images.
 ─────────────────────────────────────────────────────────────────────────── */
 const BRAND_LOGOS: Record<string, string> = {
-  scania:    'https://upload.wikimedia.org/wikipedia/commons/9/98/Scania_logo.svg',
-  volvo:     'https://upload.wikimedia.org/wikipedia/commons/4/44/Volvo_logo.svg',
-  hino:      'https://upload.wikimedia.org/wikipedia/commons/4/4e/Hino_Motors_logo.svg',
-  mercedes:  'https://upload.wikimedia.org/wikipedia/commons/9/90/Mercedes-Logo.svg',
-  man:       'https://upload.wikimedia.org/wikipedia/commons/8/8e/MAN_truck_logo.svg',
-  isuzu:     'https://upload.wikimedia.org/wikipedia/commons/a/a2/Isuzu_logo.svg',
-  yutong:    'https://upload.wikimedia.org/wikipedia/commons/7/79/Yutong_logo.svg',
-  king:      'https://upload.wikimedia.org/wikipedia/commons/4/4d/King_Long_logo.svg',
-  golden:    'https://upload.wikimedia.org/wikipedia/commons/7/72/Golden_Dragon_Bus_logo.svg',
-  zhongtong: 'https://upload.wikimedia.org/wikipedia/commons/e/ee/Zhongtong_Bus_logo.svg',
-  daf:       'https://upload.wikimedia.org/wikipedia/commons/d/d4/DAF_logo.svg',
-  tata:      'https://upload.wikimedia.org/wikipedia/commons/8/8e/Tata_logo.svg',
-  ashok:     'https://upload.wikimedia.org/wikipedia/commons/5/56/Ashok_Leyland_logo.svg',
-  leyland:   'https://upload.wikimedia.org/wikipedia/commons/5/56/Ashok_Leyland_logo.svg',
-  eicher:    'https://upload.wikimedia.org/wikipedia/commons/9/99/Eicher_Motors_Logo.svg',
-  byd:       'https://upload.wikimedia.org/wikipedia/commons/b/b3/BYD_Auto_logo.svg',
-  neoplan:   'https://upload.wikimedia.org/wikipedia/commons/6/6e/Neoplan_Logo.svg',
-  setra:     'https://upload.wikimedia.org/wikipedia/commons/e/ef/Setra_Logo.svg',
-  irizar:    'https://upload.wikimedia.org/wikipedia/commons/8/89/Irizar_logo.svg',
-  caetano:   'https://upload.wikimedia.org/wikipedia/commons/5/57/Caetanobus_logo.svg',
+  scania:    'assets/img/scania.jpeg',
+  volvo:     'assets/img/volvo.jpeg',
+  hino:      'assets/img/hino.jpeg',
+  mercedes:  'assets/img/mercedes.jpeg',
+  man:       'assets/img/man.jpeg',
+  isuzu:     'assets/img/isuzu.jpeg',
+  yutong:    'assets/img/yutong.jpeg',
+  king:      'assets/img/king.jpeg',
+  golden:    'assets/img/golden.jpeg',
+  zhongtong: 'assets/img/zhongtong.jpeg',
+  daf:       'assets/img/daf.jpeg',
+  tata:      'assets/img/tata.jpeg',
+  ashok:     'assets/img/ashok.jpeg',
+  leyland:   'assets/img/ashok.jpeg',
+  eicher:    'assets/img/eicher.jpeg',
+  byd:       'assets/img/byd.jpeg',
+  neoplan:   'assets/img/neoplan.jpeg',
+  setra:     'assets/img/setra.jpeg',
+  irizar:    'assets/img/irizar.jpeg',
+  hyundai:   'assets/img/hyundai.jpeg',
+  mlw:       'assets/img/br.jpeg',
+  caetano:   'assets/img/caetano.jpeg',
 };
 
 @Component({
@@ -101,8 +102,8 @@ export class VehicleComponent implements OnInit {
   getBrandLogo(model: string): string | null {
     if (!model) return null;
     const lower = model.toLowerCase();
-    for (const [key, url] of Object.entries(BRAND_LOGOS)) {
-      if (lower.includes(key)) return url;
+    for (const [key, path] of Object.entries(BRAND_LOGOS)) {
+      if (lower.includes(key)) return path;
     }
     return null;
   }
@@ -134,7 +135,6 @@ export class VehicleComponent implements OnInit {
     return Math.max(1, Math.ceil(this.vehicles.length / this.itemsPerPage));
   }
   get pages(): number[] {
-    // Show max 7 pages with ellipsis logic handled in template
     const total = this.totalPages;
     if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
 
@@ -142,11 +142,11 @@ export class VehicleComponent implements OnInit {
     const pages: number[] = [];
 
     pages.push(1);
-    if (cur > 3) pages.push(-1); // ellipsis
+    if (cur > 3) pages.push(-1);
     for (let p = Math.max(2, cur - 1); p <= Math.min(total - 1, cur + 1); p++) {
       pages.push(p);
     }
-    if (cur < total - 2) pages.push(-1); // ellipsis
+    if (cur < total - 2) pages.push(-1);
     pages.push(total);
 
     return pages;
@@ -215,7 +215,7 @@ export class VehicleComponent implements OnInit {
     });
   }
 
-  // ─── Save (create or update) ────────────────────────────────────────────── save part
+  // ─── Save (create or update) ──────────────────────────────────────────────
   save(): void {
     if (this.selectedVehicle.id > 0) {
       const updateDto: UpdateVehicleDto = {
