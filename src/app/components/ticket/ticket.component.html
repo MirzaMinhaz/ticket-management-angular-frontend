@@ -359,10 +359,9 @@
             <th (click)="sortBy('passengerName')" class="sortable">Passenger ↕</th>
             <th>Route</th>
             <th class="tbl__th tbl__th--sort" (click)="sortBy('model')">
-              Model <span class="sort-arrow" [class.sort-arrow--asc]="sortField==='model'&&sortAsc"
+              Operator / Model <span class="sort-arrow" [class.sort-arrow--asc]="sortField==='model'&&sortAsc"
                 [class.sort-arrow--desc]="sortField==='model'&&!sortAsc">⇅</span>
             </th>
-            <th>Operator</th>
             <th (click)="sortBy('passengerContact')" class="sortable">Contact ↕</th>
             <th (click)="sortBy('seatNumber')" class="sortable">Seat ↕</th>
             <th (click)="sortBy('farePaid')" class="sortable">Fare ↕</th>
@@ -394,12 +393,28 @@
               </div>
             </td>
             <td class="route-cell">{{ getRouteNameByTripId(t.tripId) }}</td>
+
+            <!-- ── OPERATOR / MODEL cell with brand logo ── -->
             <td class="operator-cell">
               <div class="operator-info">
                 <span class="op-name">{{ getOperatorNameByTripId(t.tripId) }}</span>
-                <span class="op-vehicle">{{ getVehicleModelByTripId(t.tripId) }}</span>
+                <div class="op-model-row">
+                  <ng-container *ngIf="getBrandLogo(getVehicleModelByTripId(t.tripId)) as logo; else noLogoList">
+                    <img
+                      [src]="logo"
+                      [alt]="getBrandName(getVehicleModelByTripId(t.tripId))"
+                      class="brand-logo-list" />
+                  </ng-container>
+                  <ng-template #noLogoList>
+                    <span class="brand-fallback-list">
+                      {{ getBrandInitial(getVehicleModelByTripId(t.tripId)) }}
+                    </span>
+                  </ng-template>
+                  <span class="op-vehicle">{{ getVehicleModelByTripId(t.tripId) }}</span>
+                </div>
               </div>
             </td>
+
             <td class="contact-cell">{{ t.passengerContact }}</td>
             <td><span class="seat-chip">{{ t.seatNumber }}</span></td>
             <td class="fare-col">৳{{ t.farePaid | number }}</td>

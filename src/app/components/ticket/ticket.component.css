@@ -1469,6 +1469,102 @@ body {
   font-size: 14px;
 }
 
+
+
+
+/* ─────────────────────────────────────────────────────────
+   Main Vehicle Table Model Cell
+───────────────────────────────────────────────────────── */
+
+.model-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Main brand logo */
+.brand-logo {
+  width: 80px;          /* ← Increase/decrease logo width here */
+  height: 72px;         /* ← Increase/decrease logo height here */
+  object-fit: contain;
+  flex-shrink: 0;
+  border-radius: 4px;
+  background: transparent;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.12));
+}
+
+/* Fallback icon when logo not found */
+.brand-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 40px;          /* ← Change fallback width */
+  height: 40px;         /* ← Change fallback height */
+
+  border-radius: 8px;
+  background: var(--vc-blue-light);
+  color: var(--vc-blue);
+
+  font-size: 1rem;      /* ← Change fallback text size */
+  font-weight: 700;
+
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+/* ─────────────────────────────────────────────────────────
+   Small Logo Version (Ticket/List/Table Rows)
+───────────────────────────────────────────────────────── */
+
+.op-model-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Small logo */
+.brand-logo-list {
+  width: 42px;          /* ← Change small logo width */
+  height: 28px;         /* ← Change small logo height */
+
+  object-fit: contain;
+  flex-shrink: 0;
+
+  border-radius: 3px;
+  background: transparent;
+
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.10));
+  vertical-align: middle;
+}
+
+/* Small fallback icon */
+.brand-fallback-list {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 24px;          /* ← Change small fallback width */
+  height: 24px;         /* ← Change small fallback height */
+
+  border-radius: 5px;
+  background: #dbeafe;
+  color: #1e40af;
+
+  font-size: 11px;      /* ← Change small fallback text size */
+  font-weight: 700;
+
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+
+
+
+
+
+
+
 /* ─────────────────────────────────────────────── */
 /*  RESCHEDULE HINT                                 */
 /* ─────────────────────────────────────────────── */
