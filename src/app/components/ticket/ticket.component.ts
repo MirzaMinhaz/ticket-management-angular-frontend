@@ -24,30 +24,29 @@ import { TicketService } from '../../services/ticket.service';
 import { TripService } from '../../services/trip.service';
 
 const BRAND_LOGOS: Record<string, string> = {
-  scania:    'assets/img/scania.jpeg',
-  volvo:     'assets/img/volvo.jpeg',
-  hino:      'assets/img/hino.jpeg',
-  mercedes:  'assets/img/mercedes.jpeg',
-  man:       'assets/img/man.jpeg',
-  isuzu:     'assets/img/isuzu.jpeg',
-  yutong:    'assets/img/yutong.jpeg',
-  king:      'assets/img/king.jpeg',
-  golden:    'assets/img/golden.jpeg',
+  scania: 'assets/img/scania.jpeg',
+  volvo: 'assets/img/volvo.jpeg',
+  hino: 'assets/img/hino.jpeg',
+  mercedes: 'assets/img/mercedes.jpeg',
+  man: 'assets/img/man.jpeg',
+  isuzu: 'assets/img/isuzu.jpeg',
+  yutong: 'assets/img/yutong.jpeg',
+  king: 'assets/img/king.jpeg',
+  golden: 'assets/img/golden.jpeg',
   zhongtong: 'assets/img/zhongtong.jpeg',
-  daf:       'assets/img/daf.jpeg',
-  tata:      'assets/img/tata.jpeg',
-  ashok:     'assets/img/ashok.jpeg',
-  leyland:   'assets/img/ashok.jpeg',
-  eicher:    'assets/img/eicher.jpeg',
-  byd:       'assets/img/byd.jpeg',
-  neoplan:   'assets/img/neoplan.jpeg',
-  setra:     'assets/img/setra.jpeg',
-  irizar:    'assets/img/irizar.jpeg',
-  hyundai:   'assets/img/hyundai.jpeg',
-  mlw:       'assets/img/br.jpeg',
-  caetano:   'assets/img/caetano.jpeg',
+  daf: 'assets/img/daf.jpeg',
+  tata: 'assets/img/tata.jpeg',
+  ashok: 'assets/img/ashok.jpeg',
+  leyland: 'assets/img/ashok.jpeg',
+  eicher: 'assets/img/eicher.jpeg',
+  byd: 'assets/img/byd.jpeg',
+  neoplan: 'assets/img/neoplan.jpeg',
+  setra: 'assets/img/setra.jpeg',
+  irizar: 'assets/img/irizar.jpeg',
+  hyundai: 'assets/img/hyundai.jpeg',
+  mlw: 'assets/img/br.jpeg',
+  caetano: 'assets/img/caetano.jpeg',
 };
-
 
 @Component({
   selector: 'app-ticket',
@@ -78,8 +77,6 @@ export class TicketComponent implements OnInit {
   selectedBaseFare: number = 0;
 
   // ── UI state ─────────────────────────────────────────────────────────────────
-  successMessage: string | null = null;
-  modalSuccessMessage: string | null = null;
   showModal = false;
 
   // ── Cancel modal state ───────────────────────────────────────────────────────
@@ -114,22 +111,8 @@ export class TicketComponent implements OnInit {
   /** Available-seat counts per vehicleId, refreshed after date selection. */
   private availableSeatCounts: Record<number, number> = {};
 
-  /**
-   * The original ticket being edited — used to exclude its own seats
-   * from the "booked" list so the passenger can re-select them.
-   */
   private editingOriginalSeats: string[] = [];
-
-  /**
-   * Tracks which vehicleId the edit modal originally belonged to.
-   * Used to decide whether to pre-select seats when the panel opens.
-   */
   private editingOriginalVehicleId: number | null = null;
-
-  /**
-   * Tracks whether the edit modal has already pre-selected the original seats.
-   * Prevents re-applying pre-selection on subsequent seat panel opens.
-   */
   private editSeatsPreSelected = false;
 
   constructor(
@@ -236,9 +219,7 @@ export class TicketComponent implements OnInit {
               next: (booked) => {
                 const capacity = vehicle.capacity ?? 0;
                 const effectiveBooked = this.showModal
-                  ? booked.filter(
-                      (s) => !this.editingOriginalSeats.includes(s),
-                    )
+                  ? booked.filter((s) => !this.editingOriginalSeats.includes(s))
                   : booked;
                 this.availableSeatCounts[vehicle.id] = Math.max(
                   0,
@@ -287,14 +268,12 @@ export class TicketComponent implements OnInit {
     if (!schedule) return '—';
     const vehicle = this.vehicles.find((v) => v.id === schedule.vehicleId);
     if (!vehicle) return '—';
-    return this.operators.find((o) => o.operatorCode === vehicle.operatorCode)?.name ?? '—';
+    return (
+      this.operators.find((o) => o.operatorCode === vehicle.operatorCode)
+        ?.name ?? '—'
+    );
   }
 
-  /**
-   * Returns the vehicle model string for a given tripId.
-   * Used both internally and directly in the template to drive the brand-logo
-   * lookup in the ticket list table.
-   */
   getVehicleModelByTripId(tripId: number): string {
     const trip = this.trips.find((t) => t.id === tripId);
     if (!trip) return '';
@@ -328,15 +307,12 @@ export class TicketComponent implements OnInit {
       ),
     );
 
-    // Close any open seat panel and clear seat selection when date/route changes
     this.closeSeatPanel();
 
-    // Clear seat selection — passenger must re-select seats for new date/route
     this.selectedTicket.seatNumber = '';
     this.selectedTicket.farePaid = 0;
     this.selectedVehicleCode = '';
     this.selectedBaseFare = 0;
-    // Reset pre-selection flag since date/route changed
     this.editSeatsPreSelected = false;
 
     this.refreshAvailableSeatCounts();
@@ -432,7 +408,8 @@ export class TicketComponent implements OnInit {
     if (!model) return '';
     const lower = model.toLowerCase();
     for (const key of Object.keys(BRAND_LOGOS)) {
-      if (lower.includes(key)) return key.charAt(0).toUpperCase() + key.slice(1);
+      if (lower.includes(key))
+        return key.charAt(0).toUpperCase() + key.slice(1);
     }
     return '';
   }
@@ -443,36 +420,26 @@ export class TicketComponent implements OnInit {
 
   // ── Seat booking ─────────────────────────────────────────────────────────────
 
-  /**
-   * Opens the seat panel for a vehicle.
-   *
-   * Edit mode behaviour (FIX #2):
-   * - When the panel opens for the SAME vehicle that the ticket was originally
-   *   booked on (and pre-selection hasn't happened yet), the original seats are
-   *   pre-selected automatically.
-   * - As soon as the user clicks ANY other seat (or opens a different vehicle),
-   *   the original seats are released — the editingOriginalSeats list is cleared
-   *   so the user starts fresh.
-   */
   openSeatPanel(vehicleCode: string, vehicleId: number): void {
-    // Toggle off if already open for this vehicle
     if (this.seatBookingBusId === vehicleId) {
       this.closeSeatPanel();
       return;
     }
 
     if (!this.selectedRouteCode) {
-      this.showError('Please select a route before booking seats.');
+      this.showToast('error', 'Please select a route before booking seats.');
       return;
     }
     if (!this.selectedDepartureDate) {
-      this.showError('Please select a departure date before booking seats.');
+      this.showToast('error', 'Please select a departure date before booking seats.');
       return;
     }
 
-    // If switching to a DIFFERENT vehicle while editing, clear original seat
-    // selection so the user starts with a blank slate on the new vehicle.
-    if (this.showModal && this.editingOriginalVehicleId !== null && this.editingOriginalVehicleId !== vehicleId) {
+    if (
+      this.showModal &&
+      this.editingOriginalVehicleId !== null &&
+      this.editingOriginalVehicleId !== vehicleId
+    ) {
       this.editingOriginalSeats = [];
       this.editSeatsPreSelected = false;
       this.selectedTicket.seatNumber = '';
@@ -490,13 +457,12 @@ export class TicketComponent implements OnInit {
     );
 
     if (!vehicle || !schedule) {
-      this.showError('Could not find vehicle or schedule information.');
+      this.showToast('error', 'Could not find vehicle or schedule information.');
       return;
     }
 
     const capacity = vehicle.capacity ?? 40;
 
-    // ── Step 1: Show seat grid immediately ────────────────────────────────────
     this.liveBookedSeats = [];
     this.activeTripId = null;
     this.selectedSeats = [];
@@ -505,7 +471,6 @@ export class TicketComponent implements OnInit {
 
     this.generateSeats(capacity);
 
-    // ── Step 2: Fetch live booked seats asynchronously ────────────────────────
     this.tripService
       .findOrCreate({
         scheduleId: schedule.id,
@@ -519,13 +484,10 @@ export class TicketComponent implements OnInit {
             next: (bookedSeats) => {
               this.seatPanelLoading = false;
 
-              // Exclude original ticket seats from booked list
-              // so they appear as "available" and can be re-selected
               this.liveBookedSeats = bookedSeats.filter(
                 (s) => !this.editingOriginalSeats.includes(s),
               );
 
-              // Update badge with accurate count
               this.availableSeatCounts[vehicleId] = Math.max(
                 0,
                 capacity - this.liveBookedSeats.length,
@@ -534,8 +496,8 @@ export class TicketComponent implements OnInit {
               if (this.seatBookingBusId === vehicleId) {
                 this.generateSeats(capacity);
 
-                // ── FIX #2: Pre-select original seats when editing ────────────
-                const isSameVehicle = this.editingOriginalVehicleId === vehicleId;
+                const isSameVehicle =
+                  this.editingOriginalVehicleId === vehicleId;
                 if (
                   this.showModal &&
                   !this.editSeatsPreSelected &&
@@ -567,7 +529,6 @@ export class TicketComponent implements OnInit {
       });
   }
 
-  /** Legacy shim */
   toggleSeatBooking(vehicleId: number): void {
     const vehicle = this.vehicles.find((v) => v.id === vehicleId);
     if (vehicle) {
@@ -586,15 +547,6 @@ export class TicketComponent implements OnInit {
     this.seatPanelLoading = false;
   }
 
-  private showError(msg: string): void {
-    this.successMessage = `❌ ${msg}`;
-    setTimeout(() => (this.successMessage = null), 3000);
-  }
-
-  /**
-   * Builds the full seat grid from capacity, marking seats in liveBookedSeats
-   * as 'reserved'. Layout: 4 seats per row (cols 1–4), lettered rows A, B, C…
-   */
   private generateSeats(capacity: number): void {
     const seats: SeatDto[] = [];
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -618,7 +570,6 @@ export class TicketComponent implements OnInit {
       }
     }
 
-    // Pad last row to a full block of 4 for even grid rendering
     if (seats.length > 0) {
       const lastRow = seats[seats.length - 1].seatNumber.charAt(0);
       const existingCols = new Set(
@@ -668,19 +619,17 @@ export class TicketComponent implements OnInit {
     return this.seatMap[`${row}${col}`];
   }
 
-  /**
-   * FIX #2 — toggleSeat:
-   * The moment the user manually clicks ANY seat while editing, release the
-   * original pre-selected seats lock so they behave like normal toggles.
-   */
   toggleSeat(seat: SeatDto): void {
     if (!seat || seat.status === 'reserved') return;
 
     const mapSeat = this.seatMap[seat.seatNumber];
     if (!mapSeat) return;
 
-    // Once the user manually interacts, release the "original seats" lock.
-    if (this.showModal && this.editSeatsPreSelected && this.editingOriginalSeats.length > 0) {
+    if (
+      this.showModal &&
+      this.editSeatsPreSelected &&
+      this.editingOriginalSeats.length > 0
+    ) {
       this.editingOriginalSeats = [];
     }
 
@@ -691,7 +640,7 @@ export class TicketComponent implements OnInit {
       );
     } else {
       if (this.selectedSeats.length >= 5) {
-        this.showToast('error', '⚠️ Maximum 5 seats can be booked per ticket.', 5000);
+        this.showToast('warn', 'Maximum 5 seats can be booked per ticket.');
         return;
       }
       mapSeat.status = 'selected';
@@ -757,32 +706,25 @@ export class TicketComponent implements OnInit {
 
   save(): void {
     // ── Validation ──────────────────────────────────────────────
-    const setError = (msg: string) => {
-      const target = this.showModal ? 'modalSuccessMessage' : 'successMessage';
-      (this as any)[target] = `❌ ${msg}`;
-      setTimeout(() => ((this as any)[target] = null), 3000);
-    };
+    const fail = (msg: string) => { this.showToast('error', msg); };
 
     if (!this.selectedTicket.passengerName?.trim()) {
-      return setError('Please provide Passenger Name.');
+      return fail('Please provide Passenger Name.');
     }
     if (!this.selectedTicket.passengerContact?.trim()) {
-      return setError('Please provide Passenger Contact.');
+      return fail('Please provide Passenger Contact.');
     }
     if (!this.selectedTicket.seatNumber?.trim()) {
-      return setError('Please select at least one seat.');
-    }
-    if (!this.selectedSeats.length && !this.selectedTicket.seatNumber?.trim()) {
-      return setError('Please select at least one seat from the vehicle seat map.');
+      return fail('Please select at least one seat.');
     }
     if (!this.selectedTicket.bookingCounterId) {
-      return setError('Please select Booking Counter.');
+      return fail('Please select Booking Counter.');
     }
     if (!this.selectedTicket.departureCounterId) {
-      return setError('Please select Departure Counter.');
+      return fail('Please select Departure Counter.');
     }
     if (!this.selectedTicket.arrivalCounterId) {
-      return setError('Please select Arrival Counter.');
+      return fail('Please select Arrival Counter.');
     }
 
     const vehicleId = this.vehicles.find(
@@ -795,7 +737,7 @@ export class TicketComponent implements OnInit {
     );
 
     if (!schedule) {
-      return setError('Please select a valid vehicle/route combination.');
+      return fail('Please select a valid vehicle/route combination.');
     }
 
     if (this.selectedTicket.id) {
@@ -827,21 +769,18 @@ export class TicketComponent implements OnInit {
                 this.editingOriginalSeats = [];
                 this.editSeatsPreSelected = false;
                 this.editingOriginalVehicleId = null;
-                this.modalSuccessMessage = '✅ Ticket updated successfully!';
-                setTimeout(() => {
-                  this.modalSuccessMessage = null;
-                  this.closeModal();
-                }, 1500);
+                this.showToast('success', 'Ticket updated successfully!');
+                setTimeout(() => this.closeModal(), 1500);
               },
               error: (e) => {
                 console.error('Update failed', e);
-                this.modalSuccessMessage = '❌ Failed to update ticket.';
+                this.showToast('error', 'Failed to update ticket. Please try again.');
               },
             });
           },
           error: (e) => {
             console.error('Trip resolution failed during update', e);
-            this.modalSuccessMessage = '❌ Could not resolve trip. Check schedule/date.';
+            this.showToast('error', 'Could not resolve trip. Check schedule/date.');
           },
         });
     } else {
@@ -869,19 +808,18 @@ export class TicketComponent implements OnInit {
               next: () => {
                 this.loadTickets();
                 this.loadTrips();
-                this.successMessage = '✅ Ticket saved successfully!';
-                setTimeout(() => (this.successMessage = null), 3000);
+                this.showToast('success', 'Ticket saved successfully!');
                 this.reset();
               },
               error: (e) => {
                 console.error('Create ticket failed', e);
-                this.successMessage = '❌ Failed to save ticket.';
+                this.showToast('error', 'Failed to save ticket. Please try again.');
               },
             });
           },
           error: (e) => {
             console.error('Trip resolution failed', e);
-            this.successMessage = '❌ Could not resolve trip. Check schedule/date.';
+            this.showToast('error', 'Could not resolve trip. Check schedule/date.');
           },
         });
     }
@@ -910,14 +848,13 @@ export class TicketComponent implements OnInit {
       next: () => {
         this.loadTickets();
         this.loadTrips();
-        this.successMessage = '✅ Ticket cancelled successfully.';
-        setTimeout(() => (this.successMessage = null), 3000);
         this.cancelCancelAction();
+        this.showToast('success', 'Ticket cancelled successfully.');
       },
       error: (e) => {
         console.error('Cancel failed', e);
-        this.successMessage = '❌ Failed to cancel ticket.';
         this.cancelCancelAction();
+        this.showToast('error', 'Failed to cancel ticket. Please try again.');
       },
     });
   }
@@ -945,15 +882,12 @@ export class TicketComponent implements OnInit {
   openModal(ticket: TicketDto): void {
     this.selectedTicket = { ...ticket };
 
-    // Store original seats so they can be excluded from "booked" list
     this.editingOriginalSeats = ticket.seatNumber
       ? ticket.seatNumber.split(',').map((s) => s.trim()).filter(Boolean)
       : [];
 
-    // Reset pre-selection flag — will be set to true once seats are loaded
     this.editSeatsPreSelected = false;
 
-    // Resolve trip → schedule → route to pre-populate dropdowns
     const trip = this.trips.find((t) => t.id === ticket.tripId);
     if (trip) {
       const schedule = this.schedules.find((s) => s.id === trip.scheduleId);
@@ -970,7 +904,6 @@ export class TicketComponent implements OnInit {
         const pad = (n: number) => n.toString().padStart(2, '0');
         this.selectedDepartureDate = `${tripDate.getFullYear()}-${pad(tripDate.getMonth() + 1)}-${pad(tripDate.getDate())}`;
 
-        // Populate vehicle list and arrival date without clearing seats
         this._populateVehiclesAndArrivalDate();
 
         this.selectedBaseFare = schedule.baseFare;
@@ -984,11 +917,6 @@ export class TicketComponent implements OnInit {
     this.showModal = true;
   }
 
-  /**
-   * Internal helper: populates availableVehicles and selectedArrivalDate
-   * from the current selectedRouteCode + selectedDepartureDate WITHOUT
-   * clearing the seat selection. Used when first opening the edit modal.
-   */
   private _populateVehiclesAndArrivalDate(): void {
     if (!this.selectedDepartureDate || !this.selectedRouteCode) return;
 
@@ -1067,14 +995,18 @@ export class TicketComponent implements OnInit {
   toasts: { id: number; type: 'success' | 'error' | 'warn' | 'info'; message: string }[] = [];
   private _toastId = 0;
 
-  showToast(type: 'success' | 'error' | 'warn' | 'info', message: string, durationMs = 4000): void {
+  showToast(
+    type: 'success' | 'error' | 'warn' | 'info',
+    message: string,
+    durationMs = 2500,
+  ): void {
     const id = ++this._toastId;
     this.toasts.push({ id, type, message });
     setTimeout(() => this.dismissToast(id), durationMs);
   }
 
   dismissToast(id: number): void {
-    this.toasts = this.toasts.filter(t => t.id !== id);
+    this.toasts = this.toasts.filter((t) => t.id !== id);
   }
 
   trackToast(_: number, toast: { id: number }): number {

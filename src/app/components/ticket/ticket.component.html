@@ -2,22 +2,28 @@
   <h2 class="page-title">🎟️ Ticket Management</h2>
 
   <!-- ═══════════════════════════════════════════════ -->
-  <!-- TOAST NOTIFICATION STACK (top-right)            -->
+  <!-- TOAST NOTIFICATION STACK (top-right, fixed)     -->
   <!-- ═══════════════════════════════════════════════ -->
   <div class="toast-stack">
-    <div *ngFor="let toast of toasts; trackBy: trackToast" class="toast"
-      [class.toast-success]="toast.type === 'success'" [class.toast-error]="toast.type === 'error'"
-      [class.toast-warn]="toast.type === 'warn'" [class.toast-info]="toast.type === 'info'">
-      <span class="toast-icon">
-        <ng-container [ngSwitch]="toast.type">
-          <span *ngSwitchCase="'success'">✅</span>
-          <span *ngSwitchCase="'error'">❌</span>
-          <span *ngSwitchCase="'warn'">⚠️</span>
-          <span *ngSwitchDefault>ℹ️</span>
-        </ng-container>
-      </span>
-      <span class="toast-msg">{{ toast.message }}</span>
-      <button class="toast-close" (click)="dismissToast(toast.id)">✕</button>
+    <div *ngFor="let toast of toasts; trackBy: trackToast"
+         class="toast"
+         [class.toast-success]="toast.type === 'success'"
+         [class.toast-error]="toast.type === 'error'"
+         [class.toast-warn]="toast.type === 'warn'"
+         [class.toast-info]="toast.type === 'info'">
+      <div class="toast-accent"></div>
+      <div class="toast-body">
+        <span class="toast-icon">
+          <ng-container [ngSwitch]="toast.type">
+            <span *ngSwitchCase="'success'">✅</span>
+            <span *ngSwitchCase="'error'">❌</span>
+            <span *ngSwitchCase="'warn'">⚠️</span>
+            <span *ngSwitchDefault>ℹ️</span>
+          </ng-container>
+        </span>
+        <span class="toast-msg">{{ toast.message }}</span>
+      </div>
+      <button class="toast-close" (click)="dismissToast(toast.id)" type="button">✕</button>
     </div>
   </div>
 
@@ -52,8 +58,7 @@
 
           <div class="form-group">
             <label for="arrivalDate">Arrival Date</label>
-            <input [(ngModel)]="selectedArrivalDate" name="arrivalDate" id="arrivalDate" type="date" required
-              readonly />
+            <input [(ngModel)]="selectedArrivalDate" name="arrivalDate" id="arrivalDate" type="date" required readonly />
           </div>
 
         </div>
@@ -67,20 +72,16 @@
         <div class="vehicle-list">
           <div *ngFor="let v of availableVehicles" class="vehicle-wrapper">
 
-            <!-- VEHICLE CARD -->
             <div class="vehicle-card" [class.selected]="selectedVehicleCode === v.vehicleCode">
               <div class="vehicle-info-main">
 
                 <!-- LEFT -->
                 <div class="vehicle-left">
-                  <td class="tbl__td">
-                    <div class="model-cell">
-                      <img *ngIf="getBrandLogo(v.model)" [src]="getBrandLogo(v.model)" [alt]="getBrandName(v.model)"
-                        class="brand-logo" />
-                      <span *ngIf="!getBrandLogo(v.model)" class="brand-fallback">{{ getBrandInitial(v.model) }}</span>
-                      <span>{{ v.model }}</span>
-                    </div>
-                  </td>
+                  <div class="model-cell">
+                    <img *ngIf="getBrandLogo(v.model)" [src]="getBrandLogo(v.model)" [alt]="getBrandName(v.model)" class="brand-logo" />
+                    <span *ngIf="!getBrandLogo(v.model)" class="brand-fallback">{{ getBrandInitial(v.model) }}</span>
+                    <span>{{ v.model }}</span>
+                  </div>
                   <p class="operator-name">{{ getOperatorName(v.operatorCode) }}</p>
                   <p class="bus-model">{{ v.model }}</p>
                   <span class="type-tag">{{ v.type }}</span>
@@ -109,7 +110,6 @@
                     <span class="currency">৳</span>
                     <span class="amount">{{ getBaseFareForVehicle(v.id) }}</span>
                   </div>
-
                   <div class="seat-indicator" [ngClass]="getSeatClass(v.id)">
                     <ng-container *ngIf="getSeatsForVehicle(v.id) === 0; else seatsAvailable">
                       🚫 Fully Booked
@@ -118,7 +118,6 @@
                       {{ getSeatsForVehicle(v.id) }} seats left
                     </ng-template>
                   </div>
-
                   <button type="button" class="btn primary small" [disabled]="getSeatsForVehicle(v.id) === 0"
                     (click)="openSeatPanel(v.vehicleCode, v.id)">
                     {{ seatBookingBusId === v.id ? '✕ Close' : '🪑 Select Seats' }}
@@ -128,10 +127,8 @@
               </div>
             </div>
 
-            <!-- SEAT PANEL — compact, driver top-right, fare alongside -->
+            <!-- SEAT PANEL -->
             <div class="seat-panel-container" *ngIf="seatBookingBusId === v.id">
-
-              <!-- VEHICLE NAME HEADER -->
               <div class="seat-panel-vehicle-header">
                 <span class="seat-panel-vehicle-icon">🚌</span>
                 <span class="seat-panel-vehicle-name">{{ getOperatorName(v.operatorCode) }}</span>
@@ -149,32 +146,20 @@
               </div>
 
               <div class="seat-panel-layout">
-
-                <!-- LEFT: Seat Grid -->
                 <div class="seat-panel">
-
-                  <!-- LOADING STATE -->
                   <div *ngIf="seatPanelLoading" class="seat-loading">
                     <div class="seat-loading-spinner"></div>
                     <span>Loading seat data…</span>
                   </div>
-
-                  <!-- BUS BODY -->
                   <div class="bus-body" *ngIf="!seatPanelLoading">
-
-                    <!-- SEAT GRID: A1,A2 | A3,A4 with driver top-right -->
                     <div class="seat-grid">
                       <div class="seat-row driver-integrated-row">
-                        <!-- Row label placeholder -->
                         <span class="row-label"></span>
-                        <!-- Left pair: empty placeholders -->
                         <div class="seat-group">
                           <div class="seat-btn-placeholder"></div>
                           <div class="seat-btn-placeholder"></div>
                         </div>
-                        <!-- Aisle -->
                         <div class="aisle-gap"></div>
-                        <!-- Right pair: col3 placeholder + driver -->
                         <div class="seat-group">
                           <div class="seat-btn-placeholder"></div>
                           <div class="driver-cell-inline">
@@ -183,14 +168,13 @@
                           </div>
                         </div>
                       </div>
-
                       <div class="seat-row" *ngFor="let row of rows">
                         <span class="row-label">{{ row }}</span>
-                        <!-- Left pair: cols 1 & 2 -->
                         <div class="seat-group">
                           <ng-container *ngFor="let col of [1, 2]">
                             <ng-container *ngIf="getSeatByPosition(row, col) as seat">
-                              <button type="button" class="seat-btn" [class.available]="seat.status === 'available'"
+                              <button type="button" class="seat-btn"
+                                [class.available]="seat.status === 'available'"
                                 [class.selected]="seat.status === 'selected'"
                                 [class.booked]="seat.status === 'reserved'"
                                 [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
@@ -200,13 +184,12 @@
                             </ng-container>
                           </ng-container>
                         </div>
-                        <!-- Aisle -->
                         <div class="aisle-gap"></div>
-                        <!-- Right pair: cols 3 & 4 -->
                         <div class="seat-group">
                           <ng-container *ngFor="let col of [3, 4]">
                             <ng-container *ngIf="getSeatByPosition(row, col) as seat">
-                              <button type="button" class="seat-btn" [class.available]="seat.status === 'available'"
+                              <button type="button" class="seat-btn"
+                                [class.available]="seat.status === 'available'"
                                 [class.selected]="seat.status === 'selected'"
                                 [class.booked]="seat.status === 'reserved'"
                                 [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
@@ -218,15 +201,13 @@
                         </div>
                       </div>
                     </div>
-
                     <div *ngIf="rows.length === 0" class="seat-empty">
                       No seat data available for this vehicle.
                     </div>
                   </div>
-
                 </div>
 
-                <!-- RIGHT: Fare Summary -->
+                <!-- Fare Summary -->
                 <div class="fare-summary-panel" *ngIf="!seatPanelLoading">
                   <div class="fare-summary-inner">
                     <div class="fare-section">
@@ -240,33 +221,25 @@
                         </ng-template>
                       </div>
                     </div>
-
                     <div class="fare-divider"></div>
-
                     <div class="fare-section">
                       <p class="fare-section-label">Fare Details</p>
                       <div class="fare-line">
-                        <span class="fare-line-desc">({{ selectedBaseFare | number }}) × {{ selectedSeats.length || 1
-                          }}</span>
-                        <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number
-                          }}</span>
+                        <span class="fare-line-desc">({{ selectedBaseFare | number }}) × {{ selectedSeats.length || 1 }}</span>
+                        <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number }}</span>
                       </div>
                       <div class="fare-divider slim"></div>
                       <div class="fare-line">
                         <span class="fare-line-desc">Subtotal</span>
-                        <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number
-                          }}</span>
+                        <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number }}</span>
                       </div>
                     </div>
-
                     <div class="fare-total-box">
                       <span class="fare-total-label">Total Fare</span>
-                      <span class="fare-total-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number
-                        }}</span>
+                      <span class="fare-total-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number }}</span>
                     </div>
                   </div>
                 </div>
-
               </div>
             </div>
 
@@ -359,7 +332,8 @@
             <th (click)="sortBy('passengerName')" class="sortable">Passenger ↕</th>
             <th>Route</th>
             <th class="tbl__th tbl__th--sort" (click)="sortBy('model')">
-              Operator / Model <span class="sort-arrow" [class.sort-arrow--asc]="sortField==='model'&&sortAsc"
+              Operator / Model <span class="sort-arrow"
+                [class.sort-arrow--asc]="sortField==='model'&&sortAsc"
                 [class.sort-arrow--desc]="sortField==='model'&&!sortAsc">⇅</span>
             </th>
             <th (click)="sortBy('passengerContact')" class="sortable">Contact ↕</th>
@@ -393,17 +367,12 @@
               </div>
             </td>
             <td class="route-cell">{{ getRouteNameByTripId(t.tripId) }}</td>
-
-            <!-- ── OPERATOR / MODEL cell with brand logo ── -->
             <td class="operator-cell">
               <div class="operator-info">
                 <span class="op-name">{{ getOperatorNameByTripId(t.tripId) }}</span>
                 <div class="op-model-row">
                   <ng-container *ngIf="getBrandLogo(getVehicleModelByTripId(t.tripId)) as logo; else noLogoList">
-                    <img
-                      [src]="logo"
-                      [alt]="getBrandName(getVehicleModelByTripId(t.tripId))"
-                      class="brand-logo-list" />
+                    <img [src]="logo" [alt]="getBrandName(getVehicleModelByTripId(t.tripId))" class="brand-logo-list" />
                   </ng-container>
                   <ng-template #noLogoList>
                     <span class="brand-fallback-list">
@@ -414,7 +383,6 @@
                 </div>
               </div>
             </td>
-
             <td class="contact-cell">{{ t.passengerContact }}</td>
             <td><span class="seat-chip">{{ t.seatNumber }}</span></td>
             <td class="fare-col">৳{{ t.farePaid | number }}</td>
@@ -444,7 +412,6 @@
     </ng-container>
     <button class="page-btn nav-btn" [disabled]="currentPage === totalPages" (click)="goToNextPage()">Next ›</button>
   </div>
-
 
   <!-- ═══════════════════════════════════════════════ -->
   <!-- EDIT MODAL                                      -->
@@ -492,7 +459,7 @@
             </div>
           </div>
 
-          <!-- SECTION 2: Vehicle Cards with compact seat panel -->
+          <!-- SECTION 2: Vehicle Cards -->
           <div class="section section-vehicles" *ngIf="availableVehicles.length">
             <h4 class="section-title">
               <span class="section-icon">🚌</span> Available Vehicles
@@ -503,16 +470,13 @@
             <div class="vehicle-list">
               <div *ngFor="let v of availableVehicles" class="vehicle-wrapper">
 
-                <!-- VEHICLE CARD -->
                 <div class="vehicle-card" [class.selected]="selectedVehicleCode === v.vehicleCode">
                   <div class="vehicle-info-main">
-
                     <div class="vehicle-left">
                       <p class="operator-name">{{ getOperatorName(v.operatorCode) }}</p>
                       <p class="bus-model">{{ v.model }}</p>
                       <span class="type-tag">{{ v.type }}</span>
                     </div>
-
                     <div class="vehicle-middle">
                       <div class="time-point">
                         <div class="time-block">
@@ -528,13 +492,11 @@
                         </div>
                       </div>
                     </div>
-
                     <div class="vehicle-right">
                       <div class="price-container">
                         <span class="currency">৳</span>
                         <span class="amount">{{ getBaseFareForVehicle(v.id) }}</span>
                       </div>
-
                       <div class="seat-indicator" [ngClass]="getSeatClass(v.id)">
                         <ng-container *ngIf="getSeatsForVehicle(v.id) === 0; else modalSeatsAvailable">
                           🚫 Fully Booked
@@ -543,20 +505,16 @@
                           {{ getSeatsForVehicle(v.id) }} seats left
                         </ng-template>
                       </div>
-
                       <button type="button" class="btn primary small" [disabled]="getSeatsForVehicle(v.id) === 0"
                         (click)="openSeatPanel(v.vehicleCode, v.id)">
                         {{ seatBookingBusId === v.id ? '✕ Close' : '🪑 Select Seats' }}
                       </button>
                     </div>
-
                   </div>
                 </div>
 
-                <!-- SEAT PANEL — compact, driver top-right, fare alongside -->
+                <!-- SEAT PANEL -->
                 <div class="seat-panel-container" *ngIf="seatBookingBusId === v.id">
-
-                  <!-- VEHICLE NAME HEADER -->
                   <div class="seat-panel-vehicle-header">
                     <span class="seat-panel-vehicle-icon">🚌</span>
                     <span class="seat-panel-vehicle-name">{{ getOperatorName(v.operatorCode) }}</span>
@@ -574,21 +532,13 @@
                   </div>
 
                   <div class="seat-panel-layout">
-
-                    <!-- LEFT: Seat Grid -->
                     <div class="seat-panel">
-
-                      <!-- LOADING STATE -->
                       <div *ngIf="seatPanelLoading" class="seat-loading">
                         <div class="seat-loading-spinner"></div>
                         <span>Loading seat data…</span>
                       </div>
-
-                      <!-- BUS BODY -->
                       <div class="bus-body" *ngIf="!seatPanelLoading">
-
                         <div class="seat-grid">
-                          <!-- Driver row integrated at top-right -->
                           <div class="seat-row driver-integrated-row">
                             <span class="row-label"></span>
                             <div class="seat-group">
@@ -604,13 +554,13 @@
                               </div>
                             </div>
                           </div>
-
                           <div class="seat-row" *ngFor="let row of rows">
                             <span class="row-label">{{ row }}</span>
                             <div class="seat-group">
                               <ng-container *ngFor="let col of [1, 2]">
                                 <ng-container *ngIf="getSeatByPosition(row, col) as seat">
-                                  <button type="button" class="seat-btn" [class.available]="seat.status === 'available'"
+                                  <button type="button" class="seat-btn"
+                                    [class.available]="seat.status === 'available'"
                                     [class.selected]="seat.status === 'selected'"
                                     [class.booked]="seat.status === 'reserved'"
                                     [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
@@ -624,7 +574,8 @@
                             <div class="seat-group">
                               <ng-container *ngFor="let col of [3, 4]">
                                 <ng-container *ngIf="getSeatByPosition(row, col) as seat">
-                                  <button type="button" class="seat-btn" [class.available]="seat.status === 'available'"
+                                  <button type="button" class="seat-btn"
+                                    [class.available]="seat.status === 'available'"
                                     [class.selected]="seat.status === 'selected'"
                                     [class.booked]="seat.status === 'reserved'"
                                     [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
@@ -636,15 +587,12 @@
                             </div>
                           </div>
                         </div>
-
                         <div *ngIf="rows.length === 0" class="seat-empty">
                           No seat data available for this vehicle.
                         </div>
                       </div>
-
                     </div>
 
-                    <!-- RIGHT: Fare Summary -->
                     <div class="fare-summary-panel" *ngIf="!seatPanelLoading">
                       <div class="fare-summary-inner">
                         <div class="fare-section">
@@ -658,33 +606,25 @@
                             </ng-template>
                           </div>
                         </div>
-
                         <div class="fare-divider"></div>
-
                         <div class="fare-section">
                           <p class="fare-section-label">Fare Details</p>
                           <div class="fare-line">
-                            <span class="fare-line-desc">({{ selectedBaseFare | number }}) × {{ selectedSeats.length ||
-                              1 }}</span>
-                            <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) |
-                              number }}</span>
+                            <span class="fare-line-desc">({{ selectedBaseFare | number }}) × {{ selectedSeats.length || 1 }}</span>
+                            <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number }}</span>
                           </div>
                           <div class="fare-divider slim"></div>
                           <div class="fare-line">
                             <span class="fare-line-desc">Subtotal</span>
-                            <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) |
-                              number }}</span>
+                            <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number }}</span>
                           </div>
                         </div>
-
                         <div class="fare-total-box">
                           <span class="fare-total-label">Total Fare</span>
-                          <span class="fare-total-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number
-                            }}</span>
+                          <span class="fare-total-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number }}</span>
                         </div>
                       </div>
                     </div>
-
                   </div>
                 </div>
 
@@ -753,7 +693,6 @@
 
     </div>
   </div>
-
 
   <!-- ═══════════════════════════════════════════════ -->
   <!-- CANCEL CONFIRMATION MODAL                       -->
