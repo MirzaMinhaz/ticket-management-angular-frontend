@@ -5,12 +5,9 @@
   <!-- TOAST NOTIFICATION STACK (top-right)            -->
   <!-- ═══════════════════════════════════════════════ -->
   <div class="toast-stack">
-    <div *ngFor="let toast of toasts; trackBy: trackToast"
-         class="toast"
-         [class.toast-success]="toast.type === 'success'"
-         [class.toast-error]="toast.type === 'error'"
-         [class.toast-warn]="toast.type === 'warn'"
-         [class.toast-info]="toast.type === 'info'">
+    <div *ngFor="let toast of toasts; trackBy: trackToast" class="toast"
+      [class.toast-success]="toast.type === 'success'" [class.toast-error]="toast.type === 'error'"
+      [class.toast-warn]="toast.type === 'warn'" [class.toast-info]="toast.type === 'info'">
       <span class="toast-icon">
         <ng-container [ngSwitch]="toast.type">
           <span *ngSwitchCase="'success'">✅</span>
@@ -55,7 +52,8 @@
 
           <div class="form-group">
             <label for="arrivalDate">Arrival Date</label>
-            <input [(ngModel)]="selectedArrivalDate" name="arrivalDate" id="arrivalDate" type="date" required readonly />
+            <input [(ngModel)]="selectedArrivalDate" name="arrivalDate" id="arrivalDate" type="date" required
+              readonly />
           </div>
 
         </div>
@@ -75,6 +73,14 @@
 
                 <!-- LEFT -->
                 <div class="vehicle-left">
+                  <td class="tbl__td">
+                    <div class="model-cell">
+                      <img *ngIf="getBrandLogo(v.model)" [src]="getBrandLogo(v.model)" [alt]="getBrandName(v.model)"
+                        class="brand-logo" />
+                      <span *ngIf="!getBrandLogo(v.model)" class="brand-fallback">{{ getBrandInitial(v.model) }}</span>
+                      <span>{{ v.model }}</span>
+                    </div>
+                  </td>
                   <p class="operator-name">{{ getOperatorName(v.operatorCode) }}</p>
                   <p class="bus-model">{{ v.model }}</p>
                   <span class="type-tag">{{ v.type }}</span>
@@ -184,13 +190,11 @@
                         <div class="seat-group">
                           <ng-container *ngFor="let col of [1, 2]">
                             <ng-container *ngIf="getSeatByPosition(row, col) as seat">
-                              <button type="button" class="seat-btn"
-                                [class.available]="seat.status === 'available'"
+                              <button type="button" class="seat-btn" [class.available]="seat.status === 'available'"
                                 [class.selected]="seat.status === 'selected'"
                                 [class.booked]="seat.status === 'reserved'"
                                 [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
-                                [disabled]="seat.status === 'reserved'"
-                                (click)="toggleSeat(seat)">
+                                [disabled]="seat.status === 'reserved'" (click)="toggleSeat(seat)">
                                 <span class="seat-label-num">{{ row }}{{ col }}</span>
                               </button>
                             </ng-container>
@@ -202,13 +206,11 @@
                         <div class="seat-group">
                           <ng-container *ngFor="let col of [3, 4]">
                             <ng-container *ngIf="getSeatByPosition(row, col) as seat">
-                              <button type="button" class="seat-btn"
-                                [class.available]="seat.status === 'available'"
+                              <button type="button" class="seat-btn" [class.available]="seat.status === 'available'"
                                 [class.selected]="seat.status === 'selected'"
                                 [class.booked]="seat.status === 'reserved'"
                                 [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
-                                [disabled]="seat.status === 'reserved'"
-                                (click)="toggleSeat(seat)">
+                                [disabled]="seat.status === 'reserved'" (click)="toggleSeat(seat)">
                                 <span class="seat-label-num">{{ row }}{{ col }}</span>
                               </button>
                             </ng-container>
@@ -244,19 +246,23 @@
                     <div class="fare-section">
                       <p class="fare-section-label">Fare Details</p>
                       <div class="fare-line">
-                        <span class="fare-line-desc">({{ selectedBaseFare | number }}) × {{ selectedSeats.length || 1 }}</span>
-                        <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number }}</span>
+                        <span class="fare-line-desc">({{ selectedBaseFare | number }}) × {{ selectedSeats.length || 1
+                          }}</span>
+                        <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number
+                          }}</span>
                       </div>
                       <div class="fare-divider slim"></div>
                       <div class="fare-line">
                         <span class="fare-line-desc">Subtotal</span>
-                        <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number }}</span>
+                        <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number
+                          }}</span>
                       </div>
                     </div>
 
                     <div class="fare-total-box">
                       <span class="fare-total-label">Total Fare</span>
-                      <span class="fare-total-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number }}</span>
+                      <span class="fare-total-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number
+                        }}</span>
                     </div>
                   </div>
                 </div>
@@ -352,6 +358,10 @@
             <th class="col-actions">Actions</th>
             <th (click)="sortBy('passengerName')" class="sortable">Passenger ↕</th>
             <th>Route</th>
+            <th class="tbl__th tbl__th--sort" (click)="sortBy('model')">
+              Model <span class="sort-arrow" [class.sort-arrow--asc]="sortField==='model'&&sortAsc"
+                [class.sort-arrow--desc]="sortField==='model'&&!sortAsc">⇅</span>
+            </th>
             <th>Operator</th>
             <th (click)="sortBy('passengerContact')" class="sortable">Contact ↕</th>
             <th (click)="sortBy('seatNumber')" class="sortable">Seat ↕</th>
@@ -585,13 +595,11 @@
                             <div class="seat-group">
                               <ng-container *ngFor="let col of [1, 2]">
                                 <ng-container *ngIf="getSeatByPosition(row, col) as seat">
-                                  <button type="button" class="seat-btn"
-                                    [class.available]="seat.status === 'available'"
+                                  <button type="button" class="seat-btn" [class.available]="seat.status === 'available'"
                                     [class.selected]="seat.status === 'selected'"
                                     [class.booked]="seat.status === 'reserved'"
                                     [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
-                                    [disabled]="seat.status === 'reserved'"
-                                    (click)="toggleSeat(seat)">
+                                    [disabled]="seat.status === 'reserved'" (click)="toggleSeat(seat)">
                                     <span class="seat-label-num">{{ row }}{{ col }}</span>
                                   </button>
                                 </ng-container>
@@ -601,13 +609,11 @@
                             <div class="seat-group">
                               <ng-container *ngFor="let col of [3, 4]">
                                 <ng-container *ngIf="getSeatByPosition(row, col) as seat">
-                                  <button type="button" class="seat-btn"
-                                    [class.available]="seat.status === 'available'"
+                                  <button type="button" class="seat-btn" [class.available]="seat.status === 'available'"
                                     [class.selected]="seat.status === 'selected'"
                                     [class.booked]="seat.status === 'reserved'"
                                     [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
-                                    [disabled]="seat.status === 'reserved'"
-                                    (click)="toggleSeat(seat)">
+                                    [disabled]="seat.status === 'reserved'" (click)="toggleSeat(seat)">
                                     <span class="seat-label-num">{{ row }}{{ col }}</span>
                                   </button>
                                 </ng-container>
@@ -643,19 +649,23 @@
                         <div class="fare-section">
                           <p class="fare-section-label">Fare Details</p>
                           <div class="fare-line">
-                            <span class="fare-line-desc">({{ selectedBaseFare | number }}) × {{ selectedSeats.length || 1 }}</span>
-                            <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number }}</span>
+                            <span class="fare-line-desc">({{ selectedBaseFare | number }}) × {{ selectedSeats.length ||
+                              1 }}</span>
+                            <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) |
+                              number }}</span>
                           </div>
                           <div class="fare-divider slim"></div>
                           <div class="fare-line">
                             <span class="fare-line-desc">Subtotal</span>
-                            <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number }}</span>
+                            <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) |
+                              number }}</span>
                           </div>
                         </div>
 
                         <div class="fare-total-box">
                           <span class="fare-total-label">Total Fare</span>
-                          <span class="fare-total-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number }}</span>
+                          <span class="fare-total-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number
+                            }}</span>
                         </div>
                       </div>
                     </div>
