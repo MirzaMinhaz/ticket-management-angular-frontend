@@ -84,7 +84,13 @@
                   </div>
                   <p class="operator-name">{{ getOperatorName(v.operatorCode) }}</p>
                   <p class="bus-model">{{ v.model }}</p>
-                  <span class="type-tag">{{ v.type }}</span>
+                  <!-- Vehicle detail tags -->
+                  <div class="detail-tags" *ngIf="v.type === 'Bus'">
+                    <span class="tag tag--ac" [class.tag--nonac]="v.acType === 'Non AC'">{{ v.acType }}</span>
+                    <span class="tag tag--cat">{{ v.busCategory }}</span>
+                    <span class="tag tag--deck">{{ v.deckLevel }}</span>
+                  </div>
+                  <span class="type-tag" *ngIf="v.type !== 'Bus'">{{ v.type }}</span>
                 </div>
 
                 <!-- MIDDLE -->
@@ -133,7 +139,10 @@
                 <span class="seat-panel-vehicle-icon">🚌</span>
                 <span class="seat-panel-vehicle-name">{{ getOperatorName(v.operatorCode) }}</span>
                 <span class="seat-panel-vehicle-model">{{ v.model }}</span>
-                <span class="type-tag">{{ v.type }}</span>
+                <!-- Layout mode badge -->
+                <span class="layout-badge" [class.layout-badge--onetwo]="seatLayoutMode === 'one-two'">
+                  {{ seatLayoutMode === 'one-two' ? '1 + 2 Layout' : '2 + 2 Layout' }}
+                </span>
                 <div class="legend">
                   <span><span class="dot available"></span> Free</span>
                   <span><span class="dot selected"></span> Yours</span>
@@ -152,26 +161,37 @@
                     <span>Loading seat data…</span>
                   </div>
                   <div class="bus-body" *ngIf="!seatPanelLoading">
-                    <div class="seat-grid">
+                    <div class="seat-grid" [class.layout-one-two]="seatLayoutMode === 'one-two'">
+
+                      <!-- Driver row -->
                       <div class="seat-row driver-integrated-row">
                         <span class="row-label"></span>
+                        <!-- Left placeholders -->
                         <div class="seat-group">
-                          <div class="seat-btn-placeholder"></div>
-                          <div class="seat-btn-placeholder"></div>
+                          <ng-container *ngFor="let c of leftCols">
+                            <div class="seat-btn-placeholder"></div>
+                          </ng-container>
                         </div>
                         <div class="aisle-gap"></div>
+                        <!-- Right: last placeholder + driver -->
                         <div class="seat-group">
-                          <div class="seat-btn-placeholder"></div>
-                          <div class="driver-cell-inline">
-                            <div class="driver-circle">🧑‍✈️</div>
-                            <span class="driver-text">Driver</span>
-                          </div>
+                          <ng-container *ngFor="let c of rightCols; let last = last">
+                            <div *ngIf="!last" class="seat-btn-placeholder"></div>
+                            <div *ngIf="last" class="driver-cell-inline">
+                              <div class="driver-circle">🧑‍✈️</div>
+                              <span class="driver-text">Driver</span>
+                            </div>
+                          </ng-container>
                         </div>
                       </div>
+
+                      <!-- Seat rows -->
                       <div class="seat-row" *ngFor="let row of rows">
                         <span class="row-label">{{ row }}</span>
+
+                        <!-- Left group -->
                         <div class="seat-group">
-                          <ng-container *ngFor="let col of [1, 2]">
+                          <ng-container *ngFor="let col of leftCols">
                             <ng-container *ngIf="getSeatByPosition(row, col) as seat">
                               <button type="button" class="seat-btn"
                                 [class.available]="seat.status === 'available'"
@@ -184,9 +204,12 @@
                             </ng-container>
                           </ng-container>
                         </div>
+
                         <div class="aisle-gap"></div>
+
+                        <!-- Right group -->
                         <div class="seat-group">
-                          <ng-container *ngFor="let col of [3, 4]">
+                          <ng-container *ngFor="let col of rightCols">
                             <ng-container *ngIf="getSeatByPosition(row, col) as seat">
                               <button type="button" class="seat-btn"
                                 [class.available]="seat.status === 'available'"
@@ -200,7 +223,8 @@
                           </ng-container>
                         </div>
                       </div>
-                    </div>
+
+                    </div><!-- /seat-grid -->
                     <div *ngIf="rows.length === 0" class="seat-empty">
                       No seat data available for this vehicle.
                     </div>
@@ -332,7 +356,7 @@
             <th (click)="sortBy('passengerName')" class="sortable">Passenger ↕</th>
             <th>Route</th>
             <th class="tbl__th tbl__th--sort" (click)="sortBy('model')">
-              Operator / Model <span class="sort-arrow"
+              Operator / Vehicle <span class="sort-arrow"
                 [class.sort-arrow--asc]="sortField==='model'&&sortAsc"
                 [class.sort-arrow--desc]="sortField==='model'&&!sortAsc">⇅</span>
             </th>
@@ -381,6 +405,15 @@
                   </ng-template>
                   <span class="op-vehicle">{{ getVehicleModelByTripId(t.tripId) }}</span>
                 </div>
+                <!-- Vehicle detail tags in list -->
+                <ng-container *ngIf="getVehicleByTripId(t.tripId) as veh">
+                  <div class="detail-tags detail-tags--sm" *ngIf="veh.type === 'Bus'">
+                    <span class="tag tag--ac" [class.tag--nonac]="veh.acType === 'Non AC'">{{ veh.acType }}</span>
+                    <span class="tag tag--cat">{{ veh.busCategory }}</span>
+                    <span class="tag tag--deck">{{ veh.deckLevel }}</span>
+                  </div>
+                  <span class="type-tag type-tag--sm" *ngIf="veh.type !== 'Bus'">{{ veh.type }}</span>
+                </ng-container>
               </div>
             </td>
             <td class="contact-cell">{{ t.passengerContact }}</td>
@@ -475,7 +508,13 @@
                     <div class="vehicle-left">
                       <p class="operator-name">{{ getOperatorName(v.operatorCode) }}</p>
                       <p class="bus-model">{{ v.model }}</p>
-                      <span class="type-tag">{{ v.type }}</span>
+                      <!-- Vehicle detail tags in modal -->
+                      <div class="detail-tags" *ngIf="v.type === 'Bus'">
+                        <span class="tag tag--ac" [class.tag--nonac]="v.acType === 'Non AC'">{{ v.acType }}</span>
+                        <span class="tag tag--cat">{{ v.busCategory }}</span>
+                        <span class="tag tag--deck">{{ v.deckLevel }}</span>
+                      </div>
+                      <span class="type-tag" *ngIf="v.type !== 'Bus'">{{ v.type }}</span>
                     </div>
                     <div class="vehicle-middle">
                       <div class="time-point">
@@ -513,13 +552,16 @@
                   </div>
                 </div>
 
-                <!-- SEAT PANEL -->
+                <!-- SEAT PANEL (modal) -->
                 <div class="seat-panel-container" *ngIf="seatBookingBusId === v.id">
                   <div class="seat-panel-vehicle-header">
                     <span class="seat-panel-vehicle-icon">🚌</span>
                     <span class="seat-panel-vehicle-name">{{ getOperatorName(v.operatorCode) }}</span>
                     <span class="seat-panel-vehicle-model">{{ v.model }}</span>
-                    <span class="type-tag">{{ v.type }}</span>
+                    <!-- Layout mode badge -->
+                    <span class="layout-badge" [class.layout-badge--onetwo]="seatLayoutMode === 'one-two'">
+                      {{ seatLayoutMode === 'one-two' ? '1 + 2 Layout' : '2 + 2 Layout' }}
+                    </span>
                     <div class="legend">
                       <span><span class="dot available"></span> Free</span>
                       <span><span class="dot selected"></span> Yours</span>
@@ -538,26 +580,35 @@
                         <span>Loading seat data…</span>
                       </div>
                       <div class="bus-body" *ngIf="!seatPanelLoading">
-                        <div class="seat-grid">
+                        <div class="seat-grid" [class.layout-one-two]="seatLayoutMode === 'one-two'">
+
+                          <!-- Driver row -->
                           <div class="seat-row driver-integrated-row">
                             <span class="row-label"></span>
                             <div class="seat-group">
-                              <div class="seat-btn-placeholder"></div>
-                              <div class="seat-btn-placeholder"></div>
+                              <ng-container *ngFor="let c of leftCols">
+                                <div class="seat-btn-placeholder"></div>
+                              </ng-container>
                             </div>
                             <div class="aisle-gap"></div>
                             <div class="seat-group">
-                              <div class="seat-btn-placeholder"></div>
-                              <div class="driver-cell-inline">
-                                <div class="driver-circle">🧑‍✈️</div>
-                                <span class="driver-text">Driver</span>
-                              </div>
+                              <ng-container *ngFor="let c of rightCols; let last = last">
+                                <div *ngIf="!last" class="seat-btn-placeholder"></div>
+                                <div *ngIf="last" class="driver-cell-inline">
+                                  <div class="driver-circle">🧑‍✈️</div>
+                                  <span class="driver-text">Driver</span>
+                                </div>
+                              </ng-container>
                             </div>
                           </div>
+
+                          <!-- Seat rows -->
                           <div class="seat-row" *ngFor="let row of rows">
                             <span class="row-label">{{ row }}</span>
+
+                            <!-- Left group -->
                             <div class="seat-group">
-                              <ng-container *ngFor="let col of [1, 2]">
+                              <ng-container *ngFor="let col of leftCols">
                                 <ng-container *ngIf="getSeatByPosition(row, col) as seat">
                                   <button type="button" class="seat-btn"
                                     [class.available]="seat.status === 'available'"
@@ -570,9 +621,12 @@
                                 </ng-container>
                               </ng-container>
                             </div>
+
                             <div class="aisle-gap"></div>
+
+                            <!-- Right group -->
                             <div class="seat-group">
-                              <ng-container *ngFor="let col of [3, 4]">
+                              <ng-container *ngFor="let col of rightCols">
                                 <ng-container *ngIf="getSeatByPosition(row, col) as seat">
                                   <button type="button" class="seat-btn"
                                     [class.available]="seat.status === 'available'"
@@ -586,7 +640,8 @@
                               </ng-container>
                             </div>
                           </div>
-                        </div>
+
+                        </div><!-- /seat-grid -->
                         <div *ngIf="rows.length === 0" class="seat-empty">
                           No seat data available for this vehicle.
                         </div>

@@ -48,6 +48,13 @@ const BRAND_LOGOS: Record<string, string> = {
   caetano: 'assets/img/caetano.jpeg',
 };
 
+/**
+ * Seat layout mode.
+ * 'one-two' → 1 column left | aisle | 2 columns right  (AC buses ≤ 35 seats)
+ * 'two-two' → 2 columns left | aisle | 2 columns right  (everything else)
+ */
+export type SeatLayoutMode = 'one-two' | 'two-two';
+
 @Component({
   selector: 'app-ticket',
   standalone: true,
@@ -101,6 +108,9 @@ export class TicketComponent implements OnInit {
   seatMap: Record<string, SeatDto> = {};
   selectedSeats: SeatDto[] = [];
   rows: string[] = [];
+
+  /** Current seat layout mode for the open seat panel */
+  seatLayoutMode: SeatLayoutMode = 'two-two';
 
   /** Live seat numbers already booked for the open trip. Fetched from backend. */
   liveBookedSeats: string[] = [];
@@ -195,6 +205,35 @@ export class TicketComponent implements OnInit {
     });
   }
 
+  // ── Seat Layout Helpers ──────────────────────────────────────────────────────
+
+  /**
+   * Determine the seat layout mode for a given vehicle.
+   * AC (any deck variant) with capacity ≤ 35 → 1:2
+   * Everything else                           → 2:2
+   */
+  getLayoutModeForVehicle(vehicle: Vehicle): SeatLayoutMode {
+    const isAC = vehicle.acType === 'AC';
+    const capacity = vehicle.capacity ?? 0;
+    if (isAC && capacity <= 35) return 'one-two';
+    return 'two-two';
+  }
+
+  /** Columns on the LEFT side of the aisle for the current layout */
+  get leftCols(): number[] {
+    return this.seatLayoutMode === 'one-two' ? [1] : [1, 2];
+  }
+
+  /** Columns on the RIGHT side of the aisle for the current layout */
+  get rightCols(): number[] {
+    return this.seatLayoutMode === 'one-two' ? [2, 3] : [3, 4];
+  }
+
+  /** Total columns per row for seat generation */
+  get totalColsPerRow(): number {
+    return this.seatLayoutMode === 'one-two' ? 3 : 4;
+  }
+
   // ── Available-seat count helpers ─────────────────────────────────────────────
 
   private refreshAvailableSeatCounts(): void {
@@ -281,6 +320,15 @@ export class TicketComponent implements OnInit {
     if (!schedule) return '';
     const vehicle = this.vehicles.find((v) => v.id === schedule.vehicleId);
     return vehicle?.model ?? '';
+  }
+
+  /** Get the full vehicle object for a given tripId (for detail tags in list) */
+  getVehicleByTripId(tripId: number): Vehicle | null {
+    const trip = this.trips.find((t) => t.id === tripId);
+    if (!trip) return null;
+    const schedule = this.schedules.find((s) => s.id === trip.scheduleId);
+    if (!schedule) return null;
+    return this.vehicles.find((v) => v.id === schedule.vehicleId) ?? null;
   }
 
   calculateArrivalDate(): void {
@@ -461,6 +509,9 @@ export class TicketComponent implements OnInit {
       return;
     }
 
+    // ── Determine seat layout for this vehicle ───────────────────────────
+    this.seatLayoutMode = this.getLayoutModeForVehicle(vehicle);
+
     const capacity = vehicle.capacity ?? 40;
 
     this.liveBookedSeats = [];
@@ -545,16 +596,24 @@ export class TicketComponent implements OnInit {
     this.rows = [];
     this.seatMap = {};
     this.seatPanelLoading = false;
+    this.seatLayoutMode = 'two-two';
   }
 
+  /**
+   * Generate seats using the current seatLayoutMode.
+   *
+   * one-two layout: columns 1, 2, 3  → col 1 = left, cols 2+3 = right
+   * two-two layout: columns 1, 2, 3, 4 → cols 1+2 = left, cols 3+4 = right
+   */
   private generateSeats(capacity: number): void {
     const seats: SeatDto[] = [];
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const cols = this.totalColsPerRow;
     let count = 0;
 
     outer: for (let r = 0; r < alphabet.length; r++) {
       const row = alphabet[r];
-      for (let c = 1; c <= 4; c++) {
+      for (let c = 1; c <= cols; c++) {
         if (count >= capacity) break outer;
         count++;
         const seatNum = `${row}${c}`;
@@ -570,6 +629,7 @@ export class TicketComponent implements OnInit {
       }
     }
 
+    // Pad the last row so it's visually complete
     if (seats.length > 0) {
       const lastRow = seats[seats.length - 1].seatNumber.charAt(0);
       const existingCols = new Set(
@@ -578,7 +638,7 @@ export class TicketComponent implements OnInit {
           .map((s) => parseInt(s.seatNumber.substring(1), 10)),
       );
       let padId = count;
-      for (let c = 1; c <= 4; c++) {
+      for (let c = 1; c <= cols; c++) {
         if (!existingCols.has(c)) {
           padId++;
           const seatNum = `${lastRow}${c}`;
@@ -705,7 +765,6 @@ export class TicketComponent implements OnInit {
   }
 
   save(): void {
-    // ── Validation ──────────────────────────────────────────────
     const fail = (msg: string) => { this.showToast('error', msg); };
 
     if (!this.selectedTicket.passengerName?.trim()) {
@@ -1027,4 +1086,4 @@ export class TicketComponent implements OnInit {
     });
     this.updatePagination();
   }
-}
+} 

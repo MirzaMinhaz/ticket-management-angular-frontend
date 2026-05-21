@@ -44,7 +44,6 @@ body {
   to   { opacity: 1; transform: translateX(0)    scale(1);    }
 }
 
-/* ── Colour themes ── */
 .toast-success { background: #f0fdf4; border-color: #22c55e; }
 .toast-success .toast-accent { background: #16a34a; }
 .toast-success .toast-icon   { color: #16a34a; }
@@ -69,13 +68,8 @@ body {
 .toast-info .toast-msg    { color: #1e3a8a; }
 .toast-info .toast-close  { color: #2563eb; }
 
-/* ── Left accent bar ── */
-.toast-accent {
-  width: 5px;
-  flex-shrink: 0;
-}
+.toast-accent { width: 5px; flex-shrink: 0; }
 
-/* ── Content area ── */
 .toast-body {
   display: flex;
   align-items: center;
@@ -85,11 +79,7 @@ body {
   min-width: 0;
 }
 
-.toast-icon {
-  font-size: 17px;
-  flex-shrink: 0;
-  line-height: 1;
-}
+.toast-icon { font-size: 17px; flex-shrink: 0; line-height: 1; }
 
 .toast-msg {
   flex: 1;
@@ -99,7 +89,6 @@ body {
   word-break: break-word;
 }
 
-/* ── Close button ── */
 .toast-close {
   background: transparent;
   border: none;
@@ -212,17 +201,9 @@ body {
   gap: 16px;
 }
 
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
+.form-group { display: flex; flex-direction: column; gap: 6px; }
 
-.form-group label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #374151;
-}
+.form-group label { font-size: 13px; font-weight: 600; color: #374151; }
 
 .form-group input,
 .form-group select {
@@ -237,10 +218,7 @@ body {
   transition: border-color 0.18s, box-shadow 0.18s;
 }
 
-.form-group input::placeholder {
-  color: #9ca3af;
-  font-weight: 400;
-}
+.form-group input::placeholder { color: #9ca3af; font-weight: 400; }
 
 .form-group input:focus,
 .form-group select:focus {
@@ -256,10 +234,7 @@ body {
   cursor: default;
 }
 
-.form-group select option {
-  color: #111827;
-  background: #fff;
-}
+.form-group select option { color: #111827; background: #fff; }
 
 /* ─────────────────────────────────────────────── */
 /*  BUTTONS                                         */
@@ -286,10 +261,7 @@ body {
   box-shadow: 0 2px 8px rgba(37,99,235,0.25);
 }
 
-.btn.primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(37,99,235,0.35);
-}
+.btn.primary:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(37,99,235,0.35); }
 
 .btn.secondary {
   background: #f3f4f6;
@@ -297,10 +269,7 @@ body {
   border: 1.5px solid #d1d5db;
 }
 
-.btn.secondary:hover {
-  background: #e5e7eb;
-  border-color: #9ca3af;
-}
+.btn.secondary:hover { background: #e5e7eb; border-color: #9ca3af; }
 
 .btn.danger {
   background: linear-gradient(135deg, #ef4444, #dc2626);
@@ -308,15 +277,9 @@ body {
   box-shadow: 0 2px 8px rgba(239,68,68,0.25);
 }
 
-.btn.danger:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(239,68,68,0.35);
-}
+.btn.danger:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(239,68,68,0.35); }
 
-.btn.small {
-  padding: 6px 12px;
-  font-size: 12px;
-}
+.btn.small { padding: 6px 12px; font-size: 12px; }
 
 .btn[disabled],
 .btn:disabled {
@@ -334,20 +297,95 @@ body {
 }
 
 /* ─────────────────────────────────────────────── */
+/*  VEHICLE DETAIL TAGS (AC, category, deck)        */
+/* ─────────────────────────────────────────────── */
+
+.detail-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 5px;
+}
+
+/* Smaller variant used inside the ticket list table */
+.detail-tags--sm { margin-top: 3px; }
+
+.tag {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 99px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+/* AC (cool blue) */
+.tag--ac {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #93c5fd;
+}
+
+/* Non-AC override (warm amber) */
+.tag--nonac {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fcd34d;
+}
+
+/* Bus category (purple) */
+.tag--cat {
+  background: #ede9fe;
+  color: #5b21b6;
+  border: 1px solid #c4b5fd;
+}
+
+/* Deck level (teal/green) */
+.tag--deck {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #6ee7b7;
+}
+
+/* type-tag for Train / non-bus in list */
+.type-tag--sm {
+  margin-top: 3px;
+  font-size: 0.65rem;
+}
+
+/* ─────────────────────────────────────────────── */
+/*  LAYOUT MODE BADGE (shown in seat panel header)  */
+/* ─────────────────────────────────────────────── */
+
+.layout-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  border-radius: 99px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  white-space: nowrap;
+}
+
+/* 1+2 gets a distinct AC-blue highlight */
+.layout-badge--onetwo {
+  background: #dbeafe;
+  color: #1e40af;
+  border-color: #93c5fd;
+}
+
+/* ─────────────────────────────────────────────── */
 /*  VEHICLE CARDS                                   */
 /* ─────────────────────────────────────────────── */
 
-.vehicle-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
+.vehicle-list { display: flex; flex-direction: column; gap: 12px; }
 
-.vehicle-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
+.vehicle-wrapper { display: flex; flex-direction: column; gap: 8px; }
 
 .vehicle-card {
   background: #ffffff;
@@ -377,26 +415,12 @@ body {
   align-items: center;
 }
 
-.vehicle-left {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
+.vehicle-left { display: flex; flex-direction: column; gap: 3px; }
 
-.operator-name {
-  font-weight: 800;
-  font-size: 0.95rem;
-  color: #111827;
-  margin: 0;
-}
+.operator-name { font-weight: 800; font-size: 0.95rem; color: #111827; margin: 0; }
+.bus-model { font-size: 0.82rem; color: #374151; font-weight: 500; margin: 0; }
 
-.bus-model {
-  font-size: 0.82rem;
-  color: #374151;
-  font-weight: 500;
-  margin: 0;
-}
-
+/* Legacy type-tag (still used for Train / modal list) */
 .type-tag {
   margin-top: 5px;
   padding: 3px 9px;
@@ -417,12 +441,7 @@ body {
   gap: 16px;
 }
 
-.time-block {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-}
+.time-block { display: flex; flex-direction: column; align-items: center; gap: 3px; }
 
 .time {
   font-size: 1.15rem;
@@ -456,17 +475,8 @@ body {
   padding-left: 16px;
 }
 
-.price-container {
-  display: flex;
-  align-items: baseline;
-  gap: 3px;
-}
-
-.currency {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: #374151;
-}
+.price-container { display: flex; align-items: baseline; gap: 3px; }
+.currency { font-size: 0.95rem; font-weight: 600; color: #374151; }
 
 .amount {
   font-size: 1.6rem;
@@ -604,6 +614,25 @@ body {
   display: inline-block;
 }
 
+/* ─────────────────────────────────────────────── */
+/*  SEAT GRID — layout variants                     */
+/* ─────────────────────────────────────────────── */
+
+.seat-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/*
+  Default: 2+2 layout — nothing extra needed.
+  1+2 layout: the aisle gap narrows a touch so the
+  single-column side looks intentional rather than empty.
+*/
+.seat-grid.layout-one-two .aisle-gap {
+  width: 32px;
+}
+
 .driver-integrated-row {
   margin-bottom: 4px;
   padding-bottom: 6px;
@@ -641,23 +670,9 @@ body {
   font-size: 14px;
 }
 
-.driver-text {
-  font-size: 8px;
-  color: #374151;
-  font-weight: 700;
-  white-space: nowrap;
-}
+.driver-text { font-size: 8px; color: #374151; font-weight: 700; white-space: nowrap; }
 
-.seat-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.seat-row {
-  display: flex;
-  align-items: center;
-}
+.seat-row { display: flex; align-items: center; }
 
 .row-label {
   width: 20px;
