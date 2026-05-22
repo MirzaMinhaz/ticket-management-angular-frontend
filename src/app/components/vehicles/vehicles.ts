@@ -18,28 +18,28 @@ import { Router } from '@angular/router';
    Add more entries (keyword → filename) as you add images.
 ─────────────────────────────────────────────────────────────────────────── */
 const BRAND_LOGOS: Record<string, string> = {
-  scania:    'assets/img/scania.jpeg',
-  volvo:     'assets/img/volvo.jpeg',
-  hino:      'assets/img/hino.jpeg',
-  mercedes:  'assets/img/mercedes.jpeg',
-  man:       'assets/img/man.jpeg',
-  isuzu:     'assets/img/isuzu.jpeg',
-  yutong:    'assets/img/yutong.jpeg',
-  king:      'assets/img/king.jpeg',
-  golden:    'assets/img/golden.jpeg',
+  scania: 'assets/img/scania.jpeg',
+  volvo: 'assets/img/volvo.jpeg',
+  hino: 'assets/img/hino.jpeg',
+  mercedes: 'assets/img/mercedes.jpeg',
+  man: 'assets/img/man.jpeg',
+  isuzu: 'assets/img/isuzu.jpeg',
+  yutong: 'assets/img/yutong.jpeg',
+  king: 'assets/img/king.jpeg',
+  golden: 'assets/img/golden.jpeg',
   zhongtong: 'assets/img/zhongtong.jpeg',
-  daf:       'assets/img/daf.jpeg',
-  tata:      'assets/img/tata.jpeg',
-  ashok:     'assets/img/ashok.jpeg',
-  leyland:   'assets/img/ashok.jpeg',
-  eicher:    'assets/img/eicher.jpeg',
-  byd:       'assets/img/byd.jpeg',
-  neoplan:   'assets/img/neoplan.jpeg',
-  setra:     'assets/img/setra.jpeg',
-  irizar:    'assets/img/irizar.jpeg',
-  hyundai:   'assets/img/hyundai.jpeg',
-  mlw:       'assets/img/br.jpeg',
-  caetano:   'assets/img/caetano.jpeg',
+  daf: 'assets/img/daf.jpeg',
+  tata: 'assets/img/tata.jpeg',
+  ashok: 'assets/img/ashok.jpeg',
+  leyland: 'assets/img/ashok.jpeg',
+  eicher: 'assets/img/eicher.jpeg',
+  byd: 'assets/img/byd.jpeg',
+  neoplan: 'assets/img/neoplan.jpeg',
+  setra: 'assets/img/setra.jpeg',
+  irizar: 'assets/img/irizar.jpeg',
+  hyundai: 'assets/img/hyundai.jpeg',
+  mlw: 'assets/img/br.jpeg',
+  caetano: 'assets/img/caetano.jpeg',
 };
 
 @Component({
@@ -83,19 +83,20 @@ export class VehicleComponent implements OnInit {
 
   // ─── Stats ──────────────────────────────────────────────────────────────
   get totalBuses(): number {
-    return this.vehicles.filter(v => v.type === 'Bus').length;
+    return this.vehicles.filter((v) => v.type === 'Bus').length;
   }
   get totalTrains(): number {
-    return this.vehicles.filter(v => v.type === 'Train').length;
+    return this.vehicles.filter((v) => v.type === 'Train').length;
   }
   get totalAC(): number {
-    return this.vehicles.filter(v => v.acType === 'AC').length;
+    return this.vehicles.filter((v) => v.acType === 'AC').length;
   }
   get totalCapacity(): number {
     return this.vehicles.reduce((sum, v) => sum + (v.capacity || 0), 0);
   }
   get uniqueOperators(): number {
-    return new Set(this.vehicles.map(v => v.operatorCode).filter(Boolean)).size;
+    return new Set(this.vehicles.map((v) => v.operatorCode).filter(Boolean))
+      .size;
   }
 
   // ─── Brand Logo Helpers ─────────────────────────────────────────────────
@@ -112,7 +113,8 @@ export class VehicleComponent implements OnInit {
     if (!model) return '';
     const lower = model.toLowerCase();
     for (const key of Object.keys(BRAND_LOGOS)) {
-      if (lower.includes(key)) return key.charAt(0).toUpperCase() + key.slice(1);
+      if (lower.includes(key))
+        return key.charAt(0).toUpperCase() + key.slice(1);
     }
     return '';
   }
@@ -123,7 +125,7 @@ export class VehicleComponent implements OnInit {
 
   // ─── Operator helpers ───────────────────────────────────────────────────
   getOperatorName(code: string | undefined): string | undefined {
-    return this.operators.find(op => op.operatorCode === code)?.name;
+    return this.operators.find((op) => op.operatorCode === code)?.name;
   }
 
   // ─── Pagination ─────────────────────────────────────────────────────────
@@ -151,32 +153,43 @@ export class VehicleComponent implements OnInit {
 
     return pages;
   }
-  goToPage(page: number): void { if (page > 0) this.currentPage = page; }
-  goToNextPage(): void { if (this.currentPage < this.totalPages) this.currentPage++; }
-  goToPreviousPage(): void { if (this.currentPage > 1) this.currentPage--; }
+  goToPage(page: number): void {
+    if (page > 0) this.currentPage = page;
+  }
+  goToNextPage(): void {
+    if (this.currentPage < this.totalPages) this.currentPage++;
+  }
+  goToPreviousPage(): void {
+    if (this.currentPage > 1) this.currentPage--;
+  }
 
   // ─── Data loading ────────────────────────────────────────────────────────
   loadOperators(): void {
     this.operatorService.getAll().subscribe({
-      next: data => (this.operators = data),
-      error: err => console.error('Failed to load operators', err),
+      next: (data) => (this.operators = data),
+      error: (err) => console.error('Failed to load operators', err),
     });
   }
   loadVehicles(): void {
     this.vehicleService.getAll().subscribe({
-      next: data => (this.vehicles = data),
-      error: err => console.error('Failed to load vehicles', err),
+      next: (data) => (this.vehicles = data),
+      error: (err) => console.error('Failed to load vehicles', err),
     });
   }
 
   // ─── Modal ───────────────────────────────────────────────────────────────
   openModal(vehicle: Vehicle): void {
     this.selectedVehicle = { ...vehicle };
-    const matched = this.operators.find(op => op.operatorCode === vehicle.operatorCode);
+    const matched = this.operators.find(
+      (op) => op.operatorCode === vehicle.operatorCode,
+    );
     this.selectedOperatorCode = matched?.operatorCode ?? '';
-    this.selectedVehicle.acType      = vehicle.acType      || 'Non AC';
+    this.selectedVehicle.acType = vehicle.acType || 'Non AC';
     this.selectedVehicle.busCategory = vehicle.busCategory || 'Single Decker';
-    this.selectedVehicle.deckLevel   = vehicle.deckLevel   || 'Lower Deck';
+    this.selectedVehicle.deckLevel =
+      this.selectedVehicle.busCategory === 'Single Decker'
+        ? 'Lower Deck'
+        : 'Lower Deck / Upper Deck';
     this.modalSuccessMessage = '';
     this.showModal = true;
   }
@@ -205,13 +218,13 @@ export class VehicleComponent implements OnInit {
         this.successMessage = '🗑️ Vehicle deleted successfully!';
         this.autoClearMessage();
       },
-      error: err => console.error('Failed to delete vehicle', err),
+      error: (err) => console.error('Failed to delete vehicle', err),
     });
   }
   delete(id: number): void {
     this.vehicleService.delete(id).subscribe({
       next: () => this.loadVehicles(),
-      error: err => console.error('Failed to delete vehicle', err),
+      error: (err) => console.error('Failed to delete vehicle', err),
     });
   }
 
@@ -220,14 +233,14 @@ export class VehicleComponent implements OnInit {
     if (this.selectedVehicle.id > 0) {
       const updateDto: UpdateVehicleDto = {
         operatorCode: this.selectedOperatorCode,
-        type:         this.selectedVehicle.type,
-        model:        this.selectedVehicle.model,
+        type: this.selectedVehicle.type,
+        model: this.selectedVehicle.model,
         licensePlate: this.selectedVehicle.licensePlate,
-        capacity:     this.selectedVehicle.capacity,
-        isActive:     this.selectedVehicle.isActive ?? true,
-        acType:       this.selectedVehicle.acType,
-        busCategory:  this.selectedVehicle.busCategory,
-        deckLevel:    this.selectedVehicle.deckLevel,
+        capacity: this.selectedVehicle.capacity,
+        isActive: this.selectedVehicle.isActive ?? true,
+        acType: this.selectedVehicle.acType,
+        busCategory: this.selectedVehicle.busCategory,
+        deckLevel: this.selectedVehicle.deckLevel,
       };
       this.vehicleService.update(this.selectedVehicle.id, updateDto).subscribe({
         next: () => {
@@ -240,18 +253,18 @@ export class VehicleComponent implements OnInit {
             });
           }, 2000);
         },
-        error: err => console.error('Failed to update vehicle', err),
+        error: (err) => console.error('Failed to update vehicle', err),
       });
     } else {
       const createDto: CreateVehicleDto = {
         operatorCode: this.selectedOperatorCode,
-        type:         this.selectedVehicle.type,
-        model:        this.selectedVehicle.model,
+        type: this.selectedVehicle.type,
+        model: this.selectedVehicle.model,
         licensePlate: this.selectedVehicle.licensePlate,
-        capacity:     this.selectedVehicle.capacity,
-        acType:       this.selectedVehicle.acType,
-        busCategory:  this.selectedVehicle.busCategory,
-        deckLevel:    this.selectedVehicle.deckLevel,
+        capacity: this.selectedVehicle.capacity,
+        acType: this.selectedVehicle.acType,
+        busCategory: this.selectedVehicle.busCategory,
+        deckLevel: this.selectedVehicle.deckLevel,
       };
       this.vehicleService.create(createDto).subscribe({
         next: () => {
@@ -260,7 +273,7 @@ export class VehicleComponent implements OnInit {
           this.reset();
           this.autoClearMessage();
         },
-        error: err => console.error('Failed to create vehicle', err),
+        error: (err) => console.error('Failed to create vehicle', err),
       });
     }
   }
@@ -290,17 +303,26 @@ export class VehicleComponent implements OnInit {
     };
   }
 
+  onCategoryChange(): void {
+    if (this.selectedVehicle.busCategory === 'Single Decker') {
+      this.selectedVehicle.deckLevel = 'Lower Deck';
+    } else {
+      // Double Decker or Sleeper always have both decks
+      this.selectedVehicle.deckLevel = 'Lower Deck / Upper Deck';
+    }
+  }
+
   onTypeChange(): void {
     if (this.selectedVehicle.type === 'Train') {
-      this.selectedVehicle.capacity    = 600;
-      this.selectedVehicle.acType      = '';
+      this.selectedVehicle.capacity = 600;
+      this.selectedVehicle.acType = '';
       this.selectedVehicle.busCategory = '';
-      this.selectedVehicle.deckLevel   = '';
+      this.selectedVehicle.deckLevel = '';
     } else {
-      this.selectedVehicle.capacity    = 44;
-      this.selectedVehicle.acType      = 'AC';
+      this.selectedVehicle.capacity = 44;
+      this.selectedVehicle.acType = 'AC';
       this.selectedVehicle.busCategory = 'Single Decker';
-      this.selectedVehicle.deckLevel   = 'Lower Deck';
+      this.selectedVehicle.deckLevel = 'Lower Deck';
     }
   }
 

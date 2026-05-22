@@ -5,12 +5,9 @@
   <!-- TOAST NOTIFICATION STACK (top-right, fixed)     -->
   <!-- ═══════════════════════════════════════════════ -->
   <div class="toast-stack">
-    <div *ngFor="let toast of toasts; trackBy: trackToast"
-         class="toast"
-         [class.toast-success]="toast.type === 'success'"
-         [class.toast-error]="toast.type === 'error'"
-         [class.toast-warn]="toast.type === 'warn'"
-         [class.toast-info]="toast.type === 'info'">
+    <div *ngFor="let toast of toasts; trackBy: trackToast" class="toast"
+      [class.toast-success]="toast.type === 'success'" [class.toast-error]="toast.type === 'error'"
+      [class.toast-warn]="toast.type === 'warn'" [class.toast-info]="toast.type === 'info'">
       <div class="toast-accent"></div>
       <div class="toast-body">
         <span class="toast-icon">
@@ -58,7 +55,8 @@
 
           <div class="form-group">
             <label for="arrivalDate">Arrival Date</label>
-            <input [(ngModel)]="selectedArrivalDate" name="arrivalDate" id="arrivalDate" type="date" required readonly />
+            <input [(ngModel)]="selectedArrivalDate" name="arrivalDate" id="arrivalDate" type="date" required
+              readonly />
           </div>
 
         </div>
@@ -78,13 +76,13 @@
                 <!-- LEFT -->
                 <div class="vehicle-left">
                   <div class="model-cell">
-                    <img *ngIf="getBrandLogo(v.model)" [src]="getBrandLogo(v.model)" [alt]="getBrandName(v.model)" class="brand-logo" />
+                    <img *ngIf="getBrandLogo(v.model)" [src]="getBrandLogo(v.model)" [alt]="getBrandName(v.model)"
+                      class="brand-logo" />
                     <span *ngIf="!getBrandLogo(v.model)" class="brand-fallback">{{ getBrandInitial(v.model) }}</span>
                     <span>{{ v.model }}</span>
                   </div>
                   <p class="operator-name">{{ getOperatorName(v.operatorCode) }}</p>
                   <p class="bus-model">{{ v.model }}</p>
-                  <!-- Vehicle detail tags -->
                   <div class="detail-tags" *ngIf="v.type === 'Bus'">
                     <span class="tag tag--ac" [class.tag--nonac]="v.acType === 'Non AC'">{{ v.acType }}</span>
                     <span class="tag tag--cat">{{ v.busCategory }}</span>
@@ -133,16 +131,17 @@
               </div>
             </div>
 
-            <!-- SEAT PANEL -->
+            <!-- SEAT PANEL (Add Form) -->
             <div class="seat-panel-container" *ngIf="seatBookingBusId === v.id">
               <div class="seat-panel-vehicle-header">
                 <span class="seat-panel-vehicle-icon">🚌</span>
                 <span class="seat-panel-vehicle-name">{{ getOperatorName(v.operatorCode) }}</span>
                 <span class="seat-panel-vehicle-model">{{ v.model }}</span>
-                <!-- Layout mode badge -->
                 <span class="layout-badge" [class.layout-badge--onetwo]="seatLayoutMode === 'one-two'">
                   {{ seatLayoutMode === 'one-two' ? '1 + 2 Layout' : '2 + 2 Layout' }}
                 </span>
+                <!-- FIX 1: dual-deck badge -->
+                <span class="layout-badge layout-badge--dualdeck" *ngIf="isDualDeck">🏢 Dual Deck</span>
                 <div class="legend">
                   <span><span class="dot available"></span> Free</span>
                   <span><span class="dot selected"></span> Yours</span>
@@ -160,75 +159,211 @@
                     <div class="seat-loading-spinner"></div>
                     <span>Loading seat data…</span>
                   </div>
+
+                  <!-- ══════════════════════════════════════════ -->
+                  <!-- BUS BODY: dual-deck vs single-deck         -->
+                  <!-- ══════════════════════════════════════════ -->
                   <div class="bus-body" *ngIf="!seatPanelLoading">
-                    <div class="seat-grid" [class.layout-one-two]="seatLayoutMode === 'one-two'">
 
-                      <!-- Driver row -->
-                      <div class="seat-row driver-integrated-row">
-                        <span class="row-label"></span>
-                        <!-- Left placeholders -->
-                        <div class="seat-group">
-                          <ng-container *ngFor="let c of leftCols">
-                            <div class="seat-btn-placeholder"></div>
-                          </ng-container>
+                    <!-- DUAL-DECK -->
+                    <ng-container *ngIf="isDualDeck; else addFormSingleDeck">
+
+                      <!-- Lower Deck -->
+                      <div class="deck-section">
+                        <div class="deck-label deck-label--lower">
+                          <span class="deck-icon">🔽</span> Lower Deck
                         </div>
-                        <div class="aisle-gap"></div>
-                        <!-- Right: last placeholder + driver -->
-                        <div class="seat-group">
-                          <ng-container *ngFor="let c of rightCols; let last = last">
-                            <div *ngIf="!last" class="seat-btn-placeholder"></div>
-                            <div *ngIf="last" class="driver-cell-inline">
-                              <div class="driver-circle">🧑‍✈️</div>
-                              <span class="driver-text">Driver</span>
+                        <div class="seat-grid" [class.layout-one-two]="seatLayoutMode === 'one-two'">
+
+                          <!-- Driver row on lower deck -->
+                          <div class="seat-row driver-integrated-row">
+                            <span class="row-label"></span>
+                            <div class="seat-group">
+                              <ng-container *ngFor="let c of leftCols">
+                                <div class="seat-btn-placeholder"></div>
+                              </ng-container>
                             </div>
-                          </ng-container>
+                            <div class="aisle-gap"></div>
+                            <div class="seat-group">
+                              <ng-container *ngFor="let c of rightCols; let last = last">
+                                <div *ngIf="!last" class="seat-btn-placeholder"></div>
+                                <div *ngIf="last" class="driver-cell-inline">
+                                  <div class="driver-circle">🧑‍✈️</div>
+                                  <span class="driver-text">Driver</span>
+                                </div>
+                              </ng-container>
+                            </div>
+                          </div>
+
+                          <!-- Lower deck seat rows -->
+                          <div class="seat-row" *ngFor="let row of lowerRows">
+                            <span class="row-label">{{ row }}</span>
+                            <div class="seat-group">
+                              <ng-container *ngFor="let col of leftCols">
+                                <ng-container *ngIf="getSeatByPosition(row, col, 'L-') as seat">
+                                  <button type="button" class="seat-btn"
+                                    [class.available]="seat.status === 'available'"
+                                    [class.selected]="seat.status === 'selected'"
+                                    [class.booked]="seat.status === 'reserved'"
+                                    [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
+                                    [disabled]="seat.status === 'reserved'"
+                                    (click)="toggleSeat(seat)">
+                                    <span class="seat-label-num">{{ row }}{{ col }}</span>
+                                  </button>
+                                </ng-container>
+                              </ng-container>
+                            </div>
+                            <div class="aisle-gap"></div>
+                            <div class="seat-group">
+                              <ng-container *ngFor="let col of rightCols">
+                                <ng-container *ngIf="getSeatByPosition(row, col, 'L-') as seat">
+                                  <button type="button" class="seat-btn"
+                                    [class.available]="seat.status === 'available'"
+                                    [class.selected]="seat.status === 'selected'"
+                                    [class.booked]="seat.status === 'reserved'"
+                                    [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
+                                    [disabled]="seat.status === 'reserved'"
+                                    (click)="toggleSeat(seat)">
+                                    <span class="seat-label-num">{{ row }}{{ col }}</span>
+                                  </button>
+                                </ng-container>
+                              </ng-container>
+                            </div>
+                          </div>
+
                         </div>
                       </div>
 
-                      <!-- Seat rows -->
-                      <div class="seat-row" *ngFor="let row of rows">
-                        <span class="row-label">{{ row }}</span>
+                      <!-- Staircase divider -->
+                      <div class="deck-divider">
+                        <span class="deck-divider-line"></span>
+                        <span class="deck-divider-text">Staircase</span>
+                        <span class="deck-divider-line"></span>
+                      </div>
 
-                        <!-- Left group -->
-                        <div class="seat-group">
-                          <ng-container *ngFor="let col of leftCols">
-                            <ng-container *ngIf="getSeatByPosition(row, col) as seat">
-                              <button type="button" class="seat-btn"
-                                [class.available]="seat.status === 'available'"
-                                [class.selected]="seat.status === 'selected'"
-                                [class.booked]="seat.status === 'reserved'"
-                                [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
-                                [disabled]="seat.status === 'reserved'" (click)="toggleSeat(seat)">
-                                <span class="seat-label-num">{{ row }}{{ col }}</span>
-                              </button>
-                            </ng-container>
-                          </ng-container>
+                      <!-- Upper Deck -->
+                      <div class="deck-section">
+                        <div class="deck-label deck-label--upper">
+                          <span class="deck-icon">🔼</span> Upper Deck
                         </div>
+                        <div class="seat-grid" [class.layout-one-two]="seatLayoutMode === 'one-two'">
 
-                        <div class="aisle-gap"></div>
+                          <!-- Upper deck seat rows (no driver row) -->
+                          <div class="seat-row" *ngFor="let row of upperRows">
+                            <span class="row-label">{{ row }}</span>
+                            <div class="seat-group">
+                              <ng-container *ngFor="let col of leftCols">
+                                <ng-container *ngIf="getSeatByPosition(row, col, 'U-') as seat">
+                                  <button type="button" class="seat-btn"
+                                    [class.available]="seat.status === 'available'"
+                                    [class.selected]="seat.status === 'selected'"
+                                    [class.booked]="seat.status === 'reserved'"
+                                    [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
+                                    [disabled]="seat.status === 'reserved'"
+                                    (click)="toggleSeat(seat)">
+                                    <span class="seat-label-num">{{ row }}{{ col }}</span>
+                                  </button>
+                                </ng-container>
+                              </ng-container>
+                            </div>
+                            <div class="aisle-gap"></div>
+                            <div class="seat-group">
+                              <ng-container *ngFor="let col of rightCols">
+                                <ng-container *ngIf="getSeatByPosition(row, col, 'U-') as seat">
+                                  <button type="button" class="seat-btn"
+                                    [class.available]="seat.status === 'available'"
+                                    [class.selected]="seat.status === 'selected'"
+                                    [class.booked]="seat.status === 'reserved'"
+                                    [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
+                                    [disabled]="seat.status === 'reserved'"
+                                    (click)="toggleSeat(seat)">
+                                    <span class="seat-label-num">{{ row }}{{ col }}</span>
+                                  </button>
+                                </ng-container>
+                              </ng-container>
+                            </div>
+                          </div>
 
-                        <!-- Right group -->
-                        <div class="seat-group">
-                          <ng-container *ngFor="let col of rightCols">
-                            <ng-container *ngIf="getSeatByPosition(row, col) as seat">
-                              <button type="button" class="seat-btn"
-                                [class.available]="seat.status === 'available'"
-                                [class.selected]="seat.status === 'selected'"
-                                [class.booked]="seat.status === 'reserved'"
-                                [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
-                                [disabled]="seat.status === 'reserved'" (click)="toggleSeat(seat)">
-                                <span class="seat-label-num">{{ row }}{{ col }}</span>
-                              </button>
-                            </ng-container>
-                          </ng-container>
                         </div>
                       </div>
 
-                    </div><!-- /seat-grid -->
-                    <div *ngIf="rows.length === 0" class="seat-empty">
-                      No seat data available for this vehicle.
-                    </div>
+                      <div *ngIf="lowerRows.length === 0 && upperRows.length === 0" class="seat-empty">
+                        No seat data available for this vehicle.
+                      </div>
+
+                    </ng-container>
+                    <!-- END dual-deck (add form) -->
+
+                    <!-- SINGLE-DECK -->
+                    <ng-template #addFormSingleDeck>
+                      <div class="seat-grid" [class.layout-one-two]="seatLayoutMode === 'one-two'">
+
+                        <!-- Driver row -->
+                        <div class="seat-row driver-integrated-row">
+                          <span class="row-label"></span>
+                          <div class="seat-group">
+                            <ng-container *ngFor="let c of leftCols">
+                              <div class="seat-btn-placeholder"></div>
+                            </ng-container>
+                          </div>
+                          <div class="aisle-gap"></div>
+                          <div class="seat-group">
+                            <ng-container *ngFor="let c of rightCols; let last = last">
+                              <div *ngIf="!last" class="seat-btn-placeholder"></div>
+                              <div *ngIf="last" class="driver-cell-inline">
+                                <div class="driver-circle">🧑‍✈️</div>
+                                <span class="driver-text">Driver</span>
+                              </div>
+                            </ng-container>
+                          </div>
+                        </div>
+
+                        <!-- Seat rows -->
+                        <div class="seat-row" *ngFor="let row of rows">
+                          <span class="row-label">{{ row }}</span>
+                          <div class="seat-group">
+                            <ng-container *ngFor="let col of leftCols">
+                              <ng-container *ngIf="getSeatByPosition(row, col) as seat">
+                                <button type="button" class="seat-btn"
+                                  [class.available]="seat.status === 'available'"
+                                  [class.selected]="seat.status === 'selected'"
+                                  [class.booked]="seat.status === 'reserved'"
+                                  [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
+                                  [disabled]="seat.status === 'reserved'"
+                                  (click)="toggleSeat(seat)">
+                                  <span class="seat-label-num">{{ row }}{{ col }}</span>
+                                </button>
+                              </ng-container>
+                            </ng-container>
+                          </div>
+                          <div class="aisle-gap"></div>
+                          <div class="seat-group">
+                            <ng-container *ngFor="let col of rightCols">
+                              <ng-container *ngIf="getSeatByPosition(row, col) as seat">
+                                <button type="button" class="seat-btn"
+                                  [class.available]="seat.status === 'available'"
+                                  [class.selected]="seat.status === 'selected'"
+                                  [class.booked]="seat.status === 'reserved'"
+                                  [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
+                                  [disabled]="seat.status === 'reserved'"
+                                  (click)="toggleSeat(seat)">
+                                  <span class="seat-label-num">{{ row }}{{ col }}</span>
+                                </button>
+                              </ng-container>
+                            </ng-container>
+                          </div>
+                        </div>
+
+                      </div>
+                      <div *ngIf="rows.length === 0" class="seat-empty">
+                        No seat data available for this vehicle.
+                      </div>
+                    </ng-template>
+                    <!-- END single-deck (add form) -->
+
                   </div>
+                  <!-- END bus-body -->
+
                 </div>
 
                 <!-- Fare Summary -->
@@ -266,6 +401,7 @@
                 </div>
               </div>
             </div>
+            <!-- END seat panel (add form) -->
 
           </div>
         </div>
@@ -347,6 +483,13 @@
   <!-- ═══════════════════════════════════════════════ -->
   <div class="list-section">
     <h3 class="card-title">Ticket List</h3>
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input type="text" [(ngModel)]="passengerSearch" name="passengerSearch" placeholder="Search by passenger name…"
+        (ngModelChange)="onSearchChange()" class="search-input" autocomplete="off" />
+      <button *ngIf="passengerSearch" type="button" class="search-clear"
+        (click)="passengerSearch = ''; onSearchChange()" title="Clear search">✕</button>
+    </div>
     <div class="table-wrapper">
       <table class="ticket-table">
         <thead>
@@ -356,8 +499,7 @@
             <th (click)="sortBy('passengerName')" class="sortable">Passenger ↕</th>
             <th>Route</th>
             <th class="tbl__th tbl__th--sort" (click)="sortBy('model')">
-              Operator / Vehicle <span class="sort-arrow"
-                [class.sort-arrow--asc]="sortField==='model'&&sortAsc"
+              Operator / Vehicle <span class="sort-arrow" [class.sort-arrow--asc]="sortField==='model'&&sortAsc"
                 [class.sort-arrow--desc]="sortField==='model'&&!sortAsc">⇅</span>
             </th>
             <th (click)="sortBy('passengerContact')" class="sortable">Contact ↕</th>
@@ -405,7 +547,6 @@
                   </ng-template>
                   <span class="op-vehicle">{{ getVehicleModelByTripId(t.tripId) }}</span>
                 </div>
-                <!-- Vehicle detail tags in list -->
                 <ng-container *ngIf="getVehicleByTripId(t.tripId) as veh">
                   <div class="detail-tags detail-tags--sm" *ngIf="veh.type === 'Bus'">
                     <span class="tag tag--ac" [class.tag--nonac]="veh.acType === 'Non AC'">{{ veh.acType }}</span>
@@ -492,7 +633,7 @@
             </div>
           </div>
 
-          <!-- SECTION 2: Vehicle Cards -->
+          <!-- SECTION 2: Vehicle Cards (modal) -->
           <div class="section section-vehicles" *ngIf="availableVehicles.length">
             <h4 class="section-title">
               <span class="section-icon">🚌</span> Available Vehicles
@@ -508,7 +649,6 @@
                     <div class="vehicle-left">
                       <p class="operator-name">{{ getOperatorName(v.operatorCode) }}</p>
                       <p class="bus-model">{{ v.model }}</p>
-                      <!-- Vehicle detail tags in modal -->
                       <div class="detail-tags" *ngIf="v.type === 'Bus'">
                         <span class="tag tag--ac" [class.tag--nonac]="v.acType === 'Non AC'">{{ v.acType }}</span>
                         <span class="tag tag--cat">{{ v.busCategory }}</span>
@@ -552,16 +692,17 @@
                   </div>
                 </div>
 
-                <!-- SEAT PANEL (modal) -->
+                <!-- SEAT PANEL (Edit Modal) -->
                 <div class="seat-panel-container" *ngIf="seatBookingBusId === v.id">
                   <div class="seat-panel-vehicle-header">
                     <span class="seat-panel-vehicle-icon">🚌</span>
                     <span class="seat-panel-vehicle-name">{{ getOperatorName(v.operatorCode) }}</span>
                     <span class="seat-panel-vehicle-model">{{ v.model }}</span>
-                    <!-- Layout mode badge -->
                     <span class="layout-badge" [class.layout-badge--onetwo]="seatLayoutMode === 'one-two'">
                       {{ seatLayoutMode === 'one-two' ? '1 + 2 Layout' : '2 + 2 Layout' }}
                     </span>
+                    <!-- FIX 1: dual-deck badge -->
+                    <span class="layout-badge layout-badge--dualdeck" *ngIf="isDualDeck">🏢 Dual Deck</span>
                     <div class="legend">
                       <span><span class="dot available"></span> Free</span>
                       <span><span class="dot selected"></span> Yours</span>
@@ -579,73 +720,203 @@
                         <div class="seat-loading-spinner"></div>
                         <span>Loading seat data…</span>
                       </div>
+
+                      <!-- BUS BODY: dual-deck vs single-deck (modal) -->
                       <div class="bus-body" *ngIf="!seatPanelLoading">
-                        <div class="seat-grid" [class.layout-one-two]="seatLayoutMode === 'one-two'">
 
-                          <!-- Driver row -->
-                          <div class="seat-row driver-integrated-row">
-                            <span class="row-label"></span>
-                            <div class="seat-group">
-                              <ng-container *ngFor="let c of leftCols">
-                                <div class="seat-btn-placeholder"></div>
-                              </ng-container>
+                        <!-- DUAL-DECK (modal) -->
+                        <ng-container *ngIf="isDualDeck; else modalSingleDeck">
+
+                          <!-- Lower Deck -->
+                          <div class="deck-section">
+                            <div class="deck-label deck-label--lower">
+                              <span class="deck-icon">🔽</span> Lower Deck
                             </div>
-                            <div class="aisle-gap"></div>
-                            <div class="seat-group">
-                              <ng-container *ngFor="let c of rightCols; let last = last">
-                                <div *ngIf="!last" class="seat-btn-placeholder"></div>
-                                <div *ngIf="last" class="driver-cell-inline">
-                                  <div class="driver-circle">🧑‍✈️</div>
-                                  <span class="driver-text">Driver</span>
+                            <div class="seat-grid" [class.layout-one-two]="seatLayoutMode === 'one-two'">
+
+                              <div class="seat-row driver-integrated-row">
+                                <span class="row-label"></span>
+                                <div class="seat-group">
+                                  <ng-container *ngFor="let c of leftCols">
+                                    <div class="seat-btn-placeholder"></div>
+                                  </ng-container>
                                 </div>
-                              </ng-container>
+                                <div class="aisle-gap"></div>
+                                <div class="seat-group">
+                                  <ng-container *ngFor="let c of rightCols; let last = last">
+                                    <div *ngIf="!last" class="seat-btn-placeholder"></div>
+                                    <div *ngIf="last" class="driver-cell-inline">
+                                      <div class="driver-circle">🧑‍✈️</div>
+                                      <span class="driver-text">Driver</span>
+                                    </div>
+                                  </ng-container>
+                                </div>
+                              </div>
+
+                              <div class="seat-row" *ngFor="let row of lowerRows">
+                                <span class="row-label">{{ row }}</span>
+                                <div class="seat-group">
+                                  <ng-container *ngFor="let col of leftCols">
+                                    <ng-container *ngIf="getSeatByPosition(row, col, 'L-') as seat">
+                                      <button type="button" class="seat-btn"
+                                        [class.available]="seat.status === 'available'"
+                                        [class.selected]="seat.status === 'selected'"
+                                        [class.booked]="seat.status === 'reserved'"
+                                        [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
+                                        [disabled]="seat.status === 'reserved'"
+                                        (click)="toggleSeat(seat)">
+                                        <span class="seat-label-num">{{ row }}{{ col }}</span>
+                                      </button>
+                                    </ng-container>
+                                  </ng-container>
+                                </div>
+                                <div class="aisle-gap"></div>
+                                <div class="seat-group">
+                                  <ng-container *ngFor="let col of rightCols">
+                                    <ng-container *ngIf="getSeatByPosition(row, col, 'L-') as seat">
+                                      <button type="button" class="seat-btn"
+                                        [class.available]="seat.status === 'available'"
+                                        [class.selected]="seat.status === 'selected'"
+                                        [class.booked]="seat.status === 'reserved'"
+                                        [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
+                                        [disabled]="seat.status === 'reserved'"
+                                        (click)="toggleSeat(seat)">
+                                        <span class="seat-label-num">{{ row }}{{ col }}</span>
+                                      </button>
+                                    </ng-container>
+                                  </ng-container>
+                                </div>
+                              </div>
+
                             </div>
                           </div>
 
-                          <!-- Seat rows -->
-                          <div class="seat-row" *ngFor="let row of rows">
-                            <span class="row-label">{{ row }}</span>
+                          <div class="deck-divider">
+                            <span class="deck-divider-line"></span>
+                            <span class="deck-divider-text">Staircase</span>
+                            <span class="deck-divider-line"></span>
+                          </div>
 
-                            <!-- Left group -->
-                            <div class="seat-group">
-                              <ng-container *ngFor="let col of leftCols">
-                                <ng-container *ngIf="getSeatByPosition(row, col) as seat">
-                                  <button type="button" class="seat-btn"
-                                    [class.available]="seat.status === 'available'"
-                                    [class.selected]="seat.status === 'selected'"
-                                    [class.booked]="seat.status === 'reserved'"
-                                    [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
-                                    [disabled]="seat.status === 'reserved'" (click)="toggleSeat(seat)">
-                                    <span class="seat-label-num">{{ row }}{{ col }}</span>
-                                  </button>
-                                </ng-container>
-                              </ng-container>
+                          <!-- Upper Deck -->
+                          <div class="deck-section">
+                            <div class="deck-label deck-label--upper">
+                              <span class="deck-icon">🔼</span> Upper Deck
                             </div>
+                            <div class="seat-grid" [class.layout-one-two]="seatLayoutMode === 'one-two'">
 
-                            <div class="aisle-gap"></div>
+                              <div class="seat-row" *ngFor="let row of upperRows">
+                                <span class="row-label">{{ row }}</span>
+                                <div class="seat-group">
+                                  <ng-container *ngFor="let col of leftCols">
+                                    <ng-container *ngIf="getSeatByPosition(row, col, 'U-') as seat">
+                                      <button type="button" class="seat-btn"
+                                        [class.available]="seat.status === 'available'"
+                                        [class.selected]="seat.status === 'selected'"
+                                        [class.booked]="seat.status === 'reserved'"
+                                        [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
+                                        [disabled]="seat.status === 'reserved'"
+                                        (click)="toggleSeat(seat)">
+                                        <span class="seat-label-num">{{ row }}{{ col }}</span>
+                                      </button>
+                                    </ng-container>
+                                  </ng-container>
+                                </div>
+                                <div class="aisle-gap"></div>
+                                <div class="seat-group">
+                                  <ng-container *ngFor="let col of rightCols">
+                                    <ng-container *ngIf="getSeatByPosition(row, col, 'U-') as seat">
+                                      <button type="button" class="seat-btn"
+                                        [class.available]="seat.status === 'available'"
+                                        [class.selected]="seat.status === 'selected'"
+                                        [class.booked]="seat.status === 'reserved'"
+                                        [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
+                                        [disabled]="seat.status === 'reserved'"
+                                        (click)="toggleSeat(seat)">
+                                        <span class="seat-label-num">{{ row }}{{ col }}</span>
+                                      </button>
+                                    </ng-container>
+                                  </ng-container>
+                                </div>
+                              </div>
 
-                            <!-- Right group -->
-                            <div class="seat-group">
-                              <ng-container *ngFor="let col of rightCols">
-                                <ng-container *ngIf="getSeatByPosition(row, col) as seat">
-                                  <button type="button" class="seat-btn"
-                                    [class.available]="seat.status === 'available'"
-                                    [class.selected]="seat.status === 'selected'"
-                                    [class.booked]="seat.status === 'reserved'"
-                                    [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
-                                    [disabled]="seat.status === 'reserved'" (click)="toggleSeat(seat)">
-                                    <span class="seat-label-num">{{ row }}{{ col }}</span>
-                                  </button>
-                                </ng-container>
-                              </ng-container>
                             </div>
                           </div>
 
-                        </div><!-- /seat-grid -->
-                        <div *ngIf="rows.length === 0" class="seat-empty">
-                          No seat data available for this vehicle.
-                        </div>
+                          <div *ngIf="lowerRows.length === 0 && upperRows.length === 0" class="seat-empty">
+                            No seat data available for this vehicle.
+                          </div>
+
+                        </ng-container>
+                        <!-- END dual-deck (modal) -->
+
+                        <!-- SINGLE-DECK (modal) -->
+                        <ng-template #modalSingleDeck>
+                          <div class="seat-grid" [class.layout-one-two]="seatLayoutMode === 'one-two'">
+
+                            <div class="seat-row driver-integrated-row">
+                              <span class="row-label"></span>
+                              <div class="seat-group">
+                                <ng-container *ngFor="let c of leftCols">
+                                  <div class="seat-btn-placeholder"></div>
+                                </ng-container>
+                              </div>
+                              <div class="aisle-gap"></div>
+                              <div class="seat-group">
+                                <ng-container *ngFor="let c of rightCols; let last = last">
+                                  <div *ngIf="!last" class="seat-btn-placeholder"></div>
+                                  <div *ngIf="last" class="driver-cell-inline">
+                                    <div class="driver-circle">🧑‍✈️</div>
+                                    <span class="driver-text">Driver</span>
+                                  </div>
+                                </ng-container>
+                              </div>
+                            </div>
+
+                            <div class="seat-row" *ngFor="let row of rows">
+                              <span class="row-label">{{ row }}</span>
+                              <div class="seat-group">
+                                <ng-container *ngFor="let col of leftCols">
+                                  <ng-container *ngIf="getSeatByPosition(row, col) as seat">
+                                    <button type="button" class="seat-btn"
+                                      [class.available]="seat.status === 'available'"
+                                      [class.selected]="seat.status === 'selected'"
+                                      [class.booked]="seat.status === 'reserved'"
+                                      [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
+                                      [disabled]="seat.status === 'reserved'"
+                                      (click)="toggleSeat(seat)">
+                                      <span class="seat-label-num">{{ row }}{{ col }}</span>
+                                    </button>
+                                  </ng-container>
+                                </ng-container>
+                              </div>
+                              <div class="aisle-gap"></div>
+                              <div class="seat-group">
+                                <ng-container *ngFor="let col of rightCols">
+                                  <ng-container *ngIf="getSeatByPosition(row, col) as seat">
+                                    <button type="button" class="seat-btn"
+                                      [class.available]="seat.status === 'available'"
+                                      [class.selected]="seat.status === 'selected'"
+                                      [class.booked]="seat.status === 'reserved'"
+                                      [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
+                                      [disabled]="seat.status === 'reserved'"
+                                      (click)="toggleSeat(seat)">
+                                      <span class="seat-label-num">{{ row }}{{ col }}</span>
+                                    </button>
+                                  </ng-container>
+                                </ng-container>
+                              </div>
+                            </div>
+
+                          </div>
+                          <div *ngIf="rows.length === 0" class="seat-empty">
+                            No seat data available for this vehicle.
+                          </div>
+                        </ng-template>
+                        <!-- END single-deck (modal) -->
+
                       </div>
+                      <!-- END bus-body (modal) -->
+
                     </div>
 
                     <div class="fare-summary-panel" *ngIf="!seatPanelLoading">
@@ -682,12 +953,13 @@
                     </div>
                   </div>
                 </div>
+                <!-- END seat panel (modal) -->
 
               </div>
             </div>
           </div>
 
-          <!-- SECTION 3: Ticket Details -->
+          <!-- SECTION 3: Ticket Details (modal) -->
           <div class="section section-ticket-details">
             <h4 class="section-title">
               <span class="section-icon">🧾</span> Ticket Details

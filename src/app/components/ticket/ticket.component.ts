@@ -125,6 +125,21 @@ export class TicketComponent implements OnInit {
   private editingOriginalVehicleId: number | null = null;
   private editSeatsPreSelected = false;
 
+  // ── FIX 1: Dual-deck state ───────────────────────────────────────────────────
+  /** Seats belonging to the lower deck (dual-deck buses only) */
+  lowerDeckSeats: SeatDto[] = [];
+  /** Seats belonging to the upper deck (dual-deck buses only) */
+  upperDeckSeats: SeatDto[] = [];
+  /** Row labels for the lower deck */
+  lowerRows: string[] = [];
+  /** Row labels for the upper deck */
+  upperRows: string[] = [];
+  /**
+   * True when the currently open vehicle is a double-decker or sleeper.
+   * Drives the split-deck view in the template.
+   */
+  isDualDeck = false;
+
   constructor(
     private routeService: RouteService,
     private vehicleService: VehicleService,
@@ -210,7 +225,7 @@ export class TicketComponent implements OnInit {
   /**
    * Determine the seat layout mode for a given vehicle.
    * AC (any deck variant) with capacity ≤ 35 → 1:2
-   * Everything else                           → 2:2
+   * Everything else → 2:2
    */
   getLayoutModeForVehicle(vehicle: Vehicle): SeatLayoutMode {
     const isAC = vehicle.acType === 'AC';
@@ -232,6 +247,66 @@ export class TicketComponent implements OnInit {
   /** Total columns per row for seat generation */
   get totalColsPerRow(): number {
     return this.seatLayoutMode === 'one-two' ? 3 : 4;
+  }
+
+  // ── FIX 1: Dual-deck detection ───────────────────────────────────────────────
+
+  /**
+   * Returns true when the vehicle is a Double Decker or Sleeper bus.
+   * Matches deckLevel values like: "Double Decker", "Double", "Sleeper",
+   * "Upper Deck" (single-level upper variant treated as dual).
+   */
+  private isDualDeckVehicle(vehicle: Vehicle): boolean {
+    const deck = (vehicle.deckLevel ?? '').toLowerCase();
+    return (
+      deck.includes('double') ||
+      deck.includes('sleeper') ||
+      deck === 'upper deck'
+    );
+  }
+
+  // ── FIX 2: Departure-time sort helper ────────────────────────────────────────
+
+  /**
+   * Extract sortable minutes-since-midnight from a schedule's departureDateTime.
+   * Handles ISO strings ("2024-01-01T22:00:00"), 24-h ("22:00"),
+   * and 12-h ("10:00 PM") formats — so sorting is always by time only,
+   * never affected by the date component stored in the schedule record.
+   */
+  private getDepartureMinutes(schedule: ScheduleDto | undefined): number {
+    if (!schedule?.departureDateTime) return Infinity;
+    const raw = schedule.departureDateTime.toString().trim();
+
+    // ISO / datetime string: "2024-01-01T22:00:00"
+    const isoMatch = raw.match(/T(\d{1,2}):(\d{2})/);
+    if (isoMatch) {
+      return parseInt(isoMatch[1], 10) * 60 + parseInt(isoMatch[2], 10);
+    }
+
+    // Plain 24-h "22:00"
+    const h24 = raw.match(/^(\d{1,2}):(\d{2})$/);
+    if (h24) {
+      return parseInt(h24[1], 10) * 60 + parseInt(h24[2], 10);
+    }
+
+    // 12-h "10:00 PM"
+    const h12 = raw.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+    if (h12) {
+      let h = parseInt(h12[1], 10);
+      const m = parseInt(h12[2], 10);
+      const period = h12[3].toUpperCase();
+      if (period === 'PM' && h !== 12) h += 12;
+      if (period === 'AM' && h === 12) h = 0;
+      return h * 60 + m;
+    }
+
+    // Fallback: parse as Date
+    const d = new Date(raw);
+    if (!isNaN(d.getTime())) {
+      return d.getHours() * 60 + d.getMinutes();
+    }
+
+    return Infinity;
   }
 
   // ── Available-seat count helpers ─────────────────────────────────────────────
@@ -348,12 +423,28 @@ export class TicketComponent implements OnInit {
     this.selectedArrivalDate = `${arr.getFullYear()}-${pad(arr.getMonth() + 1)}-${pad(arr.getDate())}`;
     this.selectedTicket.bookingDateTime = this.selectedDepartureDate;
 
-    this.availableVehicles = this.vehicles.filter((v) =>
-      this.schedules.some(
-        (s) =>
-          s.routeId === Number(this.selectedRouteCode) && s.vehicleId === v.id,
-      ),
-    );
+    // FIX 2: sort by departure time-of-day only, not full timestamp
+    this.availableVehicles = this.vehicles
+      .filter((v) =>
+        this.schedules.some(
+          (s) =>
+            s.routeId === Number(this.selectedRouteCode) &&
+            s.vehicleId === v.id,
+        ),
+      )
+      .sort((a, b) => {
+        const schedA = this.schedules.find(
+          (s) =>
+            s.vehicleId === a.id &&
+            s.routeId === Number(this.selectedRouteCode),
+        );
+        const schedB = this.schedules.find(
+          (s) =>
+            s.vehicleId === b.id &&
+            s.routeId === Number(this.selectedRouteCode),
+        );
+        return this.getDepartureMinutes(schedA) - this.getDepartureMinutes(schedB);
+      });
 
     this.closeSeatPanel();
 
@@ -479,7 +570,10 @@ export class TicketComponent implements OnInit {
       return;
     }
     if (!this.selectedDepartureDate) {
-      this.showToast('error', 'Please select a departure date before booking seats.');
+      this.showToast(
+        'error',
+        'Please select a departure date before booking seats.',
+      );
       return;
     }
 
@@ -505,11 +599,14 @@ export class TicketComponent implements OnInit {
     );
 
     if (!vehicle || !schedule) {
-      this.showToast('error', 'Could not find vehicle or schedule information.');
+      this.showToast(
+        'error',
+        'Could not find vehicle or schedule information.',
+      );
       return;
     }
 
-    // ── Determine seat layout for this vehicle ───────────────────────────
+    // Determine seat layout for this vehicle
     this.seatLayoutMode = this.getLayoutModeForVehicle(vehicle);
 
     const capacity = vehicle.capacity ?? 40;
@@ -520,7 +617,7 @@ export class TicketComponent implements OnInit {
     this.seatBookingBusId = vehicleId;
     this.seatPanelLoading = true;
 
-    this.generateSeats(capacity);
+    this.generateSeats(capacity, vehicle);
 
     this.tripService
       .findOrCreate({
@@ -545,7 +642,7 @@ export class TicketComponent implements OnInit {
               );
 
               if (this.seatBookingBusId === vehicleId) {
-                this.generateSeats(capacity);
+                this.generateSeats(capacity, vehicle);
 
                 const isSameVehicle =
                   this.editingOriginalVehicleId === vehicleId;
@@ -597,18 +694,101 @@ export class TicketComponent implements OnInit {
     this.seatMap = {};
     this.seatPanelLoading = false;
     this.seatLayoutMode = 'two-two';
+    // FIX 1: reset dual-deck state
+    this.isDualDeck = false;
+    this.lowerDeckSeats = [];
+    this.upperDeckSeats = [];
+    this.lowerRows = [];
+    this.upperRows = [];
   }
 
   /**
-   * Generate seats using the current seatLayoutMode.
+   * FIX 1: Generate seats — handles both single-deck and dual-deck buses.
    *
-   * one-two layout: columns 1, 2, 3  → col 1 = left, cols 2+3 = right
-   * two-two layout: columns 1, 2, 3, 4 → cols 1+2 = left, cols 3+4 = right
+   * Dual-deck split rule:
+   *   totalRows = ceil(capacity / colsPerRow)
+   *   lowerRows = max(1, floor(totalRows / 2) - 1)   ← always fewer
+   *   upperRows = totalRows - lowerRows               ← always more
+   *
+   * Seat numbers are prefixed:
+   *   Lower deck → "L-A1", "L-A2" …
+   *   Upper deck → "U-A1", "U-A2" …
+   * Row labels restart A, B, C… on each deck.
    */
-  private generateSeats(capacity: number): void {
-    const seats: SeatDto[] = [];
+  private generateSeats(capacity: number, vehicle?: Vehicle): void {
+    // Resolve dual-deck flag
+    const v = vehicle ?? this.vehicles.find((x) => x.id === this.seatBookingBusId);
+    this.isDualDeck = v ? this.isDualDeckVehicle(v) : false;
+
+    if (!this.isDualDeck) {
+      // ── Single-deck (original behaviour) ─────────────────────────────
+      const seats = this._buildDeckSeats(capacity, '', this.liveBookedSeats);
+      this.seats = seats;
+      this._buildSeatMap(seats, '');
+      this.lowerDeckSeats = [];
+      this.upperDeckSeats = [];
+      this.lowerRows = [];
+      this.upperRows = [];
+      return;
+    }
+
+    // ── Dual-deck ─────────────────────────────────────────────────────
+    const cols = this.totalColsPerRow;
+    const totalRows = Math.ceil(capacity / cols);
+
+    // Lower always has at least 2 fewer seats than upper
+    const lowerRowCount = Math.max(1, Math.floor(totalRows / 2) - 1);
+    const upperRowCount = totalRows - lowerRowCount;
+
+    const lowerCapacity = lowerRowCount * cols;
+    const upperCapacity = capacity - lowerCapacity;
+
+    // Split booked seats by prefix
+    const lowerBooked = this.liveBookedSeats
+      .filter((s) => s.startsWith('L-'))
+      .map((s) => s.slice(2));
+    const upperBooked = this.liveBookedSeats
+      .filter((s) => s.startsWith('U-'))
+      .map((s) => s.slice(2));
+
+    const lower = this._buildDeckSeats(lowerCapacity, 'L-', lowerBooked);
+    const upper = this._buildDeckSeats(upperCapacity, 'U-', upperBooked);
+
+    this.lowerDeckSeats = lower;
+    this.upperDeckSeats = upper;
+
+    // Row labels: the 3rd char of "L-A1" is the row letter
+    this.lowerRows = Array.from(
+      new Set(lower.map((s) => s.seatNumber.charAt(2))),
+    );
+    this.upperRows = Array.from(
+      new Set(upper.map((s) => s.seatNumber.charAt(2))),
+    );
+
+    const all = [...lower, ...upper];
+    this.seats = all;
+    this.seatMap = {};
+    for (const s of all) {
+      this.seatMap[s.seatNumber] = s;
+    }
+    // rows[] not used in dual-deck mode (template uses lowerRows/upperRows)
+    this.rows = [];
+  }
+
+  /**
+   * Build a flat array of SeatDto for one deck.
+   * @param capacity  Number of real seats for this deck
+   * @param prefix    '' | 'L-' | 'U-'
+   * @param booked    Already-booked bare seat numbers (without prefix), e.g. ['A1','B3']
+   */
+  private _buildDeckSeats(
+    capacity: number,
+    prefix: string,
+    booked: string[],
+  ): SeatDto[] {
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const cols = this.totalColsPerRow;
+    const seats: SeatDto[] = [];
     let count = 0;
 
     outer: for (let r = 0; r < alphabet.length; r++) {
@@ -616,32 +796,32 @@ export class TicketComponent implements OnInit {
       for (let c = 1; c <= cols; c++) {
         if (count >= capacity) break outer;
         count++;
-        const seatNum = `${row}${c}`;
+        const bare = `${row}${c}`;
+        const seatNum = `${prefix}${bare}`;
         seats.push({
           id: count,
           seatNumber: seatNum,
           seatCode: seatNum,
           isBooked: false,
-          status: this.liveBookedSeats.includes(seatNum)
-            ? 'reserved'
-            : 'available',
+          status: booked.includes(bare) ? 'reserved' : 'available',
         });
       }
     }
 
-    // Pad the last row so it's visually complete
+    // Pad the last row to complete the visual grid
     if (seats.length > 0) {
-      const lastRow = seats[seats.length - 1].seatNumber.charAt(0);
+      const lastRowLetter = seats[seats.length - 1].seatNumber.charAt(prefix.length);
       const existingCols = new Set(
         seats
-          .filter((s) => s.seatNumber.charAt(0) === lastRow)
-          .map((s) => parseInt(s.seatNumber.substring(1), 10)),
+          .filter((s) => s.seatNumber.charAt(prefix.length) === lastRowLetter)
+          .map((s) => parseInt(s.seatNumber.slice(prefix.length + 1), 10)),
       );
       let padId = count;
       for (let c = 1; c <= cols; c++) {
         if (!existingCols.has(c)) {
           padId++;
-          const seatNum = `${lastRow}${c}`;
+          const bare = `${lastRowLetter}${c}`;
+          const seatNum = `${prefix}${bare}`;
           seats.push({
             id: padId,
             seatNumber: seatNum,
@@ -653,30 +833,40 @@ export class TicketComponent implements OnInit {
       }
     }
 
-    this.seats = seats;
-    this.buildSeatMap(seats);
+    return seats;
   }
 
-  private buildSeatMap(seats: SeatDto[]): void {
+  /**
+   * Build seatMap + rows[] for single-deck mode.
+   * Dual-deck mode builds seatMap inline in generateSeats().
+   */
+  private _buildSeatMap(seats: SeatDto[], prefix: string): void {
     seats.sort((a, b) => {
-      const ra = a.seatNumber.charAt(0);
-      const rb = b.seatNumber.charAt(0);
+      const ra = a.seatNumber.charAt(prefix.length);
+      const rb = b.seatNumber.charAt(prefix.length);
       if (ra !== rb) return ra.charCodeAt(0) - rb.charCodeAt(0);
       return (
-        parseInt(a.seatNumber.substring(1), 10) -
-        parseInt(b.seatNumber.substring(1), 10)
+        parseInt(a.seatNumber.slice(prefix.length + 1), 10) -
+        parseInt(b.seatNumber.slice(prefix.length + 1), 10)
       );
     });
-
-    this.rows = Array.from(new Set(seats.map((s) => s.seatNumber.charAt(0))));
+    this.rows = Array.from(
+      new Set(seats.map((s) => s.seatNumber.charAt(prefix.length))),
+    );
     this.seatMap = {};
     for (const s of seats) {
       this.seatMap[s.seatNumber] = s;
     }
   }
 
-  getSeatByPosition(row: string, col: number): SeatDto | undefined {
-    return this.seatMap[`${row}${col}`];
+  /**
+   * FIX 1: prefix-aware seat lookup used in the template.
+   * Single-deck: getSeatByPosition(row, col)        → key "A1"
+   * Dual-deck:   getSeatByPosition(row, col, 'L-')  → key "L-A1"
+   *              getSeatByPosition(row, col, 'U-')  → key "U-A1"
+   */
+  getSeatByPosition(row: string, col: number, prefix = ''): SeatDto | undefined {
+    return this.seatMap[`${prefix}${row}${col}`];
   }
 
   toggleSeat(seat: SeatDto): void {
@@ -765,7 +955,9 @@ export class TicketComponent implements OnInit {
   }
 
   save(): void {
-    const fail = (msg: string) => { this.showToast('error', msg); };
+    const fail = (msg: string) => {
+      this.showToast('error', msg);
+    };
 
     if (!this.selectedTicket.passengerName?.trim()) {
       return fail('Please provide Passenger Name.');
@@ -817,7 +1009,9 @@ export class TicketComponent implements OnInit {
               farePaid: Number(this.selectedTicket.farePaid),
               bookingDateTime: this.selectedTicket.bookingDateTime,
               bookingCounterId: Number(this.selectedTicket.bookingCounterId),
-              departureCounterId: Number(this.selectedTicket.departureCounterId),
+              departureCounterId: Number(
+                this.selectedTicket.departureCounterId,
+              ),
               arrivalCounterId: Number(this.selectedTicket.arrivalCounterId),
             };
 
@@ -833,13 +1027,19 @@ export class TicketComponent implements OnInit {
               },
               error: (e) => {
                 console.error('Update failed', e);
-                this.showToast('error', 'Failed to update ticket. Please try again.');
+                this.showToast(
+                  'error',
+                  'Failed to update ticket. Please try again.',
+                );
               },
             });
           },
           error: (e) => {
             console.error('Trip resolution failed during update', e);
-            this.showToast('error', 'Could not resolve trip. Check schedule/date.');
+            this.showToast(
+              'error',
+              'Could not resolve trip. Check schedule/date.',
+            );
           },
         });
     } else {
@@ -859,7 +1059,9 @@ export class TicketComponent implements OnInit {
               farePaid: Number(this.selectedTicket.farePaid),
               bookingDateTime: this.selectedTicket.bookingDateTime,
               bookingCounterId: Number(this.selectedTicket.bookingCounterId),
-              departureCounterId: Number(this.selectedTicket.departureCounterId),
+              departureCounterId: Number(
+                this.selectedTicket.departureCounterId,
+              ),
               arrivalCounterId: Number(this.selectedTicket.arrivalCounterId),
             };
 
@@ -872,13 +1074,19 @@ export class TicketComponent implements OnInit {
               },
               error: (e) => {
                 console.error('Create ticket failed', e);
-                this.showToast('error', 'Failed to save ticket. Please try again.');
+                this.showToast(
+                  'error',
+                  'Failed to save ticket. Please try again.',
+                );
               },
             });
           },
           error: (e) => {
             console.error('Trip resolution failed', e);
-            this.showToast('error', 'Could not resolve trip. Check schedule/date.');
+            this.showToast(
+              'error',
+              'Could not resolve trip. Check schedule/date.',
+            );
           },
         });
     }
@@ -942,7 +1150,10 @@ export class TicketComponent implements OnInit {
     this.selectedTicket = { ...ticket };
 
     this.editingOriginalSeats = ticket.seatNumber
-      ? ticket.seatNumber.split(',').map((s) => s.trim()).filter(Boolean)
+      ? ticket.seatNumber
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
       : [];
 
     this.editSeatsPreSelected = false;
@@ -970,7 +1181,10 @@ export class TicketComponent implements OnInit {
     }
 
     if (ticket.bookingDateTime) {
-      this.selectedTicket.bookingDateTime = ticket.bookingDateTime.substring(0, 10);
+      this.selectedTicket.bookingDateTime = ticket.bookingDateTime.substring(
+        0,
+        10,
+      );
     }
 
     this.showModal = true;
@@ -991,12 +1205,28 @@ export class TicketComponent implements OnInit {
     const pad = (n: number) => n.toString().padStart(2, '0');
     this.selectedArrivalDate = `${arr.getFullYear()}-${pad(arr.getMonth() + 1)}-${pad(arr.getDate())}`;
 
-    this.availableVehicles = this.vehicles.filter((v) =>
-      this.schedules.some(
-        (s) =>
-          s.routeId === Number(this.selectedRouteCode) && s.vehicleId === v.id,
-      ),
-    );
+    // FIX 2: sort by departure time-of-day only
+    this.availableVehicles = this.vehicles
+      .filter((v) =>
+        this.schedules.some(
+          (s) =>
+            s.routeId === Number(this.selectedRouteCode) &&
+            s.vehicleId === v.id,
+        ),
+      )
+      .sort((a, b) => {
+        const schedA = this.schedules.find(
+          (s) =>
+            s.vehicleId === a.id &&
+            s.routeId === Number(this.selectedRouteCode),
+        );
+        const schedB = this.schedules.find(
+          (s) =>
+            s.vehicleId === b.id &&
+            s.routeId === Number(this.selectedRouteCode),
+        );
+        return this.getDepartureMinutes(schedA) - this.getDepartureMinutes(schedB);
+      });
 
     this.refreshAvailableSeatCounts();
   }
@@ -1020,17 +1250,19 @@ export class TicketComponent implements OnInit {
   // ── Sorting / pagination ──────────────────────────────────────────────────────
 
   updatePagination(): void {
-    this.totalPages = Math.ceil(this.tickets.length / this.itemsPerPage) || 1;
+    const source = this.filteredTickets;
+    this.totalPages = Math.ceil(source.length / this.itemsPerPage) || 1;
     this.pages = Array.from({ length: this.totalPages }, (_, i) => i + 1);
     if (this.currentPage > this.totalPages) this.currentPage = this.totalPages;
     this.goToPage(this.currentPage);
   }
 
   goToPage(page: number): void {
+    const source = this.filteredTickets;
     if (page < 1 || page > this.totalPages) return;
     this.currentPage = page;
     const start = (page - 1) * this.itemsPerPage;
-    this.paginatedTickets = this.tickets.slice(start, start + this.itemsPerPage);
+    this.paginatedTickets = source.slice(start, start + this.itemsPerPage);
   }
 
   goToPreviousPage(): void {
@@ -1049,9 +1281,29 @@ export class TicketComponent implements OnInit {
     return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
   }
 
+  // ── Search ────────────────────────────────────────────────────────────────────
+  passengerSearch: string = '';
+
+  get filteredTickets(): TicketDto[] {
+    const q = this.passengerSearch.trim().toLowerCase();
+    if (!q) return this.tickets;
+    return this.tickets.filter((t) =>
+      t.passengerName?.toLowerCase().includes(q),
+    );
+  }
+
+  onSearchChange(): void {
+    this.currentPage = 1;
+    this.updatePagination();
+  }
+
   // ── Toast system ──────────────────────────────────────────────────────────────
 
-  toasts: { id: number; type: 'success' | 'error' | 'warn' | 'info'; message: string }[] = [];
+  toasts: {
+    id: number;
+    type: 'success' | 'error' | 'warn' | 'info';
+    message: string;
+  }[] = [];
   private _toastId = 0;
 
   showToast(
@@ -1084,6 +1336,7 @@ export class TicketComponent implements OnInit {
       const valB = (b as any)[field]?.toString().toLowerCase() ?? '';
       return this.sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
     });
+    this.currentPage = 1;
     this.updatePagination();
   }
-} 
+}

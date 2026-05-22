@@ -506,6 +506,16 @@ select.fg__ctrl { cursor: pointer; }
 .del-msg   { color: var(--vc-text-2); font-size: .9rem; line-height: 1.6; margin-bottom: 1.5rem; }
 .del-actions { display: flex; gap: .75rem; justify-content: center; }
 
+/* ── Deck Level Dropdown Design ────────────────────────────────────────── */
+
+.fg__ctrl--readonly {
+  background-color: var(--surface-alt, #f3f4f6);
+  color: var(--text-muted, #6b7280);
+  cursor: not-allowed;
+  border-style: dashed;
+  user-select: none;
+}
+
 /* ── Responsive ─────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .vc { padding: 1rem; }

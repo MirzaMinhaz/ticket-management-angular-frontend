@@ -93,21 +93,21 @@
             </select>
           </div>
 
+          <!-- Bus Category -->
           <div class="fg">
             <label class="fg__label">Bus Category</label>
-            <select class="fg__ctrl" [(ngModel)]="selectedVehicle.busCategory" name="busCategory">
+            <select class="fg__ctrl" [(ngModel)]="selectedVehicle.busCategory" name="busCategory"
+              (change)="onCategoryChange()">
               <option value="Single Decker">Single Decker</option>
               <option value="Double Decker">Double Decker</option>
               <option value="Sleeper">Sleeper</option>
             </select>
           </div>
 
+          <!-- Deck Level — always read-only, auto-derived -->
           <div class="fg">
             <label class="fg__label">Deck Level</label>
-            <select class="fg__ctrl" [(ngModel)]="selectedVehicle.deckLevel" name="deckLevel">
-              <option value="Lower Deck">Lower Deck</option>
-              <option value="Upper Deck">Upper Deck</option>
-            </select>
+            <input class="fg__ctrl fg__ctrl--readonly" [value]="selectedVehicle.deckLevel" name="deckLevel" readonly />
           </div>
         </ng-container>
 
@@ -277,20 +277,22 @@
                   <option value="Non AC">Non AC</option>
                 </select>
               </div>
+              <!-- Bus Category -->
               <div class="fg">
                 <label class="fg__label">Bus Category</label>
-                <select class="fg__ctrl" [(ngModel)]="selectedVehicle.busCategory" name="editBusCategory">
+                <select class="fg__ctrl" [(ngModel)]="selectedVehicle.busCategory" name="busCategory"
+                  (change)="onCategoryChange()">
                   <option value="Single Decker">Single Decker</option>
                   <option value="Double Decker">Double Decker</option>
                   <option value="Sleeper">Sleeper</option>
                 </select>
               </div>
+
+              <!-- Deck Level — always read-only, auto-derived -->
               <div class="fg">
                 <label class="fg__label">Deck Level</label>
-                <select class="fg__ctrl" [(ngModel)]="selectedVehicle.deckLevel" name="editDeckLevel">
-                  <option value="Lower Deck">Lower Deck</option>
-                  <option value="Upper Deck">Upper Deck</option>
-                </select>
+                <input class="fg__ctrl fg__ctrl--readonly" [value]="selectedVehicle.deckLevel" name="deckLevel"
+                  readonly />
               </div>
             </ng-container>
 
