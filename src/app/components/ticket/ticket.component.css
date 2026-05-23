@@ -1235,6 +1235,24 @@ body {
 .search-clear:hover { color: #ef4444; }
 
 /* ─────────────────────────────────────────────── */
+/*  COUNTER DROPDOWNS                                      */
+/* ─────────────────────────────────────────────── */
+
+.counter-location-hint {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--primary, #4f46e5);
+  margin-left: 4px;
+}
+
+.counter-empty-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.7rem;
+  color: #f59e0b;
+}
+
+/* ─────────────────────────────────────────────── */
 /*  RESPONSIVE                                      */
 /* ─────────────────────────────────────────────── */
 

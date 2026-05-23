@@ -22,6 +22,8 @@ import { ScheduleService } from '../../services/schedule.service';
 import { TicketCounterService } from '../../services/ticket-counter.service';
 import { TicketService } from '../../services/ticket.service';
 import { TripService } from '../../services/trip.service';
+import { LocationService } from '../../services/location.service';
+import { LocationDto } from '../../models/common';
 
 const BRAND_LOGOS: Record<string, string> = {
   scania: 'assets/img/scania.jpeg',
@@ -73,6 +75,7 @@ export class TicketComponent implements OnInit {
   counters: TicketCounterDto[] = [];
   availableVehicles: Vehicle[] = [];
   trips: TripDto[] = [];
+  locations: LocationDto[] = [];
 
   // ── Selected / form state ────────────────────────────────────────────────────
   selectedTicket: TicketDto = this.emptyTicket();
@@ -148,6 +151,7 @@ export class TicketComponent implements OnInit {
     private ticketCounterService: TicketCounterService,
     private ticketService: TicketService,
     private tripService: TripService,
+    private locationService: LocationService,
   ) {}
 
   // ── Lifecycle ────────────────────────────────────────────────────────────────
@@ -164,6 +168,7 @@ export class TicketComponent implements OnInit {
     this.loadCounters();
     this.loadTickets();
     this.loadTrips();
+    this.loadLocations();
   }
 
   // ── Data loaders ─────────────────────────────────────────────────────────────
@@ -217,6 +222,13 @@ export class TicketComponent implements OnInit {
     this.tripService.getAll().subscribe({
       next: (d) => (this.trips = d),
       error: (e) => console.error('Failed to load trips', e),
+    });
+  }
+
+  loadLocations(): void {
+    this.locationService.getAllLocations().subscribe({
+      next: (d) => (this.locations = d),
+      error: (e) => console.error('Failed to load locations', e),
     });
   }
 
@@ -443,7 +455,9 @@ export class TicketComponent implements OnInit {
             s.vehicleId === b.id &&
             s.routeId === Number(this.selectedRouteCode),
         );
-        return this.getDepartureMinutes(schedA) - this.getDepartureMinutes(schedB);
+        return (
+          this.getDepartureMinutes(schedA) - this.getDepartureMinutes(schedB)
+        );
       });
 
     this.closeSeatPanel();
@@ -531,6 +545,60 @@ export class TicketComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     if (typeof input?.showPicker === 'function') input.showPicker();
   }
+
+  getSelectedRoute(): RouteDto | undefined {
+    return this.routes.find((r) => r.id === Number(this.selectedRouteCode));
+  }
+
+  getLocationName(locationCode: string | undefined): string {
+    if (!locationCode) return '';
+    return (
+      this.locations.find((l) => l.locationCode === locationCode)?.name ??
+      locationCode
+    );
+  }
+
+  get departureCounters(): TicketCounterDto[] {
+    const route = this.getSelectedRoute();
+    if (!route) return this.counters;
+    const filtered = this.counters.filter(
+      (c) => c.locationCode === route.departureLocationCode,
+    );
+    return filtered.length ? filtered : this.counters;
+  }
+
+  get arrivalCounters(): TicketCounterDto[] {
+    const route = this.getSelectedRoute();
+    if (!route) return this.counters;
+    const filtered = this.counters.filter(
+      (c) => c.locationCode === route.destinationLocationCode,
+    );
+    return filtered.length ? filtered : this.counters;
+  }
+
+
+
+get departureCountersFallback(): boolean {
+  const route = this.getSelectedRoute();
+  if (!route || !this.selectedRouteCode) return false;
+  return (
+    this.counters.filter(
+      (c) => c.locationCode === route.departureLocationCode,
+    ).length === 0
+  );
+}
+
+get arrivalCountersFallback(): boolean {
+  const route = this.getSelectedRoute();
+  if (!route || !this.selectedRouteCode) return false;
+  return (
+    this.counters.filter(
+      (c) => c.locationCode === route.destinationLocationCode,
+    ).length === 0
+  );
+}
+
+
 
   // ── Brand Logo Helpers ─────────────────────────────────────────────────────
 
@@ -717,7 +785,8 @@ export class TicketComponent implements OnInit {
    */
   private generateSeats(capacity: number, vehicle?: Vehicle): void {
     // Resolve dual-deck flag
-    const v = vehicle ?? this.vehicles.find((x) => x.id === this.seatBookingBusId);
+    const v =
+      vehicle ?? this.vehicles.find((x) => x.id === this.seatBookingBusId);
     this.isDualDeck = v ? this.isDualDeckVehicle(v) : false;
 
     if (!this.isDualDeck) {
@@ -810,7 +879,9 @@ export class TicketComponent implements OnInit {
 
     // Pad the last row to complete the visual grid
     if (seats.length > 0) {
-      const lastRowLetter = seats[seats.length - 1].seatNumber.charAt(prefix.length);
+      const lastRowLetter = seats[seats.length - 1].seatNumber.charAt(
+        prefix.length,
+      );
       const existingCols = new Set(
         seats
           .filter((s) => s.seatNumber.charAt(prefix.length) === lastRowLetter)
@@ -865,7 +936,11 @@ export class TicketComponent implements OnInit {
    * Dual-deck:   getSeatByPosition(row, col, 'L-')  → key "L-A1"
    *              getSeatByPosition(row, col, 'U-')  → key "U-A1"
    */
-  getSeatByPosition(row: string, col: number, prefix = ''): SeatDto | undefined {
+  getSeatByPosition(
+    row: string,
+    col: number,
+    prefix = '',
+  ): SeatDto | undefined {
     return this.seatMap[`${prefix}${row}${col}`];
   }
 
@@ -1135,6 +1210,8 @@ export class TicketComponent implements OnInit {
     this.selectedTicket = this.emptyTicket();
     this.selectedRouteCode = '';
     this.selectedVehicleCode = '';
+    this.selectedTicket.departureCounterId = 0;
+    this.selectedTicket.arrivalCounterId = 0;
     this.selectedDepartureDate = '';
     this.selectedArrivalDate = '';
     this.selectedBaseFare = 0;
@@ -1225,7 +1302,9 @@ export class TicketComponent implements OnInit {
             s.vehicleId === b.id &&
             s.routeId === Number(this.selectedRouteCode),
         );
-        return this.getDepartureMinutes(schedA) - this.getDepartureMinutes(schedB);
+        return (
+          this.getDepartureMinutes(schedA) - this.getDepartureMinutes(schedB)
+        );
       });
 
     this.refreshAvailableSeatCounts();

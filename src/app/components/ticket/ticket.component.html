@@ -201,13 +201,11 @@
                             <div class="seat-group">
                               <ng-container *ngFor="let col of leftCols">
                                 <ng-container *ngIf="getSeatByPosition(row, col, 'L-') as seat">
-                                  <button type="button" class="seat-btn"
-                                    [class.available]="seat.status === 'available'"
+                                  <button type="button" class="seat-btn" [class.available]="seat.status === 'available'"
                                     [class.selected]="seat.status === 'selected'"
                                     [class.booked]="seat.status === 'reserved'"
                                     [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
-                                    [disabled]="seat.status === 'reserved'"
-                                    (click)="toggleSeat(seat)">
+                                    [disabled]="seat.status === 'reserved'" (click)="toggleSeat(seat)">
                                     <span class="seat-label-num">{{ row }}{{ col }}</span>
                                   </button>
                                 </ng-container>
@@ -217,13 +215,11 @@
                             <div class="seat-group">
                               <ng-container *ngFor="let col of rightCols">
                                 <ng-container *ngIf="getSeatByPosition(row, col, 'L-') as seat">
-                                  <button type="button" class="seat-btn"
-                                    [class.available]="seat.status === 'available'"
+                                  <button type="button" class="seat-btn" [class.available]="seat.status === 'available'"
                                     [class.selected]="seat.status === 'selected'"
                                     [class.booked]="seat.status === 'reserved'"
                                     [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
-                                    [disabled]="seat.status === 'reserved'"
-                                    (click)="toggleSeat(seat)">
+                                    [disabled]="seat.status === 'reserved'" (click)="toggleSeat(seat)">
                                     <span class="seat-label-num">{{ row }}{{ col }}</span>
                                   </button>
                                 </ng-container>
@@ -254,13 +250,11 @@
                             <div class="seat-group">
                               <ng-container *ngFor="let col of leftCols">
                                 <ng-container *ngIf="getSeatByPosition(row, col, 'U-') as seat">
-                                  <button type="button" class="seat-btn"
-                                    [class.available]="seat.status === 'available'"
+                                  <button type="button" class="seat-btn" [class.available]="seat.status === 'available'"
                                     [class.selected]="seat.status === 'selected'"
                                     [class.booked]="seat.status === 'reserved'"
                                     [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
-                                    [disabled]="seat.status === 'reserved'"
-                                    (click)="toggleSeat(seat)">
+                                    [disabled]="seat.status === 'reserved'" (click)="toggleSeat(seat)">
                                     <span class="seat-label-num">{{ row }}{{ col }}</span>
                                   </button>
                                 </ng-container>
@@ -270,13 +264,11 @@
                             <div class="seat-group">
                               <ng-container *ngFor="let col of rightCols">
                                 <ng-container *ngIf="getSeatByPosition(row, col, 'U-') as seat">
-                                  <button type="button" class="seat-btn"
-                                    [class.available]="seat.status === 'available'"
+                                  <button type="button" class="seat-btn" [class.available]="seat.status === 'available'"
                                     [class.selected]="seat.status === 'selected'"
                                     [class.booked]="seat.status === 'reserved'"
                                     [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
-                                    [disabled]="seat.status === 'reserved'"
-                                    (click)="toggleSeat(seat)">
+                                    [disabled]="seat.status === 'reserved'" (click)="toggleSeat(seat)">
                                     <span class="seat-label-num">{{ row }}{{ col }}</span>
                                   </button>
                                 </ng-container>
@@ -324,13 +316,11 @@
                           <div class="seat-group">
                             <ng-container *ngFor="let col of leftCols">
                               <ng-container *ngIf="getSeatByPosition(row, col) as seat">
-                                <button type="button" class="seat-btn"
-                                  [class.available]="seat.status === 'available'"
+                                <button type="button" class="seat-btn" [class.available]="seat.status === 'available'"
                                   [class.selected]="seat.status === 'selected'"
                                   [class.booked]="seat.status === 'reserved'"
                                   [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
-                                  [disabled]="seat.status === 'reserved'"
-                                  (click)="toggleSeat(seat)">
+                                  [disabled]="seat.status === 'reserved'" (click)="toggleSeat(seat)">
                                   <span class="seat-label-num">{{ row }}{{ col }}</span>
                                 </button>
                               </ng-container>
@@ -340,13 +330,11 @@
                           <div class="seat-group">
                             <ng-container *ngFor="let col of rightCols">
                               <ng-container *ngIf="getSeatByPosition(row, col) as seat">
-                                <button type="button" class="seat-btn"
-                                  [class.available]="seat.status === 'available'"
+                                <button type="button" class="seat-btn" [class.available]="seat.status === 'available'"
                                   [class.selected]="seat.status === 'selected'"
                                   [class.booked]="seat.status === 'reserved'"
                                   [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
-                                  [disabled]="seat.status === 'reserved'"
-                                  (click)="toggleSeat(seat)">
+                                  [disabled]="seat.status === 'reserved'" (click)="toggleSeat(seat)">
                                   <span class="seat-label-num">{{ row }}{{ col }}</span>
                                 </button>
                               </ng-container>
@@ -384,18 +372,22 @@
                     <div class="fare-section">
                       <p class="fare-section-label">Fare Details</p>
                       <div class="fare-line">
-                        <span class="fare-line-desc">({{ selectedBaseFare | number }}) × {{ selectedSeats.length || 1 }}</span>
-                        <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number }}</span>
+                        <span class="fare-line-desc">({{ selectedBaseFare | number }}) × {{ selectedSeats.length || 1
+                          }}</span>
+                        <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number
+                          }}</span>
                       </div>
                       <div class="fare-divider slim"></div>
                       <div class="fare-line">
                         <span class="fare-line-desc">Subtotal</span>
-                        <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number }}</span>
+                        <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number
+                          }}</span>
                       </div>
                     </div>
                     <div class="fare-total-box">
                       <span class="fare-total-label">Total Fare</span>
-                      <span class="fare-total-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number }}</span>
+                      <span class="fare-total-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number
+                        }}</span>
                     </div>
                   </div>
                 </div>
@@ -443,28 +435,61 @@
               [min]="todayString" required />
           </div>
 
+          <!-- BOOKING COUNTER — filtered to departure city (same as departure counter) -->
           <div class="form-group">
-            <label>Booking Counter</label>
-            <select [(ngModel)]="selectedTicket.bookingCounterId" name="bookingCounterId" required>
-              <option [ngValue]="null" disabled>Select Booking Counter</option>
-              <option *ngFor="let c of counters" [ngValue]="c.id">{{ c.counterName }}</option>
+            <label for="bookingCounterId">
+              Booking Counter
+              <ng-container *ngIf="getSelectedRoute() as route">
+                <span class="counter-location-badge">
+                  📍 {{ getLocationName(route.departureLocationCode) }}
+                </span>
+              </ng-container>
+            </label>
+            <select [(ngModel)]="selectedTicket.bookingCounterId" name="bookingCounterId" id="bookingCounterId"
+              required>
+              <option [ngValue]="0" disabled>
+                <ng-container *ngIf="getSelectedRoute(); else bookNoRoute">
+                  Select counter in {{ getLocationName(getSelectedRoute()?.departureLocationCode) }}
+                </ng-container>
+                <ng-template #bookNoRoute>Select Booking Counter</ng-template>
+              </option>
+              <option *ngFor="let c of departureCounters" [ngValue]="c.id">{{ c.counterName }}</option>
             </select>
+            <small class="counter-fallback-hint" *ngIf="selectedRouteCode && departureCountersFallback">
+              ⚠️ No counters mapped to this city — showing all counters
+            </small>
           </div>
 
+          <!-- Departure Counter -->
           <div class="form-group">
-            <label>Departure Counter</label>
+            <label>Departure Counter
+              <span class="counter-location-hint" *ngIf="selectedRouteCode && getSelectedRoute()">
+                ({{ getLocationName(getSelectedRoute()?.departureLocationCode) }})
+              </span>
+            </label>
             <select [(ngModel)]="selectedTicket.departureCounterId" name="departureCounterId" required>
-              <option [ngValue]="null" disabled>Select Departure Counter</option>
-              <option *ngFor="let cd of counters" [ngValue]="cd.id">{{ cd.counterName }}</option>
+              <option [ngValue]="0" disabled>Select Departure Counter</option>
+              <option *ngFor="let cd of departureCounters" [ngValue]="cd.id">{{ cd.counterName }}</option>
             </select>
+            <small class="counter-empty-hint" *ngIf="selectedRouteCode && departureCounters.length === counters.length">
+              ⚠️ No counters mapped to this departure city — showing all
+            </small>
           </div>
 
+          <!-- Arrival Counter -->
           <div class="form-group">
-            <label>Arrival Counter</label>
+            <label>Arrival Counter
+              <span class="counter-location-hint" *ngIf="selectedRouteCode && getSelectedRoute()">
+                ({{ getLocationName(getSelectedRoute()?.destinationLocationCode) }})
+              </span>
+            </label>
             <select [(ngModel)]="selectedTicket.arrivalCounterId" name="arrivalCounterId" required>
-              <option [ngValue]="null" disabled>Select Arrival Counter</option>
-              <option *ngFor="let ca of counters" [ngValue]="ca.id">{{ ca.counterName }}</option>
+              <option [ngValue]="0" disabled>Select Arrival Counter</option>
+              <option *ngFor="let ca of arrivalCounters" [ngValue]="ca.id">{{ ca.counterName }}</option>
             </select>
+            <small class="counter-empty-hint" *ngIf="selectedRouteCode && arrivalCounters.length === counters.length">
+              ⚠️ No counters mapped to this arrival city — showing all
+            </small>
           </div>
 
         </div>
@@ -763,8 +788,7 @@
                                         [class.selected]="seat.status === 'selected'"
                                         [class.booked]="seat.status === 'reserved'"
                                         [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
-                                        [disabled]="seat.status === 'reserved'"
-                                        (click)="toggleSeat(seat)">
+                                        [disabled]="seat.status === 'reserved'" (click)="toggleSeat(seat)">
                                         <span class="seat-label-num">{{ row }}{{ col }}</span>
                                       </button>
                                     </ng-container>
@@ -779,8 +803,7 @@
                                         [class.selected]="seat.status === 'selected'"
                                         [class.booked]="seat.status === 'reserved'"
                                         [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
-                                        [disabled]="seat.status === 'reserved'"
-                                        (click)="toggleSeat(seat)">
+                                        [disabled]="seat.status === 'reserved'" (click)="toggleSeat(seat)">
                                         <span class="seat-label-num">{{ row }}{{ col }}</span>
                                       </button>
                                     </ng-container>
@@ -814,8 +837,7 @@
                                         [class.selected]="seat.status === 'selected'"
                                         [class.booked]="seat.status === 'reserved'"
                                         [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
-                                        [disabled]="seat.status === 'reserved'"
-                                        (click)="toggleSeat(seat)">
+                                        [disabled]="seat.status === 'reserved'" (click)="toggleSeat(seat)">
                                         <span class="seat-label-num">{{ row }}{{ col }}</span>
                                       </button>
                                     </ng-container>
@@ -830,8 +852,7 @@
                                         [class.selected]="seat.status === 'selected'"
                                         [class.booked]="seat.status === 'reserved'"
                                         [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
-                                        [disabled]="seat.status === 'reserved'"
-                                        (click)="toggleSeat(seat)">
+                                        [disabled]="seat.status === 'reserved'" (click)="toggleSeat(seat)">
                                         <span class="seat-label-num">{{ row }}{{ col }}</span>
                                       </button>
                                     </ng-container>
@@ -882,8 +903,7 @@
                                       [class.selected]="seat.status === 'selected'"
                                       [class.booked]="seat.status === 'reserved'"
                                       [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
-                                      [disabled]="seat.status === 'reserved'"
-                                      (click)="toggleSeat(seat)">
+                                      [disabled]="seat.status === 'reserved'" (click)="toggleSeat(seat)">
                                       <span class="seat-label-num">{{ row }}{{ col }}</span>
                                     </button>
                                   </ng-container>
@@ -898,8 +918,7 @@
                                       [class.selected]="seat.status === 'selected'"
                                       [class.booked]="seat.status === 'reserved'"
                                       [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.seatNumber"
-                                      [disabled]="seat.status === 'reserved'"
-                                      (click)="toggleSeat(seat)">
+                                      [disabled]="seat.status === 'reserved'" (click)="toggleSeat(seat)">
                                       <span class="seat-label-num">{{ row }}{{ col }}</span>
                                     </button>
                                   </ng-container>
@@ -936,18 +955,22 @@
                         <div class="fare-section">
                           <p class="fare-section-label">Fare Details</p>
                           <div class="fare-line">
-                            <span class="fare-line-desc">({{ selectedBaseFare | number }}) × {{ selectedSeats.length || 1 }}</span>
-                            <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number }}</span>
+                            <span class="fare-line-desc">({{ selectedBaseFare | number }}) × {{ selectedSeats.length ||
+                              1 }}</span>
+                            <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) |
+                              number }}</span>
                           </div>
                           <div class="fare-divider slim"></div>
                           <div class="fare-line">
                             <span class="fare-line-desc">Subtotal</span>
-                            <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number }}</span>
+                            <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) |
+                              number }}</span>
                           </div>
                         </div>
                         <div class="fare-total-box">
                           <span class="fare-total-label">Total Fare</span>
-                          <span class="fare-total-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number }}</span>
+                          <span class="fare-total-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number
+                            }}</span>
                         </div>
                       </div>
                     </div>
@@ -988,12 +1011,27 @@
                   [min]="todayString" required />
               </div>
               <div class="form-group">
-                <label>Booking Counter</label>
-                <select [(ngModel)]="selectedTicket.bookingCounterId" name="editBookingCounterId" required>
-                  <option [ngValue]="null" disabled>Select Booking Counter</option>
-                  <option *ngFor="let c of counters" [ngValue]="c.id">{{ c.counterName }}</option>
-                </select>
-              </div>
+  <label>
+    Booking Counter
+    <ng-container *ngIf="getSelectedRoute() as route">
+      <span class="counter-location-badge">
+        📍 {{ getLocationName(route.departureLocationCode) }}
+      </span>
+    </ng-container>
+  </label>
+  <select [(ngModel)]="selectedTicket.bookingCounterId" name="editBookingCounterId" required>
+    <option [ngValue]="0" disabled>
+      <ng-container *ngIf="getSelectedRoute(); else editBookNoRoute">
+        Select counter in {{ getLocationName(getSelectedRoute()?.departureLocationCode) }}
+      </ng-container>
+      <ng-template #editBookNoRoute>Select Booking Counter</ng-template>
+    </option>
+    <option *ngFor="let c of departureCounters" [ngValue]="c.id">{{ c.counterName }}</option>
+  </select>
+  <small class="counter-fallback-hint" *ngIf="selectedRouteCode && departureCountersFallback">
+    ⚠️ No counters mapped to this city — showing all counters
+  </small>
+</div>
               <div class="form-group">
                 <label>Departure Counter</label>
                 <select [(ngModel)]="selectedTicket.departureCounterId" name="editDepartureCounterId" required>
