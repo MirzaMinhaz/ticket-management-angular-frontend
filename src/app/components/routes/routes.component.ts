@@ -1,11 +1,24 @@
 import { Component, OnInit, NgZone } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { LocationDto, RouteDto, CreateRouteDto, UpdateRouteDto } from '../../models/common';
 import { LocationService } from '../../services/location.service';
 import { RouteService } from '../../services/route.service';
+
+/** Cross-field validator: departure and destination must differ */
+export const sameLocationValidator: ValidatorFn = (group: AbstractControl): ValidationErrors | null => {
+  const dep = group.get('departureLocation')?.value;
+  const dst = group.get('destinationLocation')?.value;
+  return dep && dst && dep === dst ? { sameLocation: true } : null;
+};
+
+export interface Toast {
+  id: number;
+  message: string;
+  type: 'success' | 'error';
+}
 
 @Component({
   selector: 'app-routes',
@@ -19,17 +32,20 @@ export class RoutesComponent implements OnInit {
   routes: RouteDto[] = [];
   locations: LocationDto[] = [];
 
+  /** Add-form (page level) */
   routeForm!: FormGroup;
-  selectedRoute: RouteDto = this.getEmptyRoute();
+
+  /** Separate edit-form used only inside the modal — avoids the shared-form bug */
+  editForm!: FormGroup;
+
+  selectedRoute: RouteDto | null = null;
 
   showModal = false;
   showDeleteConfirmModal = false;
   routeToDelete: RouteDto | null = null;
 
-  successMessage = '';
-  errorMessage = '';
-  modalSuccessMessage = '';
-  modalErrorMessage = '';
+  toasts: Toast[] = [];
+  private toastCounter = 0;
 
   currentPage = 1;
   itemsPerPage = 25;
@@ -37,23 +53,21 @@ export class RoutesComponent implements OnInit {
   sortAsc = true;
   isSaving = false;
 
-  // flag to temporarily suppress valueChanges during patchValue
-  private suppressRouteNameUpdate = false;
-
   constructor(
     private fb: FormBuilder,
     private locationService: LocationService,
     private routeService: RouteService,
     private ngZone: NgZone
-  ) { }
+  ) {}
 
   ngOnInit(): void {
     this.buildForm();
+    this.buildEditForm();
     this.loadLocations();
     this.loadRoutes();
   }
 
-  // ─── Form ────────────────────────────────────────────────────────────────
+  // ─── Forms ────────────────────────────────────────────────────────────────
 
   buildForm(): void {
     this.routeForm = this.fb.group({
@@ -61,27 +75,42 @@ export class RoutesComponent implements OnInit {
       destinationLocation:    ['', Validators.required],
       routeName:              [{ value: '', disabled: true }],
       estimatedDurationHours: [null, [Validators.required, Validators.min(0)]]
-    });
+    }, { validators: sameLocationValidator });
 
     this.routeForm.get('departureLocation')!.valueChanges.subscribe(() => {
-      if (!this.suppressRouteNameUpdate) this.updateRouteName();
+      this.syncRouteName(this.routeForm);
+      // Re-trigger destination touched state so error shows immediately
+      this.routeForm.get('destinationLocation')!.updateValueAndValidity({ emitEvent: false });
     });
-    this.routeForm.get('destinationLocation')!.valueChanges.subscribe(() => {
-      if (!this.suppressRouteNameUpdate) this.updateRouteName();
-    });
+    this.routeForm.get('destinationLocation')!.valueChanges.subscribe(() => this.syncRouteName(this.routeForm));
   }
 
-  updateRouteName(): void {
-    const dep = this.routeForm.get('departureLocation')!.value;
-    const dst = this.routeForm.get('destinationLocation')!.value;
-    const depName = this.locations.find(l => l.locationCode === dep)?.name || '';
-    const dstName = this.locations.find(l => l.locationCode === dst)?.name || '';
+  buildEditForm(): void {
+    this.editForm = this.fb.group({
+      departureLocation:      ['', Validators.required],
+      destinationLocation:    ['', Validators.required],
+      routeName:              [{ value: '', disabled: true }],
+      estimatedDurationHours: [null, [Validators.required, Validators.min(0)]]
+    }, { validators: sameLocationValidator });
+
+    this.editForm.get('departureLocation')!.valueChanges.subscribe(() => {
+      this.syncRouteName(this.editForm);
+      this.editForm.get('destinationLocation')!.updateValueAndValidity({ emitEvent: false });
+    });
+    this.editForm.get('destinationLocation')!.valueChanges.subscribe(() => this.syncRouteName(this.editForm));
+  }
+
+  syncRouteName(form: FormGroup): void {
+    const dep = form.get('departureLocation')!.value;
+    const dst = form.get('destinationLocation')!.value;
+    const depName = this.locations.find(l => l.locationCode === dep)?.name ?? '';
+    const dstName = this.locations.find(l => l.locationCode === dst)?.name ?? '';
 
     let name = '';
-    if (depName && dstName)   name = `${depName} - ${dstName}`;
-    else if (depName)         name = `${depName} -`;
+    if (depName && dstName) name = `${depName} - ${dstName}`;
+    else if (depName)       name = `${depName} -`;
 
-    this.routeForm.get('routeName')!.setValue(name, { emitEvent: false });
+    form.get('routeName')!.setValue(name, { emitEvent: false });
   }
 
   // ─── Data loading ─────────────────────────────────────────────────────────
@@ -107,41 +136,38 @@ export class RoutesComponent implements OnInit {
     return this.routes.slice(start, start + this.itemsPerPage);
   }
 
+  get totalPages(): number {
+    return Math.ceil(this.routes.length / this.itemsPerPage);
+  }
+
   // ─── Helpers ──────────────────────────────────────────────────────────────
 
   getLocationName(code: string | undefined): string {
     return this.locations.find(l => l.locationCode === code)?.name ?? '—';
   }
 
-  getEmptyRoute(): RouteDto {
-    return {
-      id: 0,
-      departureLocationCode:   '',
-      destinationLocationCode: '',
-      routeName:               '',
-      estimatedDurationHours:  0
-    };
-  }
-
   reset(): void {
-    this.selectedRoute = this.getEmptyRoute();
-    this.suppressRouteNameUpdate = true;
     this.routeForm.reset({
       departureLocation:      '',
       destinationLocation:    '',
       routeName:              '',
       estimatedDurationHours: null
     });
-    this.suppressRouteNameUpdate = false;
-    this.errorMessage   = '';
-    this.successMessage = '';
+    this.routeForm.markAsPristine();
+    this.routeForm.markAsUntouched();
   }
 
-  autoClear(target: 'page' | 'modal', ms = 3000): void {
-    setTimeout(() => this.ngZone.run(() => {
-      if (target === 'page')  { this.successMessage = ''; this.errorMessage = ''; }
-      if (target === 'modal') { this.modalSuccessMessage = ''; this.modalErrorMessage = ''; }
-    }), ms);
+  // ─── Toast notifications ─────────────────────────────────────────────────
+
+  showToast(message: string, type: 'success' | 'error', duration = 3500): void {
+    const id = ++this.toastCounter;
+    const toast: Toast = { id, message, type };
+    this.toasts.push(toast);
+    setTimeout(() => this.ngZone.run(() => this.dismissToast(toast)), duration);
+  }
+
+  dismissToast(toast: Toast): void {
+    this.toasts = this.toasts.filter(t => t.id !== toast.id);
   }
 
   // ─── Sorting ──────────────────────────────────────────────────────────────
@@ -156,117 +182,124 @@ export class RoutesComponent implements OnInit {
     });
   }
 
-  // ─── Save (create or update) ──────────────────────────────────────────────
+  // ─── Save (CREATE only — page form) ───────────────────────────────────────
 
   save(): void {
+    this.routeForm.markAllAsTouched();
     if (this.routeForm.invalid) return;
-
-    const raw = this.routeForm.getRawValue();
-
-    // Ensure routeName was generated (safety net)
-    if (!raw.routeName?.trim()) {
-      this.updateRouteName();
-      raw.routeName = this.routeForm.getRawValue().routeName;
-      if (!raw.routeName?.trim()) {
-        this.modalErrorMessage = '❌ Route name could not be generated. Please reselect locations.';
-        return;
-      }
-    }
-
-    // ── Explicitly cast to correct types ──────────────────────────────────
-    const departureLocationCode   = String(raw.departureLocation);
-    const destinationLocationCode = String(raw.destinationLocation);
-    const routeName               = String(raw.routeName).trim();
-    const estimatedDurationHours  = parseFloat(raw.estimatedDurationHours);
-
-    if (isNaN(estimatedDurationHours)) {
-      this.modalErrorMessage = '❌ Please enter a valid duration.';
+    if (this.routeForm.hasError('sameLocation')) {
+      this.showToast('⚠️ Departure and destination cannot be the same location.', 'error');
       return;
     }
 
-    if (this.selectedRoute.id > 0) {
-      // ── UPDATE ───────────────────────────────────────────────────────────
-      const dto: UpdateRouteDto = {
-        departureLocationCode,
-        destinationLocationCode,
-        routeName,
-        estimatedDurationHours
-      };
+    const raw = this.routeForm.getRawValue();
+    this.syncRouteName(this.routeForm);
+    const routeName = this.routeForm.getRawValue().routeName?.trim();
 
-      console.log('Sending update DTO:', dto);  // ← remove after confirming
-
-      this.routeService.updateRoute(this.selectedRoute.id, dto).subscribe({
-        next: () => {
-          this.modalSuccessMessage = '✅ Route updated successfully!';
-          this.modalErrorMessage   = '';
-          this.loadRoutes();
-          setTimeout(() => this.ngZone.run(() => this.closeModal()), 2000);
-        },
-        error: err => {
-          console.error('Update error:', err);
-          this.modalErrorMessage   = err.error?.message || err.error?.title || '❌ Failed to update route.';
-          this.modalSuccessMessage = '';
-        }
-      });
-
-    } else {
-      // ── CREATE ───────────────────────────────────────────────────────────
-      const dto: CreateRouteDto = {
-        departureLocationCode,
-        destinationLocationCode,
-        routeName,
-        estimatedDurationHours
-      };
-
-      console.log('Sending create DTO:', dto);  // ← remove after confirming
-
-      this.routeService.createRoute(dto).subscribe({
-        next: () => {
-          this.successMessage = '✅ Route created successfully!';
-          this.errorMessage   = '';
-          this.loadRoutes();
-          this.reset();
-          this.autoClear('page', 3000);
-        },
-        error: err => {
-          console.error('Create error:', err);
-          this.errorMessage   = err.error?.message || err.error?.title || '❌ Failed to create route.';
-          this.successMessage = '';
-          this.autoClear('page', 3000);
-        }
-      });
+    if (!routeName) {
+      this.showToast('❌ Route name could not be generated. Please reselect locations.', 'error');
+      return;
     }
+
+    const dto: CreateRouteDto = {
+      departureLocationCode:   String(raw.departureLocation),
+      destinationLocationCode: String(raw.destinationLocation),
+      routeName,
+      estimatedDurationHours:  parseFloat(raw.estimatedDurationHours)
+    };
+
+    if (isNaN(dto.estimatedDurationHours)) {
+      this.showToast('❌ Please enter a valid duration.', 'error');
+      return;
+    }
+
+    this.isSaving = true;
+    this.routeService.createRoute(dto).subscribe({
+      next: () => {
+        this.isSaving = false;
+        this.showToast(' Route created successfully!', 'success');
+        this.loadRoutes();
+        this.reset();
+      },
+      error: err => {
+        this.isSaving = false;
+        const msg = err.error?.message || err.error?.title || '❌ Failed to create route.';
+        this.showToast(msg, 'error');
+      }
+    });
   }
 
   // ─── Edit modal ───────────────────────────────────────────────────────────
 
   openModal(route: RouteDto): void {
-    this.selectedRoute       = { ...route };
-    this.modalSuccessMessage = '';
-    this.modalErrorMessage   = '';
+    this.selectedRoute = { ...route };
 
-    // Suppress valueChanges during patch so routeName isn't wiped
-    this.suppressRouteNameUpdate = true;
-
-    this.routeForm.patchValue({
+    // Patch the SEPARATE editForm — not routeForm
+    this.editForm.patchValue({
       departureLocation:      route.departureLocationCode,
       destinationLocation:    route.destinationLocationCode,
       estimatedDurationHours: route.estimatedDurationHours
-    });
+    }, { emitEvent: false });
 
-    this.suppressRouteNameUpdate = false;
+    // Manually set the route name after patching
+    this.editForm.get('routeName')!.setValue(route.routeName, { emitEvent: false });
 
-    // Now manually build the route name with correct location data
-    this.updateRouteName();
+    this.editForm.markAsPristine();
+    this.editForm.markAsUntouched();
 
     this.showModal = true;
   }
 
   closeModal(): void {
-    this.showModal           = false;
-    this.modalSuccessMessage = '';
-    this.modalErrorMessage   = '';
-    this.reset();
+    this.showModal = false;
+    this.selectedRoute = null;
+    this.editForm.reset();
+  }
+
+  saveEdit(): void {
+    this.editForm.markAllAsTouched();
+    if (this.editForm.invalid || !this.selectedRoute) return;
+    if (this.editForm.hasError('sameLocation')) {
+      this.showToast('⚠️ Departure and destination cannot be the same location.', 'error');
+      return;
+    }
+
+    const raw = this.editForm.getRawValue();
+    this.syncRouteName(this.editForm);
+    const routeName = this.editForm.getRawValue().routeName?.trim();
+
+    if (!routeName) {
+      this.showToast('❌ Route name could not be generated.', 'error');
+      return;
+    }
+
+    const estimatedDurationHours = parseFloat(raw.estimatedDurationHours);
+    if (isNaN(estimatedDurationHours)) {
+      this.showToast('❌ Please enter a valid duration.', 'error');
+      return;
+    }
+
+    const dto: UpdateRouteDto = {
+      departureLocationCode:   String(raw.departureLocation),
+      destinationLocationCode: String(raw.destinationLocation),
+      routeName,
+      estimatedDurationHours
+    };
+
+    this.isSaving = true;
+    this.routeService.updateRoute(this.selectedRoute.id, dto).subscribe({
+      next: () => {
+        this.isSaving = false;
+        this.showToast('✅ Route updated successfully!', 'success');
+        this.loadRoutes();
+        setTimeout(() => this.ngZone.run(() => this.closeModal()), 400);
+      },
+      error: err => {
+        this.isSaving = false;
+        const msg = err.error?.message || err.error?.title || '❌ Failed to update route.';
+        this.showToast(msg, 'error');
+      }
+    });
   }
 
   // ─── Delete modal ─────────────────────────────────────────────────────────
@@ -284,18 +317,19 @@ export class RoutesComponent implements OnInit {
   deleteRoute(): void {
     if (!this.routeToDelete) return;
 
+    this.isSaving = true;
     this.routeService.deleteRoute(this.routeToDelete.id).subscribe({
       next: () => {
-        this.routes         = this.routes.filter(r => r.id !== this.routeToDelete!.id);
-        this.successMessage = '✅ Route deleted successfully!';
+        this.isSaving = false;
+        this.routes   = this.routes.filter(r => r.id !== this.routeToDelete!.id);
+        this.showToast('✅ Route deleted successfully!', 'success');
         this.cancelDelete();
-        this.autoClear('page', 3000);
       },
       error: err => {
+        this.isSaving = false;
         console.error('Delete error:', err);
-        this.errorMessage = '❌ Failed to delete route.';
+        this.showToast('❌ Failed to delete route.', 'error');
         this.cancelDelete();
-        this.autoClear('page', 3000);
       }
     });
   }
