@@ -168,7 +168,7 @@
   letter-spacing: .04em;
 }
 .fg__ctrl {
-  height: 40px;
+  height: 60px;
   padding: 0 .75rem;
   border: 1px solid var(--vc-border-md);
   border-radius: var(--vc-radius-sm);
@@ -310,8 +310,8 @@ select.fg__ctrl { cursor: pointer; }
   font-weight: 500;
 }
 .brand-logo {
-  width: 28px;
-  height: 20px;
+  width: 40px;   
+  height: 30px;  
   object-fit: contain;
   flex-shrink: 0;
   border-radius: 2px;
@@ -323,8 +323,8 @@ select.fg__ctrl { cursor: pointer; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 40px;  
+  height: 30px; 
   border-radius: 6px;
   background: var(--vc-blue-light);
   color: var(--vc-blue);

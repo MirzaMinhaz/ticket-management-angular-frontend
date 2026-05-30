@@ -22,7 +22,7 @@ html, body {
   position: absolute;
   inset: 0;
   background: url('/assets/img/login_12.jpeg') center/cover no-repeat;
-  filter: blur(1.5px);
+  filter: blur(1px);
   transform: scale(1.05); /* prevent edge gaps after blur */
   z-index: 0;
 }
