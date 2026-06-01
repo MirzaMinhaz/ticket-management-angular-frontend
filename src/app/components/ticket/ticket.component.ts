@@ -576,29 +576,25 @@ export class TicketComponent implements OnInit {
     return filtered.length ? filtered : this.counters;
   }
 
+  get departureCountersFallback(): boolean {
+    const route = this.getSelectedRoute();
+    if (!route || !this.selectedRouteCode) return false;
+    return (
+      this.counters.filter(
+        (c) => c.locationCode === route.departureLocationCode,
+      ).length === 0
+    );
+  }
 
-
-get departureCountersFallback(): boolean {
-  const route = this.getSelectedRoute();
-  if (!route || !this.selectedRouteCode) return false;
-  return (
-    this.counters.filter(
-      (c) => c.locationCode === route.departureLocationCode,
-    ).length === 0
-  );
-}
-
-get arrivalCountersFallback(): boolean {
-  const route = this.getSelectedRoute();
-  if (!route || !this.selectedRouteCode) return false;
-  return (
-    this.counters.filter(
-      (c) => c.locationCode === route.destinationLocationCode,
-    ).length === 0
-  );
-}
-
-
+  get arrivalCountersFallback(): boolean {
+    const route = this.getSelectedRoute();
+    if (!route || !this.selectedRouteCode) return false;
+    return (
+      this.counters.filter(
+        (c) => c.locationCode === route.destinationLocationCode,
+      ).length === 0
+    );
+  }
 
   // ── Brand Logo Helpers ─────────────────────────────────────────────────────
 

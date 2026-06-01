@@ -65,7 +65,7 @@
       <!-- SECTION 2: Vehicle Cards -->
       <div class="section section-vehicles" *ngIf="availableVehicles.length">
         <h4 class="section-title">
-          <span class="section-icon">🚌</span> Available Vehicles
+          <span class="section-icon"></span> Available Vehicles
         </h4>
         <div class="vehicle-list">
           <div *ngFor="let v of availableVehicles" class="vehicle-wrapper">
@@ -149,7 +149,7 @@
                 </div>
                 <button class="btn secondary small" type="button" (click)="clearSelection()"
                   [disabled]="!selectedSeats.length" style="margin-left:auto;">
-                  🧹 Clear
+                  Clear
                 </button>
               </div>
 
