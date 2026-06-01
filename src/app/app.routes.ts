@@ -8,6 +8,7 @@ import { VehicleComponent } from './components/vehicles/vehicles';
 import { OperatorComponent } from './components/operators/operators';
 import { SeatBookingComponent } from './components/seat-booking/seat-booking.component';
 import { TicketComponent } from './components/ticket/ticket.component';
+import { TrainTicketComponent } from './components/train-ticket/train-ticket.component';
 import { RoutesComponent } from './components/routes/routes.component';
 import { ScheduleComponent } from './components/schedule/schedule.component';
 import { AuthComponent } from './components/auth/auth.component';
@@ -26,5 +27,6 @@ export const routes: Routes = [
   { path: 'schedules', component: ScheduleComponent, canActivate: [authGuard] },
   { path: 'seat-booking/:vehicleId', component: SeatBookingComponent, canActivate: [authGuard] },
   { path: 'ticket', component: TicketComponent, canActivate: [authGuard] },
+  { path: 'trainTicket', component: TrainTicketComponent, canActivate: [authGuard] },
   { path: '**', redirectTo: '' }
 ];
