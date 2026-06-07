@@ -258,7 +258,7 @@ body {
 .train-class-tags { display:flex; flex-wrap:wrap; gap:4px; margin-top:5px; }
 
 /* ─────────────────────────────────────────────── */
-/*  TRAIN CLASS TAGS (inline on vehicle card)       */
+/*  TRAIN CLASS TAGS                                */
 /* ─────────────────────────────────────────────── */
 
 .class-tag {
@@ -271,7 +271,6 @@ body {
 .cls-shovon    { background:#f0fdfa; color:#065f46; border:1px solid #6ee7b7; }
 .cls-regular   { background:#fff7ed; color:#9a3412; border:1px solid #fdba74; }
 
-/* class-badge used in fare summary & table */
 .class-badge {
   display:inline-block; padding:3px 10px; border-radius:99px;
   font-size:0.7rem; font-weight:700; letter-spacing:0.3px; white-space:nowrap;
@@ -279,7 +278,7 @@ body {
 .class-badge--sm { font-size:0.62rem; padding:2px 7px; }
 
 /* ─────────────────────────────────────────────── */
-/*  VEHICLE MIDDLE (journey path)                   */
+/*  VEHICLE MIDDLE                                  */
 /* ─────────────────────────────────────────────── */
 
 .vehicle-middle {
@@ -409,7 +408,6 @@ body {
 }
 
 .class-tab:last-child { border-right:none; }
-
 .class-tab:hover { background:#f8faff; }
 
 .class-tab.active {
@@ -424,15 +422,8 @@ body {
 }
 
 .class-tab-icon { font-size:18px; line-height:1; }
-
-.class-tab-name {
-  font-size:12px; font-weight:700; color:#111827; white-space:nowrap;
-}
-
-.class-tab-fare {
-  font-size:11px; font-weight:700;
-  font-family:'DM Mono', monospace; color:#0f766e;
-}
+.class-tab-name { font-size:12px; font-weight:700; color:#111827; white-space:nowrap; }
+.class-tab-fare { font-size:11px; font-weight:700; font-family:'DM Mono', monospace; color:#0f766e; }
 
 .class-tab-seats {
   font-size:10px; font-weight:700; padding:1px 6px;
@@ -443,7 +434,6 @@ body {
 .tab-low  { background:#fff7ed; color:#92400e; }
 .tab-full { background:#fef2f2; color:#991b1b; }
 
-/* class-tab color variants (border-top accent) */
 .class-tab--ac-berth.active  { box-shadow:inset 0 -3px 0 #9333ea; }
 .class-tab--ac-berth.active::after { background:#9333ea; }
 .class-tab--snigdha.active   { box-shadow:inset 0 -3px 0 #2563eb; }
@@ -454,7 +444,7 @@ body {
 .class-tab--regular.active::after  { background:#ea580c; }
 
 /* ─────────────────────────────────────────────── */
-/*  SEAT PANEL LAYOUT (seat map + fare summary)    */
+/*  SEAT PANEL LAYOUT                               */
 /* ─────────────────────────────────────────────── */
 
 .seat-panel-layout {
@@ -482,13 +472,9 @@ body {
 
 .berth-intro-icon { font-size:16px; flex-shrink:0; }
 
-.berth-intro-text {
-  font-size:12px; font-weight:600; color:#6b21a8;
-}
+.berth-intro-text { font-size:12px; font-weight:600; color:#6b21a8; }
 
-.bogies-container {
-  display:flex; flex-direction:column; gap:12px;
-}
+.bogies-container { display:flex; flex-direction:column; gap:12px; }
 
 .bogie-card {
   background:#fff; border:1.5px solid #e5e7eb;
@@ -511,11 +497,7 @@ body {
   background:#dcfce7; padding:2px 8px; border-radius:99px; border:1px solid #86efac;
 }
 
-/* ─── Berth Compartments ─────────────────────── */
-
-.berth-compartments {
-  display:flex; flex-wrap:wrap; gap:10px; padding:12px;
-}
+.berth-compartments { display:flex; flex-wrap:wrap; gap:10px; padding:12px; }
 
 .berth-compartment {
   border:1.5px solid #e5e7eb; border-radius:10px;
@@ -547,9 +529,7 @@ body {
 
 .comp-avail-badge.avail-zero { background:#fef2f2; color:#991b1b; }
 
-.berth-seats-grid {
-  display:grid; grid-template-columns:repeat(3, 1fr); gap:5px; padding:8px;
-}
+.berth-seats-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:5px; padding:8px; }
 
 .berth-seat-btn {
   display:flex; flex-direction:column; align-items:center; gap:2px;
@@ -570,8 +550,15 @@ body {
   box-shadow:0 3px 10px rgba(147,51,234,0.4);
 }
 
+/* ── NEW: Locked by another user ─────────────── */
+.berth-seat-btn.berth-locked {
+  background:#fff3cd; border-color:#ffc107; color:#856404;
+  cursor:not-allowed; opacity:0.9;
+  animation:pulse-lock 2s ease-in-out infinite;
+}
+
 .berth-seat-btn.berth-booked,
-.berth-seat-btn[disabled] {
+.berth-seat-btn[disabled]:not(.berth-locked) {
   background:#fee2e2; color:#b91c1c; border-color:#fca5a5;
   cursor:not-allowed; opacity:0.65;
 }
@@ -590,10 +577,7 @@ body {
   min-width:0;
 }
 
-.bogie-card--chair { }
-
 .seat-grid-wrap { padding:10px 12px; overflow-x:auto; }
-
 .seat-grid { display:flex; flex-direction:column; gap:5px; }
 
 .driver-integrated-row {
@@ -651,10 +635,28 @@ body {
 
 .seat-btn.available { background:#dcfce7; color:#14532d; border:1.5px solid #86efac; }
 .seat-btn.available:hover { background:#16a34a; color:#fff; transform:scale(1.12); box-shadow:0 4px 10px rgba(22,163,74,0.35); }
+
 .seat-btn.selected  { background:#0f766e; color:#fff; border:1.5px solid #0d9488; box-shadow:0 3px 10px rgba(15,118,110,0.4); }
 .seat-btn.selected:hover { background:#0d9488; transform:scale(1.05); }
-.seat-btn.booked, .seat-btn[disabled] { background:#fee2e2; color:#b91c1c; border:1.5px solid #fca5a5; cursor:not-allowed; opacity:0.75; }
+
+/* ── NEW: Chair seat locked by another user ──── */
+.seat-btn.locked {
+  background:#fff3cd; color:#856404; border:1.5px solid #ffc107;
+  cursor:not-allowed;
+  animation:pulse-lock 2s ease-in-out infinite;
+}
+
+.seat-btn.booked, .seat-btn[disabled]:not(.locked) {
+  background:#fee2e2; color:#b91c1c; border:1.5px solid #fca5a5;
+  cursor:not-allowed; opacity:0.75;
+}
 .seat-btn.booked:hover { transform:none; box-shadow:none; }
+
+/* Pulse animation for locked seats (selected by another user) */
+@keyframes pulse-lock {
+  0%, 100% { opacity:0.9; box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+  50%       { opacity:1;   box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.25); }
+}
 
 /* ─────────────────────────────────────────────── */
 /*  LEGEND & DOT                                    */
@@ -665,6 +667,7 @@ body {
 .dot { display:inline-block; width:10px; height:10px; border-radius:50%; flex-shrink:0; }
 .dot.available { background:#22c55e; }
 .dot.selected  { background:#0f766e; }
+.dot.locked    { background:#f59e0b; }   /* ← NEW */
 .dot.booked    { background:#ef4444; }
 
 /* ─────────────────────────────────────────────── */
@@ -965,15 +968,6 @@ body {
 }
 
 .search-clear:hover { color:#ef4444; }
-
-.counter-location-badge {
-  font-size:0.72rem; font-weight:500; color:#0f766e;
-  background:#ccfbf1; border:1px solid #99f6e4;
-  border-radius:5px; padding:1px 6px; margin-left:5px;
-}
-
-.counter-location-hint { font-size:0.75rem; font-weight:500; color:#0f766e; margin-left:4px; }
-.counter-fallback-hint { display:block; margin-top:4px; font-size:0.7rem; color:#f59e0b; }
 
 .sort-arrow { font-size:11px; color:#9ca3af; margin-left:3px; }
 .sort-arrow--asc  { color:#0f766e; }

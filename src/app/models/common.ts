@@ -201,7 +201,11 @@ export interface UpdateOperatorDto {
 
 // ── Seat ──────────────────────────────────────────────────────────────────────
 
-export type SeatStatus = 'available' | 'selected' | 'reserved';
+export type SeatStatus =
+  | 'available'
+  | 'selected'
+  | 'reserved'
+  | 'locked';
 
 export interface SeatDto {
   id: number;
