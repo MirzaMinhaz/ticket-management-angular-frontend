@@ -230,6 +230,8 @@ export class VehicleComponent implements OnInit {
 
   // ─── Save (create or update) ──────────────────────────────────────────────
   save(): void {
+    const isBus = this.selectedVehicle.type === 'Bus';
+
     if (this.selectedVehicle.id > 0) {
       const updateDto: UpdateVehicleDto = {
         operatorCode: this.selectedOperatorCode,
@@ -238,9 +240,9 @@ export class VehicleComponent implements OnInit {
         licensePlate: this.selectedVehicle.licensePlate,
         capacity: this.selectedVehicle.capacity,
         isActive: this.selectedVehicle.isActive ?? true,
-        acType: this.selectedVehicle.acType,
-        busCategory: this.selectedVehicle.busCategory,
-        deckLevel: this.selectedVehicle.deckLevel,
+        acType: isBus ? this.selectedVehicle.acType : null,
+        busCategory: isBus ? this.selectedVehicle.busCategory : null,
+        deckLevel: isBus ? this.selectedVehicle.deckLevel : null,
       };
       this.vehicleService.update(this.selectedVehicle.id, updateDto).subscribe({
         next: () => {
@@ -262,9 +264,9 @@ export class VehicleComponent implements OnInit {
         model: this.selectedVehicle.model,
         licensePlate: this.selectedVehicle.licensePlate,
         capacity: this.selectedVehicle.capacity,
-        acType: this.selectedVehicle.acType,
-        busCategory: this.selectedVehicle.busCategory,
-        deckLevel: this.selectedVehicle.deckLevel,
+        acType: isBus ? this.selectedVehicle.acType : null,
+        busCategory: isBus ? this.selectedVehicle.busCategory : null,
+        deckLevel: isBus ? this.selectedVehicle.deckLevel : null,
       };
       this.vehicleService.create(createDto).subscribe({
         next: () => {

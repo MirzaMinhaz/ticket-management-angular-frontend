@@ -31,9 +31,9 @@ export interface Vehicle {
   licensePlate: string;
   capacity: number;
   vehicleCode: string;
-  acType: string;       // e.g., 'AC', 'Non AC'
-  busCategory: string;  // e.g., 'Single Decker', 'Sleeper'
-  deckLevel: string;    // e.g., 'Lower Deck', 'Upper Deck'
+  acType: string | null; // ← was: string
+  busCategory: string | null; // ← was: string
+  deckLevel: string | null; // ← was: string
   operatorId?: number;
   operatorCode?: string;
   operatorName?: string;
@@ -48,9 +48,9 @@ export interface CreateVehicleDto {
   model: string;
   licensePlate: string;
   capacity: number;
-  acType: string;
-  busCategory: string;
-  deckLevel: string;
+  acType: string | null; // ← was: string
+  busCategory: string | null; // ← was: string
+  deckLevel: string | null;
 }
 
 export interface UpdateVehicleDto {
@@ -60,9 +60,9 @@ export interface UpdateVehicleDto {
   licensePlate: string;
   capacity: number;
   isActive: boolean;
-  acType: string;
-  busCategory: string;
-  deckLevel: string;
+  acType: string | null; // ← was: string
+  busCategory: string | null; // ← was: string
+  deckLevel: string | null;
 }
 
 // ── Ticket ────────────────────────────────────────────────────────────────────
@@ -73,16 +73,16 @@ export interface TicketDto {
   ticketCode: string;
   passengerName: string;
   passengerContact: string;
-  seatNumber?: string | null;   // optional — seat may not be assigned yet
+  seatNumber?: string | null; // optional — seat may not be assigned yet
   seatCode?: string | null;
   farePaid: number;
   bookingDateTime: string;
   bookingCounterId: number;
   departureCounterId: number;
   arrivalCounterId: number;
-  status: string;               // 'Booked' | 'Cancelled'
+  status: string; // 'Booked' | 'Cancelled'
   createdAt?: string;
-  createdBy?: string;           // optional — set by backend
+  createdBy?: string; // optional — set by backend
   lastModifiedAt?: string | null;
   lastModifiedBy?: string | null;
 }
@@ -131,7 +131,7 @@ export interface CancelTicketDto {
 
 export interface TripDto {
   id: number;
-  scheduleId: number;   // ✅ this is what we need
+  scheduleId: number; // ✅ this is what we need
   tripDate: string;
   status: string;
   availableSeats: number;
@@ -139,7 +139,7 @@ export interface TripDto {
 
 export interface CreateTripDto {
   scheduleId: number;
-  tripDate: string;        // "YYYY-MM-DD"
+  tripDate: string; // "YYYY-MM-DD"
 }
 
 // ── Counter ───────────────────────────────────────────────────────────────────
@@ -201,11 +201,7 @@ export interface UpdateOperatorDto {
 
 // ── Seat ──────────────────────────────────────────────────────────────────────
 
-export type SeatStatus =
-  | 'available'
-  | 'selected'
-  | 'reserved'
-  | 'locked';
+export type SeatStatus = 'available' | 'selected' | 'reserved' | 'locked';
 
 export interface SeatDto {
   id: number;
