@@ -21,8 +21,8 @@ html, body {
   content: '';
   position: absolute;
   inset: 0;
-  background: url('/assets/img/login_12.jpeg') center/cover no-repeat;
-  filter: blur(1px);
+  background: url('/assets/img/login_20.jpeg') center/cover no-repeat;
+  filter: blur(0.5px);
   transform: scale(1.05); /* prevent edge gaps after blur */
   z-index: 0;
 }

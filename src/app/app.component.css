@@ -227,7 +227,6 @@
 @media (max-width: 900px) {
   .navbar-links { display: none; }
   .hamburger    { display: flex; }
-  .user-chip    { display: none; }
   .btn-text     { display: none; }
 }
 @media (max-width: 480px) {

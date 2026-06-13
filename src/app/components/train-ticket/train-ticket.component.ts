@@ -2,7 +2,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subscription } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
 import {
   TicketDto,
   CreateTicketDto,
@@ -296,60 +296,46 @@ export class TrainTicketComponent implements OnInit, OnDestroy {
   // ── Data loaders ─────────────────────────────────────────────────────────────
 
   private loadAll(): void {
-    this.routeService
-      .getAllRoutes()
-      .subscribe({
-        next: (d) => (this.routes = d),
-        error: (e) => console.error(e),
-      });
-    this.vehicleService
-      .getAll()
-      .subscribe({
-        next: (d) => (this.vehicles = d),
-        error: (e) => console.error(e),
-      });
-    this.operatorService
-      .getAll()
-      .subscribe({
-        next: (d) => (this.operators = d),
-        error: (e) => console.error(e),
-      });
-    this.scheduleService
-      .getAllSchedules()
-      .subscribe({
-        next: (d) => (this.schedules = d),
-        error: (e) => console.error(e),
-      });
-    this.ticketCounterService
-      .getAllTicketCounters()
-      .subscribe({
-        next: (d) => (this.counters = d),
-        error: (e) => console.error(e),
-      });
-    this.tripService
-      .getAll()
-      .subscribe({
-        next: (d) => (this.trips = d),
-        error: (e) => console.error(e),
-      });
-    this.locationService
-      .getAllLocations()
-      .subscribe({
-        next: (d) => (this.locations = d),
-        error: (e) => console.error(e),
-      });
-    this.loadTickets();
-  }
+  this.routeService.getAllRoutes().subscribe({ next: (d) => (this.routes = d), error: (e) => console.error(e) });
+  this.operatorService.getAll().subscribe({ next: (d) => (this.operators = d), error: (e) => console.error(e) });
+  this.scheduleService.getAllSchedules().subscribe({ next: (d) => (this.schedules = d), error: (e) => console.error(e) });
+  this.ticketCounterService.getAllTicketCounters().subscribe({ next: (d) => (this.counters = d), error: (e) => console.error(e) });
+  this.locationService.getAllLocations().subscribe({ next: (d) => (this.locations = d), error: (e) => console.error(e) });
+
+  // Load trips + vehicles first, then filter tickets that belong to Train vehicles
+  forkJoin({
+    trips: this.tripService.getAll(),
+    vehicles: this.vehicleService.getAll(),
+  }).subscribe({
+    next: ({ trips, vehicles }) => {
+      this.trips = trips;
+      this.vehicles = vehicles;
+      this.loadTickets(); // now trips & vehicles are guaranteed to be ready
+    },
+    error: (e) => console.error(e),
+  });
+}
 
   loadTickets(): void {
-    this.ticketService.getTickets().subscribe({
-      next: (d) => {
-        this.tickets = d as TrainTicketDto[];
-        this.updatePagination();
-      },
-      error: (e) => console.error(e),
-    });
-  }
+  this.ticketService.getTickets().subscribe({
+    next: (d) => {
+      const allTickets = d as TrainTicketDto[];
+
+      // Filter to only tickets whose trip links to a Train vehicle
+      this.tickets = allTickets.filter((ticket) => {
+        const trip = this.trips.find((t) => t.id === ticket.tripId);
+        if (!trip) return false;
+        const schedule = this.schedules.find((s) => s.id === trip.scheduleId);
+        if (!schedule) return false;
+        const vehicle = this.vehicles.find((v) => v.id === schedule.vehicleId);
+        return vehicle?.type === 'Train';
+      });
+
+      this.updatePagination();
+    },
+    error: (e) => console.error(e),
+  });
+}
 
   // ─────────────────────────────────────────────────────────────────────────────
   // TRAIN CLASS HELPERS
