@@ -232,3 +232,11 @@
 @media (max-width: 480px) {
   .navbar-container { padding: 0 14px; }
 }
+
+
+
+/* Customer navbar accent — distinguishes it from admin */
+.customer-navbar {
+  background: linear-gradient(90deg, #1a1a2e 0%, #16213e 100%);
+  border-bottom: 2px solid #f0a500;
+}

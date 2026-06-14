@@ -3,28 +3,27 @@
      class="toast"
      [class.success]="notificationType === 'success'"
      [class.error]="notificationType === 'error'">
-  <div class="toast-icon">{{ notificationType === 'success' ? '✓' : '!' }}</div>
+  <div class="toast-icon">{{ notificationType === 'success' ? '✔' : '!' }}</div>
   <span>{{ notification }}</span>
   <button class="toast-close" (click)="closeNotification()">×</button>
 </div>
 
-<!-- Navbar -->
-<nav class="navbar" *ngIf="showNavbar()">
+<!-- ═══════════════════════════════════════
+     ADMIN NAVBAR (Admin role only)
+════════════════════════════════════════ -->
+<nav class="navbar" *ngIf="showAdminNavbar()">
   <div class="navbar-container">
-    <a routerLink="/home" class="navbar-brand">
-      TMS
-    </a>
+    <a routerLink="/home" class="navbar-brand">TMS</a>
 
-    <!-- Desktop links -->
     <div class="navbar-links">
-      <a routerLink="/locations"           class="nav-link" routerLinkActive="active">Locations</a>
+      <a routerLink="/locations"             class="nav-link" routerLinkActive="active">Locations</a>
       <a routerLink="/ticket-counters/entry" class="nav-link" routerLinkActive="active">Ticket Counters</a>
-      <a routerLink="/vehicles"            class="nav-link" routerLinkActive="active">Vehicles</a>
-      <a routerLink="/ticket"              class="nav-link" routerLinkActive="active">Bus Tickets</a>
-      <a routerLink="/trainTicket"         class="nav-link" routerLinkActive="active">Train Tickets</a>
-      <a routerLink="/operators"           class="nav-link" routerLinkActive="active">Operators</a>
-      <a routerLink="/routes"              class="nav-link" routerLinkActive="active">Routes</a>
-      <a routerLink="/schedules"           class="nav-link" routerLinkActive="active">Schedules</a>
+      <a routerLink="/vehicles"              class="nav-link" routerLinkActive="active">Vehicles</a>
+      <a routerLink="/ticket"                class="nav-link" routerLinkActive="active">Bus Tickets</a>
+      <a routerLink="/trainTicket"           class="nav-link" routerLinkActive="active">Train Tickets</a>
+      <a routerLink="/operators"             class="nav-link" routerLinkActive="active">Operators</a>
+      <a routerLink="/routes"                class="nav-link" routerLinkActive="active">Routes</a>
+      <a routerLink="/schedules"             class="nav-link" routerLinkActive="active">Schedules</a>
     </div>
 
     <div class="navbar-right">
@@ -46,16 +45,16 @@
     </div>
   </div>
 
-  <!-- Mobile dropdown -->
+  <!-- Admin Mobile dropdown -->
   <div class="mobile-menu" [class.open]="mobileMenuOpen">
-    <a routerLink="/locations"            class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Locations</a>
+    <a routerLink="/locations"             class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Locations</a>
     <a routerLink="/ticket-counters/entry" class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Ticket Counters</a>
-    <a routerLink="/vehicles"             class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Vehicles</a>
-    <a routerLink="/ticket"               class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Bus Tickets</a>
-    <a routerLink="/trainTicket"          class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Train Tickets</a>
-    <a routerLink="/operators"            class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Operators</a>
-    <a routerLink="/routes"               class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Routes</a>
-    <a routerLink="/schedules"            class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Schedules</a>
+    <a routerLink="/vehicles"              class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Vehicles</a>
+    <a routerLink="/ticket"                class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Bus Tickets</a>
+    <a routerLink="/trainTicket"           class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Train Tickets</a>
+    <a routerLink="/operators"             class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Operators</a>
+    <a routerLink="/routes"                class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Routes</a>
+    <a routerLink="/schedules"             class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Schedules</a>
     <div class="mobile-menu-bottom">
       <div class="user-chip" *ngIf="getLoggedInUser()">
         <div class="user-avatar">{{ getLoggedInUser()?.charAt(0)?.toUpperCase() }}</div>
@@ -73,6 +72,64 @@
   </div>
 </nav>
 
-<main class="main-content" [class.with-navbar]="showNavbar()">
+<!-- ═══════════════════════════════════════
+     CUSTOMER NAVBAR (Customer role only)
+════════════════════════════════════════ -->
+<nav class="navbar customer-navbar" *ngIf="showCustomerNavbar()">
+  <div class="navbar-container">
+    <a routerLink="/customer/home" class="navbar-brand">
+      🎫 <span style="color:#f0a500">TMS</span>
+    </a>
+
+    <div class="navbar-links">
+      <a routerLink="/customer/bus-booking"   class="nav-link" routerLinkActive="active">🚌 Bus Tickets</a>
+      <a routerLink="/customer/train-booking" class="nav-link" routerLinkActive="active">🚆 Train Tickets</a>
+      <a routerLink="/customer/my-tickets"    class="nav-link" routerLinkActive="active">🎟️ My Tickets</a>
+      <a routerLink="/customer/profile"       class="nav-link" routerLinkActive="active">👤 Profile</a>
+    </div>
+
+    <div class="navbar-right">
+      <div class="user-chip" *ngIf="getLoggedInUser()">
+        <div class="user-avatar">{{ getLoggedInUser()?.charAt(0)?.toUpperCase() }}</div>
+        <span class="user-name">{{ getLoggedInUser() }}</span>
+      </div>
+      <button class="logout-btn" (click)="logout()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        <span class="btn-text">Logout</span>
+      </button>
+      <button class="hamburger" [class.open]="mobileMenuOpen" (click)="toggleMobileMenu()" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Customer Mobile dropdown -->
+  <div class="mobile-menu" [class.open]="mobileMenuOpen">
+    <a routerLink="/customer/bus-booking"   class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">🚌 Bus Tickets</a>
+    <a routerLink="/customer/train-booking" class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">🚆 Train Tickets</a>
+    <a routerLink="/customer/my-tickets"    class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">🎟️ My Tickets</a>
+    <a routerLink="/customer/profile"       class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">👤 Profile</a>
+    <div class="mobile-menu-bottom">
+      <div class="user-chip" *ngIf="getLoggedInUser()">
+        <div class="user-avatar">{{ getLoggedInUser()?.charAt(0)?.toUpperCase() }}</div>
+        <span class="user-name">{{ getLoggedInUser() }}</span>
+      </div>
+      <button class="logout-btn" (click)="logout()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        Logout
+      </button>
+    </div>
+  </div>
+</nav>
+
+<main class="main-content" [class.with-navbar]="showAdminNavbar() || showCustomerNavbar()">
   <router-outlet></router-outlet>
 </main>

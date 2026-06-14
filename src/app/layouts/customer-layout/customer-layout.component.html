@@ -1,0 +1,32 @@
+<div class="c-shell">
+  <nav class="c-nav">
+    <div class="c-brand">🎫 <span>TMS</span></div>
+
+    <ul class="c-links">
+      <li><a routerLink="/customer/bus-booking"   routerLinkActive="active">🚌 Bus Tickets</a></li>
+      <li><a routerLink="/customer/train-booking" routerLinkActive="active">🚆 Train Tickets</a></li>
+      <li><a routerLink="/customer/my-tickets"    routerLinkActive="active">🎟️ My Tickets</a></li>
+      <li><a routerLink="/customer/profile"       routerLinkActive="active">👤 Profile</a></li>
+    </ul>
+
+    <div class="c-actions">
+      <span class="c-greeting">Hi, {{ username }}</span>
+      <button class="c-logout" (click)="logout()">Logout</button>
+      <button class="c-burger" (click)="toggleMenu()">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="c-mobile" [class.open]="menuOpen">
+    <a routerLink="/customer/bus-booking"   (click)="menuOpen=false">🚌 Bus Tickets</a>
+    <a routerLink="/customer/train-booking" (click)="menuOpen=false">🚆 Train Tickets</a>
+    <a routerLink="/customer/my-tickets"    (click)="menuOpen=false">🎟️ My Tickets</a>
+    <a routerLink="/customer/profile"       (click)="menuOpen=false">👤 Profile</a>
+    <a (click)="logout()">🚪 Logout</a>
+  </div>
+
+  <main class="c-content">
+    <router-outlet />
+  </main>
+</div>

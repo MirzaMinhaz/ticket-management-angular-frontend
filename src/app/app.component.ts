@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { NotificationService } from './services/notification.service';
+import { getUserRole } from './utils/auth.utils';
 
 @Component({
   selector: 'app-root',
@@ -22,9 +23,7 @@ export class AppComponent {
     this.checkSessionInterval();
   }
 
-  toggleMobileMenu() {
-    this.mobileMenuOpen = !this.mobileMenuOpen;
-  }
+  toggleMobileMenu() { this.mobileMenuOpen = !this.mobileMenuOpen; }
 
   setupActivityListener() {
     const updateActivity = () => localStorage.setItem('lastActivity', Date.now().toString());
@@ -49,17 +48,35 @@ export class AppComponent {
     return localStorage.getItem('username');
   }
 
-  showNavbar() {
-    return !!localStorage.getItem('jwtToken');
+  isAdmin(): boolean {
+    return getUserRole() === 'Admin';
   }
 
-  closeNotification() {
-    this.notify.clear();
+  isCustomer(): boolean {
+    return getUserRole() === 'Customer';
   }
+
+  // Show admin navbar only on admin routes
+  showAdminNavbar(): boolean {
+    return !!localStorage.getItem('jwtToken') && this.isAdmin();
+  }
+
+  // Show customer navbar only on customer routes
+  showCustomerNavbar(): boolean {
+    return !!localStorage.getItem('jwtToken') && this.isCustomer();
+  }
+
+  closeNotification() { this.notify.clear(); }
 
   logout() {
-    localStorage.removeItem('jwtToken');
+    const role = getUserRole();
+    localStorage.clear();
     this.notify.show('Logout successful!', 'success');
-    this.router.navigate(['/']);
+    // Each role goes back to their own login page
+    if (role === 'Customer') {
+      this.router.navigate(['/customer/login']);
+    } else {
+      this.router.navigate(['/']);
+    }
   }
 }
