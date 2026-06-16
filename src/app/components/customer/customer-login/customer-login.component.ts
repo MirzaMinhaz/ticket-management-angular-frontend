@@ -20,7 +20,7 @@ export class CustomerLoginComponent {
   loading = false;
 
   loginData = { username: '', password: '' };
-  registerData = { username: '', email: '', phone: '', password: '' };
+  registerData = { username: '', email: '', password: '', confirmPassword: '' };
 
   constructor(
     private http: HttpClient,
@@ -36,47 +36,73 @@ export class CustomerLoginComponent {
   togglePassword() { this.showPassword = !this.showPassword; }
 
   onLogin() {
+    if (!this.loginData.username || !this.loginData.password) {
+      this.notify.show('Please fill in all fields.', 'error');
+      return;
+    }
+
     this.loading = true;
-    this.http.post('https://localhost:7139/api/Auth/login', this.loginData)
-      .subscribe({
-        next: (res: any) => {
-          localStorage.setItem('jwtToken', res.token);
-          localStorage.setItem('username', res.username);
-          localStorage.setItem('lastActivity', Date.now().toString());
-          const role = getUserRole();
-          if (role === 'Customer') {
-            this.notify.show('Login successful!', 'success');
-            this.router.navigate(['/customer/home']);
-          } else {
-            this.notify.show('This portal is for customers only.', 'error');
-            localStorage.clear();
-          }
-          this.loading = false;
-        },
-        error: err => {
-          this.notify.show(
-            err.status === 0 ? 'Server unreachable.' : 'Incorrect username or password.',
-            'error'
-          );
-          this.loading = false;
+    this.http.post('https://localhost:7139/api/Auth/login', {
+      username: this.loginData.username,
+      password: this.loginData.password
+    }).subscribe({
+      next: (res: any) => {
+        localStorage.setItem('jwtToken', res.token);
+        localStorage.setItem('username', res.username);
+        localStorage.setItem('lastActivity', Date.now().toString());
+
+        const role = getUserRole();
+        if (role === 'Customer') {
+          this.notify.show('Welcome back, ' + res.username + '!', 'success');
+          this.router.navigate(['/customer/home']);
+        } else {
+          // Admin accidentally used customer login
+          this.notify.show('Please use the Admin login portal.', 'error');
+          localStorage.clear();
         }
-      });
+        this.loading = false;
+      },
+      error: err => {
+        this.notify.show(
+          err.status === 0 ? 'Server unreachable. Try again later.' : 'Incorrect username or password.',
+          'error'
+        );
+        this.loading = false;
+      }
+    });
   }
 
   onRegister() {
-    this.loading = true;
-    this.http.post('https://localhost:7139/api/Auth/register', this.registerData)
-      .subscribe({
-        next: () => {
-          this.notify.show('Account created! Please login.', 'success');
-          this.registerData = { username: '', email: '', phone: '', password: '' };
-          this.isLogin = true;
-          this.loading = false;
-        },
-        error: err => {
-          this.notify.show(err.error || 'Registration failed.', 'error');
-          this.loading = false;
-        }
-      });
+  if (!this.registerData.username || !this.registerData.email || !this.registerData.password) {
+    this.notify.show('Please fill in all fields.', 'error');
+    return;
   }
+  if (this.registerData.password !== this.registerData.confirmPassword) {
+    this.notify.show('Passwords do not match.', 'error');
+    return;
+  }
+  if (this.registerData.password.length < 6) {
+    this.notify.show('Password must be at least 6 characters.', 'error');
+    return;
+  }
+
+  this.loading = true;
+  this.http.post('https://localhost:7139/api/Auth/register-customer', {
+    username: this.registerData.username,
+    email: this.registerData.email,
+    password: this.registerData.password
+  }).subscribe({
+    next: () => {
+      this.notify.show('Account created! You can now login.', 'success');
+      this.registerData = { username: '', email: '', password: '', confirmPassword: '' };
+      this.isLogin = true;
+      this.loading = false;
+    },
+    error: err => {
+      const msg = typeof err.error === 'string' ? err.error : 'Registration failed. Try a different username or email.';
+      this.notify.show(msg, 'error');
+      this.loading = false;
+    }
+  });
+}
 }

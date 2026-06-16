@@ -10,27 +10,33 @@
     <!-- Auth Card -->
     <div class="auth-container">
       <div class="tabs">
-        <button [class.active]="isLogin" (click)="switchTab(true)">Login</button>
+        <button [class.active]="isLogin"  (click)="switchTab(true)">Login</button>
         <button [class.active]="!isLogin" (click)="switchTab(false)">Register</button>
       </div>
 
-      <!-- Login Form -->
+      <!-- ── LOGIN FORM ── -->
       <form *ngIf="isLogin" (ngSubmit)="onLogin()" class="auth-form">
-        <input type="text" [(ngModel)]="loginData.username" name="username"
-               placeholder="Username" required>
+
+        <input type="text"
+               [(ngModel)]="loginData.username"
+               name="username"
+               placeholder="Username"
+               required>
 
         <div class="password-wrapper">
           <input [type]="showPassword ? 'text' : 'password'"
-                 [(ngModel)]="loginData.password" name="password"
-                 placeholder="Password" required>
+                 [(ngModel)]="loginData.password"
+                 name="password"
+                 placeholder="Password"
+                 required>
           <span class="toggle-eye" (click)="togglePassword()">
-            <i class="{{ showPassword ? 'fas fa-eye-slash' : 'fas fa-eye' }}"></i>
+            <i [class]="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
           </span>
         </div>
 
         <label class="remember-option">
           <input type="checkbox" [(ngModel)]="rememberPassword" name="rememberPassword">
-          Remember password
+          Remember me
         </label>
 
         <button type="submit" class="submit" [disabled]="loading">
@@ -41,22 +47,38 @@
         <p class="alt-link">Admin? <a routerLink="/">Go to Admin Login →</a></p>
       </form>
 
-      <!-- Register Form -->
+      <!-- ── REGISTER FORM ── -->
       <form *ngIf="!isLogin" (ngSubmit)="onRegister()" class="auth-form">
-        <input type="text" [(ngModel)]="registerData.username" name="username"
-               placeholder="Username" required>
-        <input type="email" [(ngModel)]="registerData.email" name="email"
-               placeholder="Email" required>
-        <input type="text" [(ngModel)]="registerData.phone" name="phone"
-               placeholder="Phone Number">
+
+        <input type="text"
+               [(ngModel)]="registerData.username"
+               name="username"
+               placeholder="Username"
+               required>
+
+        <input type="email"
+               [(ngModel)]="registerData.email"
+               name="email"
+               placeholder="Email address"
+               required>
 
         <div class="password-wrapper">
           <input [type]="showPassword ? 'text' : 'password'"
-                 [(ngModel)]="registerData.password" name="password"
-                 placeholder="Password" required>
+                 [(ngModel)]="registerData.password"
+                 name="password"
+                 placeholder="Password (min. 6 characters)"
+                 required>
           <span class="toggle-eye" (click)="togglePassword()">
-            <i class="{{ showPassword ? 'fas fa-eye-slash' : 'fas fa-eye' }}"></i>
+            <i [class]="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
           </span>
+        </div>
+
+        <div class="password-wrapper">
+          <input [type]="showPassword ? 'text' : 'password'"
+                 [(ngModel)]="registerData.confirmPassword"
+                 name="confirmPassword"
+                 placeholder="Confirm password"
+                 required>
         </div>
 
         <button type="submit" class="submit" [disabled]="loading">
@@ -68,7 +90,7 @@
           <a (click)="switchTab(true)" style="cursor:pointer">Login →</a>
         </p>
       </form>
-    </div>
 
+    </div>
   </div>
 </div>

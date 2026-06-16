@@ -1,12 +1,5 @@
-/* ── Reset ── */
-html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  width: 100%;
-}
+html, body { height: 100%; margin: 0; padding: 0; width: 100%; }
 
-/* ── Background (same image, same blur) ── */
 .auth-page {
   position: relative;
   height: 100vh;
@@ -26,7 +19,6 @@ html, body {
   z-index: 0;
 }
 
-/* ── Layout ── */
 .column-layout {
   display: flex;
   flex-direction: column;
@@ -37,7 +29,7 @@ html, body {
   z-index: 1;
 }
 
-/* ── Welcome Card (customer accent: amber instead of gold) ── */
+/* Welcome card — navy theme */
 .welcome-card {
   width: 400px;
   background: linear-gradient(135deg, #1a1a2e, #0f3460);
@@ -45,7 +37,7 @@ html, body {
   border-radius: 14px;
   padding: 40px 25px;
   text-align: center;
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 12px 35px rgba(0,0,0,0.35);
   border: 2px solid #f0a500;
 }
 .welcome-title {
@@ -55,7 +47,7 @@ html, body {
   margin: 0;
   letter-spacing: 1px;
   color: #f0a500;
-  text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.6);
+  text-shadow: 2px 2px 6px rgba(0,0,0,0.6);
 }
 .tagline {
   font-size: 15px;
@@ -65,16 +57,16 @@ html, body {
   letter-spacing: 0.5px;
 }
 
-/* ── Auth Card ── */
+/* Auth card */
 .auth-container {
   width: 350px;
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255,255,255,0.95);
   border-radius: 12px;
   padding: 30px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
 
-/* ── Tabs (customer accent: amber) ── */
+/* Tabs — amber accent */
 .tabs {
   display: flex;
   justify-content: space-around;
@@ -97,7 +89,7 @@ html, body {
   font-weight: bold;
 }
 
-/* ── Form ── */
+/* Form inputs */
 .auth-form {
   display: flex;
   flex-direction: column;
@@ -105,9 +97,9 @@ html, body {
 .auth-form input[type="text"],
 .auth-form input[type="email"],
 .auth-form input[type="password"] {
-  margin: 10px 0;
+  margin: 8px 0;
   padding: 12px;
-  border: 1px solid #ccc;
+  border: 1.5px solid #ccc;
   border-radius: 8px;
   font-size: 14px;
   outline: none;
@@ -115,37 +107,14 @@ html, body {
   box-sizing: border-box;
   width: 100%;
 }
-.auth-form input:focus {
-  border-color: #f0a500;
-}
+.auth-form input:focus { border-color: #f0a500; }
 
-/* ── Submit button ── */
-.submit {
-  margin-top: 15px;
-  padding: 12px;
-  background: #f0a500;
-  color: #1a1a2e;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 15px;
-  transition: background 0.2s;
-}
-.submit:hover:not(:disabled) {
-  background: #e09400;
-}
-.submit:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* ── Password wrapper ── */
+/* Password wrapper */
 .password-wrapper {
+  position: relative;
   display: flex;
   align-items: center;
-  position: relative;
-  margin: 10px 0;
+  margin: 8px 0;
 }
 .password-wrapper input {
   flex: 1;
@@ -160,13 +129,13 @@ html, body {
   font-size: 14px;
 }
 
-/* ── Remember & alt link ── */
+/* Remember + alt link */
 .remember-option {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin: 10px 0;
-  font-size: 0.9em;
+  margin: 8px 0;
+  font-size: 0.88em;
   color: #555;
 }
 .alt-link {
@@ -180,28 +149,35 @@ html, body {
   font-weight: 600;
   text-decoration: none;
 }
-.alt-link a:hover {
-  text-decoration: underline;
-}
+.alt-link a:hover { text-decoration: underline; }
 
-/* ── Spinner ── */
+/* Submit button — amber */
+.submit {
+  margin-top: 14px;
+  padding: 12px;
+  background: #f0a500;
+  color: #1a1a2e;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 15px;
+  transition: background 0.2s;
+}
+.submit:hover:not(:disabled) { background: #e09400; }
+.submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* Spinner */
 .spinner {
   display: inline-block;
-  width: 18px;
-  height: 18px;
+  width: 18px; height: 18px;
   border: 2px solid #1a1a2e;
   border-top-color: transparent;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
+@keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── Responsive ── */
 @media (max-width: 400px) {
-  .welcome-card,
-  .auth-container {
-    width: 90%;
-  }
+  .welcome-card, .auth-container { width: 90%; }
 }

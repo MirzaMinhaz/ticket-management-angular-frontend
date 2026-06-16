@@ -60,8 +60,8 @@ export const routes: Routes = [
     children: [
       { path: 'home',           component: CustomerHomeComponent },
       // Add more customer pages here as you build them:
-      // { path: 'bus-booking',    component: CustomerBusBookingComponent },
-      // { path: 'train-booking',  component: CustomerTrainBookingComponent },
+      { path: 'bus-booking',    component: TicketComponent },
+      { path: 'train-booking',  component: TrainTicketComponent },
       // { path: 'my-tickets',     component: CustomerMyTicketsComponent },
       // { path: 'profile',        component: CustomerProfileComponent },
     ]

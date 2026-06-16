@@ -58,13 +58,22 @@ export class AppComponent {
 
   // Show admin navbar only on admin routes
   showAdminNavbar(): boolean {
-    return !!localStorage.getItem('jwtToken') && this.isAdmin();
-  }
+  const hiddenRoutes = ['/', '/customer/login'];
+  return (
+    !!localStorage.getItem('jwtToken') &&
+    this.isAdmin() &&
+    !hiddenRoutes.includes(this.router.url)
+  );
+}
 
-  // Show customer navbar only on customer routes
-  showCustomerNavbar(): boolean {
-    return !!localStorage.getItem('jwtToken') && this.isCustomer();
-  }
+showCustomerNavbar(): boolean {
+  const hiddenRoutes = ['/', '/customer/login'];
+  return (
+    !!localStorage.getItem('jwtToken') &&
+    this.isCustomer() &&
+    !hiddenRoutes.includes(this.router.url)
+  );
+}
 
   closeNotification() { this.notify.clear(); }
 

@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { NotificationService } from '../../services/notification.service';
 import { getUserRole } from '../../utils/auth.utils';
 
@@ -11,7 +11,7 @@ import { getUserRole } from '../../utils/auth.utils';
   standalone: true,
   templateUrl: './auth.component.html',
   styleUrls: ['./auth.component.css'],
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule, RouterLink],
 })
 export class AuthComponent {
   isLogin = true;
@@ -66,9 +66,6 @@ export class AuthComponent {
       .subscribe({
         next: (res: any) => {
           localStorage.setItem('jwtToken', res.token);
-          // TEMP DEBUG - remove after fixing
-          const payload = JSON.parse(atob(res.token.split('.')[1]));
-          console.log('JWT Payload:', payload);
           localStorage.setItem('username', res.username);
           localStorage.setItem('lastActivity', Date.now().toString());
           this.notify.show('Login successful!', 'success');
