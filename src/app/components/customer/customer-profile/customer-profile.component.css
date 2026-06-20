@@ -3,17 +3,35 @@
   justify-content: center;
   padding: 2rem 1rem;
 }
+
 .profile-card {
+  position: relative;
   background: #fff;
-  border-radius: 16px;
+  border-radius: 20px;
   padding: 2.5rem 2rem;
   max-width: 420px;
   width: 100%;
   text-align: center;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  box-shadow: 0 8px 28px rgba(26, 26, 46, 0.1);
+  overflow: hidden;
+  animation: cardIn 0.35s ease;
 }
+
+.glow {
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 160px;
+  height: 160px;
+  background: radial-gradient(circle, rgba(240, 165, 0, 0.25), transparent 70%);
+  filter: blur(8px);
+  pointer-events: none;
+}
+
 .avatar-circle {
-  width: 80px; height: 80px;
+  position: relative;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   background: linear-gradient(135deg, #f0a500, #e67e22);
   color: #1a1a2e;
@@ -22,10 +40,67 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 1rem;
+  margin: 0 auto 0.75rem;
+  box-shadow: 0 6px 18px rgba(240, 165, 0, 0.35);
 }
-h2 { color: #1a1a2e; margin: 0.5rem 0 0; }
-.subtitle { color: #888; font-size: 0.9rem; margin-bottom: 1.5rem; }
+
+.role-badge {
+  display: inline-block;
+  background: #f4f4f8;
+  color: #1a1a2e;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 3px 12px;
+  border-radius: 999px;
+  margin-bottom: 0.5rem;
+}
+
+.role-badge.role-admin {
+  background: #1a1a2e;
+  color: #f0a500;
+}
+
+h2 { color: #1a1a2e; margin: 0.4rem 0 0; }
+.subtitle { color: #888; font-size: 0.88rem; margin-bottom: 1rem; }
+
+.code-chip {
+  position: relative;
+  background: #f7f7fa;
+  border: 1px solid #ececf2;
+  border-radius: 10px;
+  padding: 6px 14px;
+  font-family: monospace;
+  font-size: 0.8rem;
+  color: #1a1a2e;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 1.25rem;
+  transition: background 0.2s;
+}
+.code-chip:hover { background: #efeff5; }
+
+.code-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #e67e22;
+}
+
+.copy-feedback {
+  position: absolute;
+  top: -26px;
+  right: 0;
+  background: #f0a500;
+  color: #1a1a2e;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  animation: fadeUp 0.2s ease;
+}
 
 .info-grid {
   display: flex;
@@ -35,11 +110,15 @@ h2 { color: #1a1a2e; margin: 0.5rem 0 0; }
   border-top: 1px solid #eee;
   padding-top: 1.25rem;
 }
+
 .info-row {
   display: flex;
   justify-content: space-between;
   font-size: 0.92rem;
 }
+
+.info-row.highlight .value { color: #e67e22; }
+
 .label { color: #888; }
 .value { color: #1a1a2e; font-weight: 600; }
 
@@ -48,4 +127,28 @@ h2 { color: #1a1a2e; margin: 0.5rem 0 0; }
   font-size: 0.82rem;
   color: #aaa;
   font-style: italic;
+}
+
+/* Skeleton loading state */
+.skeleton .line, .skeleton .avatar-circle {
+  background: #eee;
+}
+.shimmer {
+  background: linear-gradient(90deg, #eee 25%, #f5f5f5 50%, #eee 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 8px;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(1); }
 }

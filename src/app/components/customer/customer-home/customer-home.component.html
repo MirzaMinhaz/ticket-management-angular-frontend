@@ -1,0 +1,190 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+
+<div class="ch-page">
+
+  <!-- ─── GREETING ─────────────────────────────────────── -->
+  <header class="ch-greeting">
+    <p class="ch-eyebrow">Customer Portal</p>
+    <h1 class="ch-heading">Where do you want<br>to go today?</h1>
+    <p class="ch-sub">Pick a way to travel — we'll have you booked in under a minute.</p>
+  </header>
+
+  <!-- ─── TICKET SELECTOR ──────────────────────────────── -->
+  <section class="ch-selector">
+
+    <a routerLink="/customer/bus-booking" class="ch-pass ch-pass--bus">
+      <div class="ch-pass__notch ch-pass__notch--l"></div>
+      <div class="ch-pass__notch ch-pass__notch--r"></div>
+
+      <div class="ch-pass__top">
+        <div class="ch-pass__icon">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 16V7a2 2 0 012-2h12a2 2 0 012 2v9M4 16a2 2 0 002 2h12a2 2 0 002-2M4 16h16M7 11h10M7 5v6M17 5v6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            <circle cx="7.5" cy="18.5" r="1.3" fill="currentColor"/>
+            <circle cx="16.5" cy="18.5" r="1.3" fill="currentColor"/>
+          </svg>
+        </div>
+        <span class="ch-pass__badge">Most booked</span>
+      </div>
+
+      <h2 class="ch-pass__title">Bus Tickets</h2>
+      <p class="ch-pass__desc">AC &amp; Non-AC coaches across 60+ routes nationwide.</p>
+
+      <div class="ch-pass__divider">
+        <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+
+      <div class="ch-pass__footer">
+        <span>Book a seat</span>
+        <span class="ch-pass__arrow">→</span>
+      </div>
+    </a>
+
+    <a routerLink="/customer/train-booking" class="ch-pass ch-pass--train">
+      <div class="ch-pass__notch ch-pass__notch--l"></div>
+      <div class="ch-pass__notch ch-pass__notch--r"></div>
+
+      <div class="ch-pass__top">
+        <div class="ch-pass__icon">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="5" y="3" width="14" height="14" rx="3" stroke="currentColor" stroke-width="1.6"/>
+            <path d="M5 11h14M9 3v8M15 3v8" stroke="currentColor" stroke-width="1.6"/>
+            <path d="M7 21l2-3h6l2 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            <circle cx="8.5" cy="14" r="1" fill="currentColor"/>
+            <circle cx="15.5" cy="14" r="1" fill="currentColor"/>
+          </svg>
+        </div>
+        <span class="ch-pass__badge ch-pass__badge--alt">New routes</span>
+      </div>
+
+      <h2 class="ch-pass__title">Train Tickets</h2>
+      <p class="ch-pass__desc">Comfortable intercity rail with reserved seating.</p>
+
+      <div class="ch-pass__divider">
+        <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+
+      <div class="ch-pass__footer">
+        <span>Book a seat</span>
+        <span class="ch-pass__arrow">→</span>
+      </div>
+    </a>
+
+  </section>
+
+  <!-- ─── DESTINATIONS — POLAROID CAROUSEL ─────────────── -->
+  <section class="ch-destinations">
+    <p class="ch-eyebrow ch-eyebrow--center">Popular routes</p>
+    <h3 class="ch-section-heading">Snapshots from the road</h3>
+
+    <div class="ch-polaroid-wrap">
+      <div class="ch-polaroid-track">
+        <a routerLink="/customer/bus-booking"
+           class="ch-polaroid"
+           *ngFor="let d of destinations; let i = index"
+           [style.--tilt]="(i % 2 === 0 ? -3 : 3) + 'deg'">
+          <span class="ch-polaroid__tape"></span>
+          <img [src]="d.img" [alt]="d.name" class="ch-polaroid__img">
+          <span class="ch-polaroid__tag" *ngIf="d.tag">{{ d.tag }}</span>
+          <div class="ch-polaroid__caption">
+            <span class="ch-polaroid__name">{{ d.name }}</span>
+            <span class="ch-polaroid__routes">{{ d.routes }}</span>
+          </div>
+        </a>
+        <!-- duplicate set for seamless loop -->
+        <a routerLink="/customer/bus-booking"
+           class="ch-polaroid"
+           *ngFor="let d of destinations; let i = index"
+           [style.--tilt]="(i % 2 === 0 ? -3 : 3) + 'deg'">
+          <span class="ch-polaroid__tape"></span>
+          <img [src]="d.img" [alt]="d.name" class="ch-polaroid__img">
+          <span class="ch-polaroid__tag" *ngIf="d.tag">{{ d.tag }}</span>
+          <div class="ch-polaroid__caption">
+            <span class="ch-polaroid__name">{{ d.name }}</span>
+            <span class="ch-polaroid__routes">{{ d.routes }}</span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── TESTIMONIALS ─────────────────────────────────── -->
+  <section class="ch-testimonials">
+    <p class="ch-eyebrow ch-eyebrow--center">Traveller stories</p>
+    <h3 class="ch-section-heading">Real trips, real feedback</h3>
+
+    <div class="ch-testi-grid">
+      <div class="ch-testi"
+           [class.ch-testi--large]="t.large"
+           *ngFor="let t of testimonials">
+        <div class="ch-testi__stars">★★★★★</div>
+        <p class="ch-testi__quote">"{{ t.quote }}"</p>
+        <div class="ch-testi__author">
+          <div class="ch-testi__avatar">{{ t.avatar }}</div>
+          <div>
+            <div class="ch-testi__name">{{ t.name }}</div>
+            <div class="ch-testi__loc">📍 {{ t.loc }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── PERKS ────────────────────────────────────────── -->
+  <section class="ch-perks">
+    <div class="ch-perk">
+      <span class="ch-perk__icon">⚡</span>
+      <p>Instant booking</p>
+    </div>
+    <div class="ch-perk">
+      <span class="ch-perk__icon">🔒</span>
+      <p>Secure payment</p>
+    </div>
+    <div class="ch-perk">
+      <span class="ch-perk__icon">🎧</span>
+      <p>24/7 support</p>
+    </div>
+  </section>
+
+  <!-- ─── FOOTER (CUSTOMER BAR) ───────────────────────────
+  <footer class="ch-footer">
+    <div class="ch-footer__top">
+      <div class="ch-footer__brand">
+        <span class="ch-footer__logo">TMS</span>
+        <p class="ch-footer__tagline">Your trusted travel companion across Bangladesh.</p>
+      </div>
+
+      <div class="ch-footer__col">
+        <h4>Account</h4>
+        <ul>
+          <li><a routerLink="/customer/profile">My Profile</a></li>
+          <li><a routerLink="/customer/bus-booking">My Bookings</a></li>
+          <li><a href="#">Saved Routes</a></li>
+        </ul>
+      </div>
+
+      <div class="ch-footer__col">
+        <h4>Support</h4>
+        <ul>
+          <li><a href="#">Help Center</a></li>
+          <li><a href="#">Refund Policy</a></li>
+          <li><a href="#">Contact Us</a></li>
+        </ul>
+      </div>
+
+      <div class="ch-footer__social">
+        <a href="#" aria-label="Facebook">f</a>
+        <a href="#" aria-label="Instagram">◎</a>
+        <a href="#" aria-label="Twitter">𝕏</a>
+      </div>
+    </div>
+
+    <div class="ch-footer__bottom">
+      <span>© {{ currentYear }} TMS. All rights reserved.</span>
+      <span class="ch-footer__version">Customer Portal v1.0</span>
+    </div>
+  </footer> -->
+
+</div>

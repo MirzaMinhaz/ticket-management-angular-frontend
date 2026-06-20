@@ -1,12 +1,12 @@
 <div class="c-shell">
   <nav class="c-nav">
-    <div class="c-brand">🎫 <span>TMS</span></div>
+    <a routerLink="/customer/home" class="c-brand">🎫 <span>TMS</span></a>
 
     <ul class="c-links">
-      <li><a routerLink="/customer/bus-booking"   routerLinkActive="active">🚌 Bus Tickets</a></li>
+      <li><a routerLink="/customer/bus-booking" routerLinkActive="active">🚌 Bus Tickets</a></li>
       <li><a routerLink="/customer/train-booking" routerLinkActive="active">🚆 Train Tickets</a></li>
-      <li><a routerLink="/customer/my-tickets"    routerLinkActive="active">🎟️ My Tickets</a></li>
-      <li><a routerLink="/customer/profile"       routerLinkActive="active">👤 Profile</a></li>
+      <li><a routerLink="/customer/my-tickets" routerLinkActive="active">🎟️ My Tickets</a></li>
+      <li><a routerLink="/customer/profile" routerLinkActive="active">👤 Profile</a></li>
     </ul>
 
     <div class="c-actions">
@@ -19,14 +19,16 @@
   </nav>
 
   <div class="c-mobile" [class.open]="menuOpen">
-    <a routerLink="/customer/bus-booking"   (click)="menuOpen=false">🚌 Bus Tickets</a>
+    <a routerLink="/customer/bus-booking" (click)="menuOpen=false">🚌 Bus Tickets</a>
     <a routerLink="/customer/train-booking" (click)="menuOpen=false">🚆 Train Tickets</a>
-    <a routerLink="/customer/my-tickets"    (click)="menuOpen=false">🎟️ My Tickets</a>
-    <a routerLink="/customer/profile"       (click)="menuOpen=false">👤 Profile</a>
+    <a routerLink="/customer/my-tickets" (click)="menuOpen=false">🎟️ My Tickets</a>
+    <a routerLink="/customer/profile" (click)="menuOpen=false">👤 Profile</a>
     <a (click)="logout()">🚪 Logout</a>
   </div>
 
   <main class="c-content">
     <router-outlet />
   </main>
+
+  <app-customer-footer></app-customer-footer>
 </div>

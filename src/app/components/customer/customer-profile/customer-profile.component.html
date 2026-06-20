@@ -1,24 +1,52 @@
 <div class="profile-wrap">
-  <div class="profile-card">
-    <div class="avatar-circle">{{ getInitial() }}</div>
-    <h2>{{ username }}</h2>
-    <p class="subtitle">Customer Account</p>
+
+  <!-- Loading skeleton -->
+  <div class="profile-card skeleton" *ngIf="loading">
+    <div class="avatar-circle shimmer"></div>
+    <div class="line shimmer" style="width: 140px; height: 18px;"></div>
+    <div class="line shimmer" style="width: 100px; height: 12px; margin-top: 8px;"></div>
+  </div>
+
+  <!-- Loaded -->
+  <div class="profile-card" *ngIf="!loading && profile">
+    <div class="glow"></div>
+
+    <div class="avatar-circle">{{ initial }}</div>
+
+    <span class="role-badge" [class.role-admin]="profile.role === 'Admin'">
+      {{ profile.role }}
+    </span>
+
+    <h2>{{ profile.username }}</h2>
+    <p class="subtitle">{{ profile.email }}</p>
+
+    <button class="code-chip" (click)="copyUserCode()" *ngIf="profile.userCode">
+      <span class="code-label">ID</span>
+      <span class="code-value">{{ shortCode }}</span>
+      <span class="copy-feedback" *ngIf="copied">Copied!</span>
+    </button>
 
     <div class="info-grid">
       <div class="info-row">
         <span class="label">Username</span>
-        <span class="value">{{ username }}</span>
+        <span class="value">{{ profile.username }}</span>
       </div>
       <div class="info-row">
         <span class="label">Email</span>
-        <span class="value">{{ email }}</span>
+        <span class="value">{{ profile.email }}</span>
       </div>
       <div class="info-row">
         <span class="label">Member since</span>
         <span class="value">{{ joinDate }}</span>
       </div>
+      <div class="info-row highlight" *ngIf="memberDuration">
+        <span class="label">Tenure</span>
+        <span class="value">{{ memberDuration }}</span>
+      </div>
     </div>
 
-    <p class="note">Profile editing coming soon.</p>
+    <p class="note" *ngIf="error">Showing cached info — couldn't reach the server.</p>
+    <p class="note" *ngIf="!error">Profile editing coming soon.</p>
   </div>
+
 </div>

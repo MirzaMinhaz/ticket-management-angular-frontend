@@ -1,15 +1,15 @@
 // src/app/app.config.ts
 import { ApplicationConfig, importProvidersFrom } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient } from '@angular/common/http'; // Import provideHttpClient
-import { ReactiveFormsModule } from '@angular/forms'; // Import ReactiveFormsModule
-
+import { provideHttpClient, withInterceptors } from '@angular/common/http'; // ← add withInterceptors
+import { ReactiveFormsModule } from '@angular/forms';
 import { routes } from './app.routes';
+import { authInterceptor } from './interceptors/auth.interceptor'; // ← add this import
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
-    provideHttpClient(), // Provide HttpClient for the entire app
-    importProvidersFrom(ReactiveFormsModule) // Import ReactiveFormsModule
+    provideHttpClient(withInterceptors([authInterceptor])), // ← updated
+    importProvidersFrom(ReactiveFormsModule)
   ]
 };

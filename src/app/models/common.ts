@@ -271,3 +271,16 @@ export interface UpdateScheduleDto {
   baseFare: number;
   status: string;
 }
+
+
+// ── User ──────────────────────────────────────────────────────────────────────
+
+export interface UserProfileDto {
+  id: number;
+  username: string;
+  email: string;
+  role: string;
+  userCode: string;
+  createdAt: string;
+  lastModifiedAt?: string;
+}

@@ -11,6 +11,12 @@
 .c-brand { display: flex; align-items: center; gap: .5rem; font-size: 1.25rem; font-weight: 700; }
 .c-brand span { color: #f0a500; }
 
+.c-brand {
+  text-decoration: none;
+  color: inherit; /* keeps whatever color you already had on the div */
+  cursor: pointer;
+}
+
 .c-links { display: flex; list-style: none; gap: .2rem; margin: 0; padding: 0; }
 .c-links a {
   color: #ccc; text-decoration: none;
@@ -45,4 +51,14 @@
 @media (max-width: 768px) {
   .c-links, .c-greeting, .c-logout { display: none; }
   .c-burger { display: flex; }
+}
+
+.c-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.c-content {
+  flex: 1;   /* pushes the footer down to the bottom on short pages, lets it flow naturally on tall pages */
 }

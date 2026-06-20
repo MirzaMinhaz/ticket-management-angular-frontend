@@ -1,27 +1,26 @@
 // src/main.ts
 import { bootstrapApplication } from '@angular/platform-browser';
-import { AppComponent } from './app/app.component'; // Your root standalone component
+import { AppComponent } from './app/app.component';
 import { provideRouter } from '@angular/router';
-import { routes } from './app/app.routes'; // Your application routes
-import { provideHttpClient } from '@angular/common/http';
-import { importProvidersFrom } from '@angular/core'; // For NgModule-based services
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations'; // For Toastr
-import { ToastrModule } from 'ngx-toastr'; // For Toastr
-
+import { routes } from './app/app.routes';
+import { provideHttpClient, withInterceptors } from '@angular/common/http'; // ← add withInterceptors
+import { importProvidersFrom } from '@angular/core';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { ToastrModule } from 'ngx-toastr';
+import { authInterceptor } from './app/interceptors/auth.interceptor'; // ← add this
 
 bootstrapApplication(AppComponent, {
   providers: [
     provideRouter(routes),
-    provideHttpClient(),
+    provideHttpClient(withInterceptors([authInterceptor])), // ← updated
     importProvidersFrom(
-      BrowserAnimationsModule, // Required for Toastr animations
+      BrowserAnimationsModule,
       ToastrModule.forRoot({
-        positionClass: 'toast-bottom-right', // Configure as needed
+        positionClass: 'toast-bottom-right',
         preventDuplicates: true,
         closeButton: true
       })
     )
-    // ... any other root-level service providers
   ]
 })
 .catch(err => console.error(err));
