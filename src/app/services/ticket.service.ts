@@ -2,7 +2,12 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { TicketDto, CreateTicketDto, UpdateTicketDto, CancelTicketDto } from '../models/common';
+import {
+  TicketDto,
+  CreateTicketDto,
+  UpdateTicketDto,
+  CancelTicketDto,
+} from '../models/common';
 
 @Injectable({ providedIn: 'root' })
 export class TicketService {
@@ -32,5 +37,8 @@ export class TicketService {
 
   cancelTicket(dto: CancelTicketDto): Observable<TicketDto> {
     return this.http.patch<TicketDto>(`${this.base}/${dto.id}/cancel`, dto);
+  }
+  getMyTickets(): Observable<TicketDto[]> {
+    return this.http.get<TicketDto[]>(`${this.base}/my`);
   }
 }

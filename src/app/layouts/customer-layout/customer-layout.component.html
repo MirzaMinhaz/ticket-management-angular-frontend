@@ -12,7 +12,7 @@
     <div class="c-actions">
       <span class="c-greeting">Hi, {{ username }}</span>
       <button class="c-logout" (click)="logout()">Logout</button>
-      <button class="c-burger" (click)="toggleMenu()">
+      <button class="c-burger" [class.open]="menuOpen" (click)="toggleMenu()">
         <span></span><span></span><span></span>
       </button>
     </div>

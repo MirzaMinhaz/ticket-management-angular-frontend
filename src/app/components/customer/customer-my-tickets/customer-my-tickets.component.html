@@ -1,14 +1,84 @@
-<div class="tickets-wrap">
-  <h2>My Tickets</h2>
-  <p class="subtitle">Your booking history</p>
+<div class="mt-wrap">
 
-  <div class="empty-state" *ngIf="tickets.length === 0">
-    <span class="icon">🎟️</span>
+  <header class="mt-header">
+    <p class="mt-eyebrow">Booking History</p>
+    <h2 class="mt-heading">My Tickets</h2>
+    <p class="mt-sub">Every trip you've booked, all in one place.</p>
+  </header>
+
+  <!-- Loading -->
+  <div class="mt-loading" *ngIf="loading">
+    <div class="mt-spinner"></div>
+    <p>Fetching your tickets…</p>
+  </div>
+
+  <!-- Error -->
+  <div class="mt-empty" *ngIf="!loading && error">
+    <span class="mt-empty__icon">⚠️</span>
+    <p>Couldn't load your tickets right now. Please try again shortly.</p>
+  </div>
+
+  <!-- Empty -->
+  <div class="mt-empty" *ngIf="!loading && !error && tickets.length === 0">
+    <span class="mt-empty__icon">🎟️</span>
     <p>You haven't booked any tickets yet.</p>
-    <a routerLink="/customer/bus-booking" class="cta-btn">Book a Ticket</a>
+    <a routerLink="/customer/bus-booking" class="mt-cta">Book a Ticket</a>
   </div>
 
-  <div class="ticket-list" *ngIf="tickets.length > 0">
-    <!-- Ticket cards render here once API is wired -->
+  <!-- Ticket list -->
+  <div class="mt-list" *ngIf="!loading && !error && tickets.length > 0">
+    <div class="mt-ticket"
+         *ngFor="let t of tickets"
+         [class.mt-ticket--cancelled]="t.status === 'Cancelled'"
+         [class.mt-ticket--past]="!isUpcoming(t.bookingDateTime)">
+
+      <div class="mt-ticket__notch mt-ticket__notch--top"></div>
+
+      <div class="mt-ticket__top">
+        <div class="mt-ticket__vehicle">
+          <span class="mt-ticket__icon">{{ getVehicleType(t.tripId) === 'Train' ? '🚆' : '🚌' }}</span>
+          <div>
+            <span class="mt-ticket__route">{{ getRouteName(t.tripId) }}</span>
+            <span class="mt-ticket__model">{{ getVehicleModel(t.tripId) }}</span>
+          </div>
+        </div>
+        <span class="mt-status" [ngClass]="'mt-status--' + (t.status || 'booked').toLowerCase()">
+          {{ t.status || 'Booked' }}
+        </span>
+      </div>
+
+      <div class="mt-ticket__divider">
+        <span *ngFor="let n of [1,2,3,4,5,6,7,8,9,10,11,12]"></span>
+      </div>
+
+      <div class="mt-ticket__body">
+        <div class="mt-field">
+          <span class="mt-field__label">Passenger</span>
+          <span class="mt-field__value">{{ t.passengerName }}</span>
+        </div>
+        <div class="mt-field">
+          <span class="mt-field__label">Seats</span>
+          <div class="mt-seat-chips">
+            <span class="mt-chip" *ngFor="let seat of getSeatList(t.seatNumber)">{{ seat }}</span>
+          </div>
+        </div>
+        <div class="mt-field">
+          <span class="mt-field__label">Travel Date</span>
+          <span class="mt-field__value">{{ t.bookingDateTime | date:'dd MMM yyyy' }}</span>
+        </div>
+        <div class="mt-field mt-field--fare">
+          <span class="mt-field__label">Fare Paid</span>
+          <span class="mt-field__value mt-field__value--fare">৳{{ t.farePaid | number }}</span>
+        </div>
+      </div>
+
+      <div class="mt-ticket__footer">
+        <span class="mt-ticket__code">{{ t.ticketCode }}</span>
+        <span class="mt-ticket__tag" *ngIf="isUpcoming(t.bookingDateTime) && t.status !== 'Cancelled'">Upcoming</span>
+      </div>
+
+      <div class="mt-ticket__notch mt-ticket__notch--bottom"></div>
+    </div>
   </div>
+
 </div>

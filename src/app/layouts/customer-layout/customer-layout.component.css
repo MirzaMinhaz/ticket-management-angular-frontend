@@ -1,64 +1,180 @@
-.c-shell { min-height: 100vh; display: flex; flex-direction: column; background: #f0f4f8; }
-
-.c-nav {
-  display: flex; align-items: center; justify-content: space-between;
-  background: #1a1a2e; color: #fff;
-  padding: 0 2rem; height: 62px;
-  position: sticky; top: 0; z-index: 100;
-  box-shadow: 0 2px 12px rgba(0,0,0,.35);
+.c-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f0f4f8;
 }
 
-.c-brand { display: flex; align-items: center; gap: .5rem; font-size: 1.25rem; font-weight: 700; }
-.c-brand span { color: #f0a500; }
+/* ── Top bar ──────────────────────────────────────────── */
+.c-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #1a1a2e;
+  color: #fff;
+  padding: 0 1.75rem;
+  height: 60px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .06), 0 8px 24px rgba(0, 0, 0, .25);
+}
 
 .c-brand {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -.01em;
   text-decoration: none;
-  color: inherit; /* keeps whatever color you already had on the div */
+  color: #fff;
   cursor: pointer;
+  flex-shrink: 0;
 }
+.c-brand span { color: #f0a500; }
 
-.c-links { display: flex; list-style: none; gap: .2rem; margin: 0; padding: 0; }
+.c-links {
+  display: flex;
+  list-style: none;
+  gap: .15rem;
+  margin: 0;
+  padding: 0;
+}
 .c-links a {
-  color: #ccc; text-decoration: none;
-  padding: .45rem .9rem; border-radius: 6px;
-  font-size: .92rem; font-weight: 500;
-  transition: background .2s, color .2s;
+  position: relative;
+  display: flex;
+  align-items: center;
+  color: #e8e9f3;
+  text-decoration: none;
+  padding: .5rem .9rem;
+  border-radius: 7px;
+  font-size: .9rem;
+  font-weight: 600;
+  transition: background .18s ease, color .18s ease;
+  white-space: nowrap;
 }
-.c-links a:hover, .c-links a.active { background: #f0a500; color: #1a1a2e; }
+.c-links a:hover { background: rgba(255, 255, 255, .1); color: #fff; }
+.c-links a.active {
+  background: #f0a500;
+  color: #1a1a2e;
+}
 
-.c-actions { display: flex; align-items: center; gap: 1rem; }
-.c-greeting { font-size: .85rem; color: #aaa; }
+/* keyboard accessibility */
+.c-links a:focus-visible,
+.c-logout:focus-visible,
+.c-burger:focus-visible,
+.c-brand:focus-visible {
+  outline: 2px solid #f0a500;
+  outline-offset: 2px;
+}
+
+.c-actions {
+  display: flex;
+  align-items: center;
+  gap: .9rem;
+}
+
+/* logged-in user badge */
+.c-greeting {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  font-size: .82rem;
+  font-weight: 600;
+  color: #f0a500;
+  background: rgba(240, 165, 0, .14);
+  border: 1px solid rgba(240, 165, 0, .4);
+  padding: .35rem .8rem;
+  border-radius: 100px;
+  max-width: 160px;
+  white-space: nowrap;
+}
+.c-greeting::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #2ecc71;
+  flex-shrink: 0;
+}
+.c-greeting span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .c-logout {
-  background: transparent; border: 1px solid #f0a500; color: #f0a500;
-  padding: .35rem 1rem; border-radius: 6px; font-size: .88rem; cursor: pointer;
-  transition: .2s;
+  background: transparent;
+  border: 1px solid #f0a500;
+  color: #f0a500;
+  padding: .4rem 1rem;
+  border-radius: 6px;
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .18s ease, color .18s ease, transform .12s ease;
 }
 .c-logout:hover { background: #f0a500; color: #1a1a2e; }
+.c-logout:active { transform: scale(.96); }
 
+/* burger → X */
 .c-burger {
-  display: none; flex-direction: column; gap: 5px;
-  background: transparent; border: none; cursor: pointer; padding: 4px;
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 6px;
 }
-.c-burger span { display: block; width: 22px; height: 2px; background: #fff; border-radius: 2px; }
+.c-burger:hover { background: rgba(255, 255, 255, .08); }
+.c-burger span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: #fff;
+  border-radius: 2px;
+  transition: transform .25s ease, opacity .2s ease;
+}
+.c-burger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.c-burger.open span:nth-child(2) { opacity: 0; }
+.c-burger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
-.c-mobile { display: none; flex-direction: column; background: #16213e; overflow: hidden; max-height: 0; transition: max-height .3s; }
-.c-mobile.open { display: flex; max-height: 300px; }
-.c-mobile a { color: #ccc; padding: .85rem 1.5rem; text-decoration: none; border-bottom: 1px solid #1e2a45; cursor: pointer; transition: .2s; }
+/* ── Mobile menu ──────────────────────────────────────── */
+.c-mobile {
+  display: flex;
+  flex-direction: column;
+  background: #16213e;
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height .3s ease;
+}
+.c-mobile.open { max-height: 320px; }
+.c-mobile a {
+  color: #e8e9f3;
+  padding: .85rem 1.5rem;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 255, 255, .06);
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease;
+  font-weight: 500;
+}
 .c-mobile a:hover { background: #1a1a2e; color: #f0a500; }
 
-.c-content { flex: 1; padding: 2rem; }
+/* ── Page content ─────────────────────────────────────── */
+.c-content {
+  flex: 1;
+  padding: 2rem;
+}
 
+/* ── Responsive ───────────────────────────────────────── */
 @media (max-width: 768px) {
   .c-links, .c-greeting, .c-logout { display: none; }
   .c-burger { display: flex; }
-}
-
-.c-shell {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
-.c-content {
-  flex: 1;   /* pushes the footer down to the bottom on short pages, lets it flow naturally on tall pages */
+  .c-nav { padding: 0 1.25rem; }
 }
