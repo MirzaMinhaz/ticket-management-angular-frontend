@@ -36,41 +36,43 @@ export class CustomerLoginComponent {
   togglePassword() { this.showPassword = !this.showPassword; }
 
   onLogin() {
-    if (!this.loginData.username || !this.loginData.password) {
-      this.notify.show('Please fill in all fields.', 'error');
-      return;
-    }
-
-    this.loading = true;
-    this.http.post('https://localhost:7139/api/Auth/login', {
-      username: this.loginData.username,
-      password: this.loginData.password
-    }).subscribe({
-      next: (res: any) => {
-        localStorage.setItem('jwtToken', res.token);
-        localStorage.setItem('username', res.username);
-        localStorage.setItem('lastActivity', Date.now().toString());
-
-        const role = getUserRole();
-        if (role === 'Customer') {
-          this.notify.show('Welcome back, ' + res.username + '!', 'success');
-          this.router.navigate(['/customer/home']);
-        } else {
-          // Admin accidentally used customer login
-          this.notify.show('Please use the Admin login portal.', 'error');
-          localStorage.clear();
-        }
-        this.loading = false;
-      },
-      error: err => {
-        this.notify.show(
-          err.status === 0 ? 'Server unreachable. Try again later.' : 'Incorrect username or password.',
-          'error'
-        );
-        this.loading = false;
-      }
-    });
+  if (!this.loginData.username || !this.loginData.password) {
+    this.notify.show('Please fill in all fields.', 'error');
+    return;
   }
+
+  this.loading = true;
+  this.http.post('https://localhost:7139/api/Auth/login', {
+    username: this.loginData.username,
+    password: this.loginData.password
+  }).subscribe({
+    next: (res: any) => {
+      const payload = JSON.parse(atob(res.token.split('.')[1]));
+      const role = payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+
+      if (role !== 'Customer') {
+        this.notify.show('This portal is for customers only.', 'error');
+        this.loading = false;
+        return; // ❌ do NOT store token, do NOT navigate
+      }
+
+      // ✅ Only Customers reach here
+      localStorage.setItem('jwtToken', res.token);
+      localStorage.setItem('username', res.username);
+      localStorage.setItem('lastActivity', Date.now().toString());
+      this.notify.show('Welcome back, ' + res.username + '!', 'success');
+      this.loading = false;
+      this.router.navigate(['/customer/home']);
+    },
+    error: err => {
+      this.notify.show(
+        err.status === 0 ? 'Server unreachable. Try again later.' : 'Incorrect username or password.',
+        'error'
+      );
+      this.loading = false;
+    }
+  });
+}
 
   onRegister() {
   if (!this.registerData.username || !this.registerData.email || !this.registerData.password) {

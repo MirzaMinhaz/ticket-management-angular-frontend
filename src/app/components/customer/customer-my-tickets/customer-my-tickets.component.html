@@ -1,0 +1,14 @@
+<div class="tickets-wrap">
+  <h2>My Tickets</h2>
+  <p class="subtitle">Your booking history</p>
+
+  <div class="empty-state" *ngIf="tickets.length === 0">
+    <span class="icon">🎟️</span>
+    <p>You haven't booked any tickets yet.</p>
+    <a routerLink="/customer/bus-booking" class="cta-btn">Book a Ticket</a>
+  </div>
+
+  <div class="ticket-list" *ngIf="tickets.length > 0">
+    <!-- Ticket cards render here once API is wired -->
+  </div>
+</div>

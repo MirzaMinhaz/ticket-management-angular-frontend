@@ -60,36 +60,39 @@ export class AuthComponent {
   loading = false;
 
   onLogin() {
-    this.loading = true; // start spinner
-    this.http
-      .post('https://localhost:7139/api/Auth/login', this.loginData)
-      .subscribe({
-        next: (res: any) => {
-          localStorage.setItem('jwtToken', res.token);
-          localStorage.setItem('username', res.username);
-          localStorage.setItem('lastActivity', Date.now().toString());
-          this.notify.show('Login successful!', 'success');
-          this.loading = false;
+  this.loading = true;
+  this.http
+    .post('https://localhost:7139/api/Auth/login', this.loginData)
+    .subscribe({
+      next: (res: any) => {
+        const tempToken = res.token;
+        const payload = JSON.parse(atob(tempToken.split('.')[1]));
+        const role = payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
 
-          const role = getUserRole();
-          if (role === 'Admin') {
-            this.router.navigate(['/home']);
-          } else if (role === 'Customer') {
-            this.router.navigate(['/customer/home']);
-          } else {
-            this.notify.show('Unknown role. Please contact support.', 'error');
-          }
-        },
-        error: (err) => {
-          let msg = 'Incorrect username or password';
-          if (err.status === 0) {
-            msg = 'Server unreachable. Please try again later.';
-          }
-          this.notify.show(msg, 'error');
-          this.loading = false; // stop spinner
-        },
-      });
-  }
+        if (role !== 'Admin') {
+          this.notify.show('This portal is for Admin staff only.', 'error');
+          this.loading = false;
+          return; // ❌ do NOT store token, do NOT navigate
+        }
+
+        // ✅ Only Admins reach here
+        localStorage.setItem('jwtToken', res.token);
+        localStorage.setItem('username', res.username);
+        localStorage.setItem('lastActivity', Date.now().toString());
+        this.notify.show('Login successful!', 'success');
+        this.loading = false;
+        this.router.navigate(['/home']);
+      },
+      error: (err) => {
+        let msg = 'Incorrect username or password';
+        if (err.status === 0) {
+          msg = 'Server unreachable. Please try again later.';
+        }
+        this.notify.show(msg, 'error');
+        this.loading = false;
+      },
+    });
+}
 
   onRegister() {
     this.http

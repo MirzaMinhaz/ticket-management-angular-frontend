@@ -24,12 +24,13 @@ import { ScheduleComponent } from './components/schedule/schedule.component';
 import { AuthComponent } from './components/auth/auth.component';
 import { CustomerLoginComponent } from './components/customer/customer-login/customer-login.component';
 
-// Customer pages
 import { CustomerHomeComponent } from './components/customer/customer-home/customer-home.component';
+import { CustomerProfileComponent } from './components/customer/customer-profile/customer-profile.component';
+import { CustomerMyTicketsComponent } from './components/customer/customer-my-tickets/customer-my-tickets.component';
 
 export const routes: Routes = [
   // ── Public ──────────────────────────────────────
-  { path: '',               component: AuthComponent },
+  { path: '', component: AuthComponent },
   { path: 'customer/login', component: CustomerLoginComponent },
 
   // ── Admin (existing routes, now under AdminLayout + adminGuard) ──
@@ -38,18 +39,21 @@ export const routes: Routes = [
     component: AdminLayoutComponent,
     canActivate: [adminGuard],
     children: [
-      { path: 'home',                         component: HomeComponent },
-      { path: 'locations',                    component: LocationsListComponent },
-      { path: 'ticket-counters/entry',        component: TicketCounterEntryComponent },
-      { path: 'ticket-counters/edit/:id',     component: TicketCounterEntryComponent },
-      { path: 'vehicles',                     component: VehicleComponent },
-      { path: 'operators',                    component: OperatorComponent },
-      { path: 'routes',                       component: RoutesComponent },
-      { path: 'schedules',                    component: ScheduleComponent },
-      { path: 'seat-booking/:vehicleId',      component: SeatBookingComponent },
-      { path: 'ticket',                       component: TicketComponent },
-      { path: 'trainTicket',                  component: TrainTicketComponent },
-    ]
+      { path: 'home', component: HomeComponent },
+      { path: 'locations', component: LocationsListComponent },
+      { path: 'ticket-counters/entry', component: TicketCounterEntryComponent },
+      {
+        path: 'ticket-counters/edit/:id',
+        component: TicketCounterEntryComponent,
+      },
+      { path: 'vehicles', component: VehicleComponent },
+      { path: 'operators', component: OperatorComponent },
+      { path: 'routes', component: RoutesComponent },
+      { path: 'schedules', component: ScheduleComponent },
+      { path: 'seat-booking/:vehicleId', component: SeatBookingComponent },
+      { path: 'ticket', component: TicketComponent },
+      { path: 'trainTicket', component: TrainTicketComponent },
+    ],
   },
 
   // ── Customer (new, under CustomerLayout + customerGuard) ──
@@ -58,14 +62,14 @@ export const routes: Routes = [
     component: CustomerLayoutComponent,
     canActivate: [customerGuard],
     children: [
-      { path: 'home',           component: CustomerHomeComponent },
+      { path: 'home', component: CustomerHomeComponent },
       // Add more customer pages here as you build them:
-      { path: 'bus-booking',    component: TicketComponent },
-      { path: 'train-booking',  component: TrainTicketComponent },
-      // { path: 'my-tickets',     component: CustomerMyTicketsComponent },
-      // { path: 'profile',        component: CustomerProfileComponent },
-    ]
+      { path: 'bus-booking', component: TicketComponent },
+      { path: 'train-booking', component: TrainTicketComponent },
+      { path: 'my-tickets', component: CustomerMyTicketsComponent },
+      { path: 'profile', component: CustomerProfileComponent },
+    ],
   },
 
-  { path: '**', redirectTo: '' }
+  { path: '**', redirectTo: '' },
 ];

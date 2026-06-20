@@ -1,20 +1,19 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
+import { RouterOutlet, Router } from '@angular/router';
 import { NotificationService } from './services/notification.service';
 import { getUserRole } from './utils/auth.utils';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterOutlet],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
   notification: string | null = null;
   notificationType: 'success' | 'error' | null = null;
-  mobileMenuOpen = false;
 
   constructor(private router: Router, private notify: NotificationService) {
     this.notify.message$.subscribe(msg => this.notification = msg);
@@ -22,8 +21,6 @@ export class AppComponent {
     this.setupActivityListener();
     this.checkSessionInterval();
   }
-
-  toggleMobileMenu() { this.mobileMenuOpen = !this.mobileMenuOpen; }
 
   setupActivityListener() {
     const updateActivity = () => localStorage.setItem('lastActivity', Date.now().toString());
@@ -39,53 +36,15 @@ export class AppComponent {
       const now = Date.now();
       const THIRTY_MINUTES = 30 * 60 * 1000;
       if (lastActivity && now - lastActivity > THIRTY_MINUTES) {
-        this.logout();
+        const role = getUserRole();
+        localStorage.clear();
+        this.notify.show('Session expired. Please login again.', 'error');
+        this.router.navigate([role === 'Customer' ? '/customer/login' : '/']);
       }
     }, 60 * 1000);
   }
 
-  getLoggedInUser(): string | null {
-    return localStorage.getItem('username');
-  }
-
-  isAdmin(): boolean {
-    return getUserRole() === 'Admin';
-  }
-
-  isCustomer(): boolean {
-    return getUserRole() === 'Customer';
-  }
-
-  // Show admin navbar only on admin routes
-  showAdminNavbar(): boolean {
-  const hiddenRoutes = ['/', '/customer/login'];
-  return (
-    !!localStorage.getItem('jwtToken') &&
-    this.isAdmin() &&
-    !hiddenRoutes.includes(this.router.url)
-  );
-}
-
-showCustomerNavbar(): boolean {
-  const hiddenRoutes = ['/', '/customer/login'];
-  return (
-    !!localStorage.getItem('jwtToken') &&
-    this.isCustomer() &&
-    !hiddenRoutes.includes(this.router.url)
-  );
-}
-
-  closeNotification() { this.notify.clear(); }
-
-  logout() {
-    const role = getUserRole();
-    localStorage.clear();
-    this.notify.show('Logout successful!', 'success');
-    // Each role goes back to their own login page
-    if (role === 'Customer') {
-      this.router.navigate(['/customer/login']);
-    } else {
-      this.router.navigate(['/']);
-    }
+  closeNotification() {
+    this.notify.clear();
   }
 }

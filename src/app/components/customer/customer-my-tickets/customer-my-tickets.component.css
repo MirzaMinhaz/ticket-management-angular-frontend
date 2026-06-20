@@ -1,0 +1,29 @@
+.tickets-wrap {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  text-align: center;
+}
+h2 { color: #1a1a2e; margin-bottom: 0.25rem; }
+.subtitle { color: #888; margin-bottom: 2.5rem; }
+
+.empty-state {
+  background: #fff;
+  border-radius: 16px;
+  padding: 3rem 2rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+.empty-state .icon { font-size: 3rem; display: block; margin-bottom: 1rem; }
+.empty-state p { color: #666; margin-bottom: 1.5rem; }
+
+.cta-btn {
+  display: inline-block;
+  background: #f0a500;
+  color: #1a1a2e;
+  padding: 0.75rem 1.75rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 700;
+  transition: background 0.2s;
+}
+.cta-btn:hover { background: #e09400; }
