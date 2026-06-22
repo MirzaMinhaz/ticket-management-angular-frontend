@@ -24,6 +24,7 @@ import { TicketService } from '../../services/ticket.service';
 import { TripService } from '../../services/trip.service';
 import { LocationService } from '../../services/location.service';
 import { LocationDto } from '../../models/common';
+import { getUserRole } from '../../utils/auth.utils'; // ← NEW: role check
 
 const BRAND_LOGOS: Record<string, string> = {
   scania: 'assets/img/scania.jpeg',
@@ -50,11 +51,6 @@ const BRAND_LOGOS: Record<string, string> = {
   caetano: 'assets/img/caetano.jpeg',
 };
 
-/**
- * Seat layout mode.
- * 'one-two' → 1 column left | aisle | 2 columns right  (AC buses ≤ 35 seats)
- * 'two-two' → 2 columns left | aisle | 2 columns right  (everything else)
- */
 export type SeatLayoutMode = 'one-two' | 'two-two';
 
 @Component({
@@ -65,6 +61,10 @@ export type SeatLayoutMode = 'one-two' | 'two-two';
   styleUrls: ['./ticket.component.css'],
 })
 export class TicketComponent implements OnInit {
+  // ── Role gate ────────────────────────────────────────────────────────────────
+  /** True only when the logged-in user is Admin. Controls visibility of the ticket list/table. */
+  isAdmin: boolean = false; // ← NEW
+
   // ── Data lists ───────────────────────────────────────────────────────────────
   tickets: TicketDto[] = [];
   paginatedTickets: TicketDto[] = [];
@@ -112,35 +112,20 @@ export class TicketComponent implements OnInit {
   selectedSeats: SeatDto[] = [];
   rows: string[] = [];
 
-  /** Current seat layout mode for the open seat panel */
   seatLayoutMode: SeatLayoutMode = 'two-two';
-
-  /** Live seat numbers already booked for the open trip. Fetched from backend. */
   liveBookedSeats: string[] = [];
-
-  /** tripId resolved for the currently open seat panel. */
   private activeTripId: number | null = null;
-
-  /** Available-seat counts per vehicleId, refreshed after date selection. */
   private availableSeatCounts: Record<number, number> = {};
 
   private editingOriginalSeats: string[] = [];
   private editingOriginalVehicleId: number | null = null;
   private editSeatsPreSelected = false;
 
-  // ── FIX 1: Dual-deck state ───────────────────────────────────────────────────
-  /** Seats belonging to the lower deck (dual-deck buses only) */
+  // ── Dual-deck state ───────────────────────────────────────────────────────
   lowerDeckSeats: SeatDto[] = [];
-  /** Seats belonging to the upper deck (dual-deck buses only) */
   upperDeckSeats: SeatDto[] = [];
-  /** Row labels for the lower deck */
   lowerRows: string[] = [];
-  /** Row labels for the upper deck */
   upperRows: string[] = [];
-  /**
-   * True when the currently open vehicle is a double-decker or sleeper.
-   * Drives the split-deck view in the template.
-   */
   isDualDeck = false;
 
   constructor(
@@ -160,6 +145,9 @@ export class TicketComponent implements OnInit {
     const today = new Date();
     const pad = (n: number) => n.toString().padStart(2, '0');
     this.todayString = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+
+    // ── NEW: determine role from JWT and gate the ticket list accordingly ──────
+    this.isAdmin = getUserRole() === 'Admin';
 
     this.loadRoutes();
     this.loadVehicles();
@@ -234,11 +222,6 @@ export class TicketComponent implements OnInit {
 
   // ── Seat Layout Helpers ──────────────────────────────────────────────────────
 
-  /**
-   * Determine the seat layout mode for a given vehicle.
-   * AC (any deck variant) with capacity ≤ 35 → 1:2
-   * Everything else → 2:2
-   */
   getLayoutModeForVehicle(vehicle: Vehicle): SeatLayoutMode {
     const isAC = vehicle.acType === 'AC';
     const capacity = vehicle.capacity ?? 0;
@@ -246,28 +229,18 @@ export class TicketComponent implements OnInit {
     return 'two-two';
   }
 
-  /** Columns on the LEFT side of the aisle for the current layout */
   get leftCols(): number[] {
     return this.seatLayoutMode === 'one-two' ? [1] : [1, 2];
   }
 
-  /** Columns on the RIGHT side of the aisle for the current layout */
   get rightCols(): number[] {
     return this.seatLayoutMode === 'one-two' ? [2, 3] : [3, 4];
   }
 
-  /** Total columns per row for seat generation */
   get totalColsPerRow(): number {
     return this.seatLayoutMode === 'one-two' ? 3 : 4;
   }
 
-  // ── FIX 1: Dual-deck detection ───────────────────────────────────────────────
-
-  /**
-   * Returns true when the vehicle is a Double Decker or Sleeper bus.
-   * Matches deckLevel values like: "Double Decker", "Double", "Sleeper",
-   * "Upper Deck" (single-level upper variant treated as dual).
-   */
   private isDualDeckVehicle(vehicle: Vehicle): boolean {
     const deck = (vehicle.deckLevel ?? '').toLowerCase();
     return (
@@ -277,31 +250,20 @@ export class TicketComponent implements OnInit {
     );
   }
 
-  // ── FIX 2: Departure-time sort helper ────────────────────────────────────────
-
-  /**
-   * Extract sortable minutes-since-midnight from a schedule's departureDateTime.
-   * Handles ISO strings ("2024-01-01T22:00:00"), 24-h ("22:00"),
-   * and 12-h ("10:00 PM") formats — so sorting is always by time only,
-   * never affected by the date component stored in the schedule record.
-   */
   private getDepartureMinutes(schedule: ScheduleDto | undefined): number {
     if (!schedule?.departureDateTime) return Infinity;
     const raw = schedule.departureDateTime.toString().trim();
 
-    // ISO / datetime string: "2024-01-01T22:00:00"
     const isoMatch = raw.match(/T(\d{1,2}):(\d{2})/);
     if (isoMatch) {
       return parseInt(isoMatch[1], 10) * 60 + parseInt(isoMatch[2], 10);
     }
 
-    // Plain 24-h "22:00"
     const h24 = raw.match(/^(\d{1,2}):(\d{2})$/);
     if (h24) {
       return parseInt(h24[1], 10) * 60 + parseInt(h24[2], 10);
     }
 
-    // 12-h "10:00 PM"
     const h12 = raw.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
     if (h12) {
       let h = parseInt(h12[1], 10);
@@ -312,7 +274,6 @@ export class TicketComponent implements OnInit {
       return h * 60 + m;
     }
 
-    // Fallback: parse as Date
     const d = new Date(raw);
     if (!isNaN(d.getTime())) {
       return d.getHours() * 60 + d.getMinutes();
@@ -320,8 +281,6 @@ export class TicketComponent implements OnInit {
 
     return Infinity;
   }
-
-  // ── Available-seat count helpers ─────────────────────────────────────────────
 
   private refreshAvailableSeatCounts(): void {
     this.availableSeatCounts = {};
@@ -409,7 +368,6 @@ export class TicketComponent implements OnInit {
     return vehicle?.model ?? '';
   }
 
-  /** Get the full vehicle object for a given tripId (for detail tags in list) */
   getVehicleByTripId(tripId: number): Vehicle | null {
     const trip = this.trips.find((t) => t.id === tripId);
     if (!trip) return null;
@@ -435,9 +393,9 @@ export class TicketComponent implements OnInit {
     this.selectedArrivalDate = `${arr.getFullYear()}-${pad(arr.getMonth() + 1)}-${pad(arr.getDate())}`;
     this.selectedTicket.bookingDateTime = this.selectedDepartureDate;
 
-    // FIX 2: sort by departure time-of-day only, not full timestamp
     this.availableVehicles = this.vehicles
       .filter((v) =>
+        v.type === 'Bus' &&   // ← add this condition
         this.schedules.some(
           (s) =>
             s.routeId === Number(this.selectedRouteCode) &&
@@ -670,7 +628,6 @@ export class TicketComponent implements OnInit {
       return;
     }
 
-    // Determine seat layout for this vehicle
     this.seatLayoutMode = this.getLayoutModeForVehicle(vehicle);
 
     const capacity = vehicle.capacity ?? 40;
@@ -758,7 +715,6 @@ export class TicketComponent implements OnInit {
     this.seatMap = {};
     this.seatPanelLoading = false;
     this.seatLayoutMode = 'two-two';
-    // FIX 1: reset dual-deck state
     this.isDualDeck = false;
     this.lowerDeckSeats = [];
     this.upperDeckSeats = [];
@@ -766,27 +722,12 @@ export class TicketComponent implements OnInit {
     this.upperRows = [];
   }
 
-  /**
-   * FIX 1: Generate seats — handles both single-deck and dual-deck buses.
-   *
-   * Dual-deck split rule:
-   *   totalRows = ceil(capacity / colsPerRow)
-   *   lowerRows = max(1, floor(totalRows / 2) - 1)   ← always fewer
-   *   upperRows = totalRows - lowerRows               ← always more
-   *
-   * Seat numbers are prefixed:
-   *   Lower deck → "L-A1", "L-A2" …
-   *   Upper deck → "U-A1", "U-A2" …
-   * Row labels restart A, B, C… on each deck.
-   */
   private generateSeats(capacity: number, vehicle?: Vehicle): void {
-    // Resolve dual-deck flag
     const v =
       vehicle ?? this.vehicles.find((x) => x.id === this.seatBookingBusId);
     this.isDualDeck = v ? this.isDualDeckVehicle(v) : false;
 
     if (!this.isDualDeck) {
-      // ── Single-deck (original behaviour) ─────────────────────────────
       const seats = this._buildDeckSeats(capacity, '', this.liveBookedSeats);
       this.seats = seats;
       this._buildSeatMap(seats, '');
@@ -797,18 +738,15 @@ export class TicketComponent implements OnInit {
       return;
     }
 
-    // ── Dual-deck ─────────────────────────────────────────────────────
     const cols = this.totalColsPerRow;
     const totalRows = Math.ceil(capacity / cols);
 
-    // Lower always has at least 2 fewer seats than upper
     const lowerRowCount = Math.max(1, Math.floor(totalRows / 2) - 1);
     const upperRowCount = totalRows - lowerRowCount;
 
     const lowerCapacity = lowerRowCount * cols;
     const upperCapacity = capacity - lowerCapacity;
 
-    // Split booked seats by prefix
     const lowerBooked = this.liveBookedSeats
       .filter((s) => s.startsWith('L-'))
       .map((s) => s.slice(2));
@@ -822,7 +760,6 @@ export class TicketComponent implements OnInit {
     this.lowerDeckSeats = lower;
     this.upperDeckSeats = upper;
 
-    // Row labels: the 3rd char of "L-A1" is the row letter
     this.lowerRows = Array.from(
       new Set(lower.map((s) => s.seatNumber.charAt(2))),
     );
@@ -836,16 +773,9 @@ export class TicketComponent implements OnInit {
     for (const s of all) {
       this.seatMap[s.seatNumber] = s;
     }
-    // rows[] not used in dual-deck mode (template uses lowerRows/upperRows)
     this.rows = [];
   }
 
-  /**
-   * Build a flat array of SeatDto for one deck.
-   * @param capacity  Number of real seats for this deck
-   * @param prefix    '' | 'L-' | 'U-'
-   * @param booked    Already-booked bare seat numbers (without prefix), e.g. ['A1','B3']
-   */
   private _buildDeckSeats(
     capacity: number,
     prefix: string,
@@ -873,7 +803,6 @@ export class TicketComponent implements OnInit {
       }
     }
 
-    // Pad the last row to complete the visual grid
     if (seats.length > 0) {
       const lastRowLetter = seats[seats.length - 1].seatNumber.charAt(
         prefix.length,
@@ -903,10 +832,6 @@ export class TicketComponent implements OnInit {
     return seats;
   }
 
-  /**
-   * Build seatMap + rows[] for single-deck mode.
-   * Dual-deck mode builds seatMap inline in generateSeats().
-   */
   private _buildSeatMap(seats: SeatDto[], prefix: string): void {
     seats.sort((a, b) => {
       const ra = a.seatNumber.charAt(prefix.length);
@@ -926,12 +851,6 @@ export class TicketComponent implements OnInit {
     }
   }
 
-  /**
-   * FIX 1: prefix-aware seat lookup used in the template.
-   * Single-deck: getSeatByPosition(row, col)        → key "A1"
-   * Dual-deck:   getSeatByPosition(row, col, 'L-')  → key "L-A1"
-   *              getSeatByPosition(row, col, 'U-')  → key "U-A1"
-   */
   getSeatByPosition(
     row: string,
     col: number,
@@ -1063,7 +982,6 @@ export class TicketComponent implements OnInit {
     }
 
     if (this.selectedTicket.id) {
-      // ── UPDATE ───────────────────────────────────────────────────────────────
       this.tripService
         .findOrCreate({
           scheduleId: schedule.id,
@@ -1114,7 +1032,6 @@ export class TicketComponent implements OnInit {
           },
         });
     } else {
-      // ── CREATE ───────────────────────────────────────────────────────────────
       this.tripService
         .findOrCreate({
           scheduleId: schedule.id,
@@ -1278,9 +1195,9 @@ export class TicketComponent implements OnInit {
     const pad = (n: number) => n.toString().padStart(2, '0');
     this.selectedArrivalDate = `${arr.getFullYear()}-${pad(arr.getMonth() + 1)}-${pad(arr.getDate())}`;
 
-    // FIX 2: sort by departure time-of-day only
     this.availableVehicles = this.vehicles
       .filter((v) =>
+        v.type === 'Bus' &&   // ← add this condition
         this.schedules.some(
           (s) =>
             s.routeId === Number(this.selectedRouteCode) &&

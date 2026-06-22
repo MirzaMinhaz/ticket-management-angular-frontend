@@ -926,6 +926,69 @@ body {
 .cancel-modal-actions { display:flex; gap:12px; justify-content:center; width:100%; }
 .cancel-modal-actions .btn { flex:1; max-width:180px; padding:11px 20px; font-size:14px; }
 
+/* ─────────────────────────────────────────────────────────
+   Brand Logos — Vehicle Card (large)
+───────────────────────────────────────────────────────── */
+
+.model-cell { display: flex; align-items: center; gap: 10px; }
+
+.brand-logo {
+  width: 48px;
+  height: 30px;
+  object-fit: contain;
+  flex-shrink: 0;
+  border-radius: 4px;
+  background: transparent;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.12));
+}
+
+.brand-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: #dbeafe;
+  color: #1e40af;
+  font-size: 1rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+/* ─────────────────────────────────────────────────────────
+   Brand Logos — Ticket List Table (miniature)
+───────────────────────────────────────────────────────── */
+
+.op-model-row { display: flex; align-items: center; gap: 6px; }
+
+.brand-logo-list {
+  width: 42px;
+  height: 28px;
+  object-fit: contain;
+  flex-shrink: 0;
+  border-radius: 3px;
+  background: transparent;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.10));
+  vertical-align: middle;
+}
+
+.brand-fallback-list {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 5px;
+  background: #dbeafe;
+  color: #1e40af;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
 /* ─────────────────────────────────────────────── */
 /*  MISC HELPERS                                    */
 /* ─────────────────────────────────────────────── */

@@ -55,7 +55,8 @@
 
           <div class="form-group">
             <label for="arrivalDate">Arrival Date</label>
-            <input [(ngModel)]="selectedArrivalDate" name="arrivalDate" id="arrivalDate" type="date" required readonly />
+            <input [(ngModel)]="selectedArrivalDate" name="arrivalDate" id="arrivalDate" type="date" required
+              readonly />
           </div>
 
         </div>
@@ -74,18 +75,17 @@
 
                 <!-- LEFT: Train Info -->
                 <div class="vehicle-left">
-                  <div class="train-name-row">
-                    <span class="train-icon">🚂</span>
-                    <span class="train-name">{{ v.model }}</span>
+                  <div class="model-cell">
+                    <img *ngIf="getBrandLogo(v.model)" [src]="getBrandLogo(v.model)" [alt]="getBrandName(v.model)"
+                      class="brand-logo" />
+                    <span *ngIf="!getBrandLogo(v.model)" class="brand-fallback">{{ getBrandInitial(v.model) }}</span>
+                    <div class="train-name-row">
+                      <span class="train-icon"></span>
+                      <span class="train-name">{{ v.model }}</span>
+                    </div>
                   </div>
                   <p class="operator-name">{{ getOperatorName(v.operatorCode) }}</p>
-                  <div class="train-class-tags">
-                    <span *ngFor="let cls of getTrainClasses(v)" class="class-tag" [ngClass]="getClassTagCss(cls.classType)">
-                      {{ cls.classType }}
-                    </span>
-                  </div>
                 </div>
-
                 <!-- MIDDLE: Times -->
                 <div class="vehicle-middle">
                   <div class="time-point">
@@ -131,7 +131,7 @@
             <!-- SEAT PANEL -->
             <div class="seat-panel-container" *ngIf="seatBookingBusId === v.id">
               <div class="seat-panel-vehicle-header">
-                <span class="seat-panel-vehicle-icon">🚂</span>
+                <span class="seat-panel-vehicle-icon"></span>
                 <span class="seat-panel-vehicle-name">{{ v.model }}</span>
                 <span class="seat-panel-vehicle-model">{{ getOperatorName(v.operatorCode) }}</span>
                 <div class="legend">
@@ -153,14 +153,14 @@
 
               <!-- CLASS TABS -->
               <div class="class-tabs" *ngIf="!seatPanelLoading">
-                <button type="button" *ngFor="let cls of trainClasses"
-                  class="class-tab" [class.active]="activeClassTab === cls.classType"
-                  [ngClass]="getClassTabCss(cls.classType)"
+                <button type="button" *ngFor="let cls of trainClasses" class="class-tab"
+                  [class.active]="activeClassTab === cls.classType" [ngClass]="getClassTabCss(cls.classType)"
                   (click)="setActiveClassTab(cls.classType)">
                   <span class="class-tab-icon">{{ getClassIcon(cls.classType) }}</span>
                   <span class="class-tab-name">{{ cls.classType }}</span>
                   <span class="class-tab-fare">৳{{ cls.fare }}</span>
-                  <span class="class-tab-seats" [ngClass]="cls.availableSeats === 0 ? 'tab-full' : (cls.availableSeats < 10 ? 'tab-low' : 'tab-ok')">
+                  <span class="class-tab-seats"
+                    [ngClass]="cls.availableSeats === 0 ? 'tab-full' : (cls.availableSeats < 10 ? 'tab-low' : 'tab-ok')">
                     {{ cls.availableSeats }} left
                   </span>
                 </button>
@@ -193,8 +193,7 @@
                               </span>
                             </div>
                             <div class="berth-seats-grid">
-                              <button *ngFor="let seat of comp.seats" type="button"
-                                class="berth-seat-btn"
+                              <button *ngFor="let seat of comp.seats" type="button" class="berth-seat-btn"
                                 [class.berth-available]="seat.status === 'available'"
                                 [class.berth-selected]="seat.status === 'selected'"
                                 [class.berth-locked]="seat.status === 'locked'"
@@ -308,18 +307,22 @@
                     <div class="fare-section">
                       <p class="fare-section-label">Fare Details</p>
                       <div class="fare-line">
-                        <span class="fare-line-desc">({{ selectedBaseFare | number }}) × {{ selectedSeats.length || 1 }}</span>
-                        <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number }}</span>
+                        <span class="fare-line-desc">({{ selectedBaseFare | number }}) × {{ selectedSeats.length || 1
+                          }}</span>
+                        <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number
+                          }}</span>
                       </div>
                       <div class="fare-divider slim"></div>
                       <div class="fare-line">
                         <span class="fare-line-desc">Subtotal</span>
-                        <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number }}</span>
+                        <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number
+                          }}</span>
                       </div>
                     </div>
                     <div class="fare-total-box">
                       <span class="fare-total-label">Total Fare</span>
-                      <span class="fare-total-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number }}</span>
+                      <span class="fare-total-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number
+                        }}</span>
                     </div>
                   </div>
                 </div>
@@ -388,7 +391,7 @@
   <!-- ═══════════════════════════════════════════════ -->
   <!-- TICKET LIST TABLE                               -->
   <!-- ═══════════════════════════════════════════════ -->
-  <div class="list-section">
+  <div class="list-section" *ngIf="isAdmin">
     <h3 class="card-title">Train Ticket List</h3>
     <div class="search-bar">
       <span class="search-icon">🔍</span>
@@ -406,7 +409,8 @@
             <th (click)="sortBy('passengerName')" class="sortable">Passenger ↕</th>
             <th>Route</th>
             <th (click)="sortBy('model')" class="sortable tbl__th--sort">
-              Train / Operator <span class="sort-arrow" [class.sort-arrow--asc]="sortField==='model'&&sortAsc" [class.sort-arrow--desc]="sortField==='model'&&!sortAsc">⇅</span>
+              Train / Operator <span class="sort-arrow" [class.sort-arrow--asc]="sortField==='model'&&sortAsc"
+                [class.sort-arrow--desc]="sortField==='model'&&!sortAsc">⇅</span>
             </th>
             <th>Class</th>
             <th (click)="sortBy('passengerContact')" class="sortable">Contact ↕</th>
@@ -467,7 +471,7 @@
   </div>
 
   <!-- PAGINATION -->
-  <div class="pagination">
+  <div class="pagination" *ngIf="isAdmin">
     <button class="page-btn nav-btn" [disabled]="currentPage === 1" (click)="goToPreviousPage()">‹ Prev</button>
     <ng-container *ngFor="let page of pages">
       <button class="page-btn" [class.active]="page === currentPage" (click)="goToPage(page)">{{ page }}</button>
@@ -532,13 +536,25 @@
                 <div class="vehicle-card" [class.selected]="selectedVehicleCode === v.vehicleCode">
                   <div class="vehicle-info-main">
                     <div class="vehicle-left">
+                      <div class="model-cell">
+                        <img *ngIf="getBrandLogo(v.model)" [src]="getBrandLogo(v.model)" [alt]="getBrandName(v.model)"
+                          class="brand-logo" />
+                        <span *ngIf="!getBrandLogo(v.model)" class="brand-fallback">{{ getBrandInitial(v.model)
+                          }}</span>
+                        <div class="train-name-row">
+                          <span class="train-icon">🚂</span>
+                          <span class="train-name">{{ v.model }}</span>
+                        </div>
+                      </div>
+                      <p class="operator-name">{{ getOperatorName(v.operatorCode) }}</p>
                       <div class="train-name-row">
                         <span class="train-icon">🚂</span>
                         <span class="train-name">{{ v.model }}</span>
                       </div>
                       <p class="operator-name">{{ getOperatorName(v.operatorCode) }}</p>
                       <div class="train-class-tags">
-                        <span *ngFor="let cls of getTrainClasses(v)" class="class-tag" [ngClass]="getClassTagCss(cls.classType)">
+                        <span *ngFor="let cls of getTrainClasses(v)" class="class-tag"
+                          [ngClass]="getClassTagCss(cls.classType)">
                           {{ cls.classType }}
                         </span>
                       </div>
@@ -599,14 +615,14 @@
                   </div>
 
                   <div class="class-tabs" *ngIf="!seatPanelLoading">
-                    <button type="button" *ngFor="let cls of trainClasses"
-                      class="class-tab" [class.active]="activeClassTab === cls.classType"
-                      [ngClass]="getClassTabCss(cls.classType)"
+                    <button type="button" *ngFor="let cls of trainClasses" class="class-tab"
+                      [class.active]="activeClassTab === cls.classType" [ngClass]="getClassTabCss(cls.classType)"
                       (click)="setActiveClassTab(cls.classType)">
                       <span class="class-tab-icon">{{ getClassIcon(cls.classType) }}</span>
                       <span class="class-tab-name">{{ cls.classType }}</span>
                       <span class="class-tab-fare">৳{{ cls.fare }}</span>
-                      <span class="class-tab-seats" [ngClass]="cls.availableSeats === 0 ? 'tab-full' : (cls.availableSeats < 10 ? 'tab-low' : 'tab-ok')">
+                      <span class="class-tab-seats"
+                        [ngClass]="cls.availableSeats === 0 ? 'tab-full' : (cls.availableSeats < 10 ? 'tab-low' : 'tab-ok')">
                         {{ cls.availableSeats }} left
                       </span>
                     </button>
@@ -617,7 +633,8 @@
                       <div class="berth-layout-area">
                         <div class="berth-intro">
                           <span class="berth-intro-icon">🛏️</span>
-                          <span class="berth-intro-text">Select a berth compartment, then pick your berth position</span>
+                          <span class="berth-intro-text">Select a berth compartment, then pick your berth
+                            position</span>
                         </div>
                         <div class="bogies-container">
                           <div *ngFor="let bogie of getActiveBogies()" class="bogie-card">
@@ -636,8 +653,7 @@
                                   </span>
                                 </div>
                                 <div class="berth-seats-grid">
-                                  <button *ngFor="let seat of comp.seats" type="button"
-                                    class="berth-seat-btn"
+                                  <button *ngFor="let seat of comp.seats" type="button" class="berth-seat-btn"
                                     [class.berth-available]="seat.status === 'available'"
                                     [class.berth-selected]="seat.status === 'selected'"
                                     [class.berth-locked]="seat.status === 'locked'"
@@ -645,7 +661,8 @@
                                     [disabled]="seat.status === 'reserved' || seat.status === 'locked'"
                                     [title]="seat.status === 'reserved' ? 'Already booked' : seat.status === 'locked' ? 'Selected by another user' : seat.seatNumber"
                                     (click)="toggleSeat(seat)">
-                                    <span class="berth-position-icon">{{ getBerthPositionIcon(seat.berthPosition) }}</span>
+                                    <span class="berth-position-icon">{{ getBerthPositionIcon(seat.berthPosition)
+                                      }}</span>
                                     <span class="berth-seat-num">{{ seat.seatNumber }}</span>
                                     <span class="berth-pos-label">{{ seat.berthPosition }}</span>
                                   </button>
@@ -726,7 +743,8 @@
                       <div class="fare-summary-inner">
                         <div class="fare-section">
                           <p class="fare-section-label">Class</p>
-                          <span class="class-badge" [ngClass]="getClassTagCss(activeClassTab)">{{ activeClassTab }}</span>
+                          <span class="class-badge" [ngClass]="getClassTagCss(activeClassTab)">{{ activeClassTab
+                            }}</span>
                         </div>
                         <div class="fare-divider"></div>
                         <div class="fare-section">
@@ -744,18 +762,22 @@
                         <div class="fare-section">
                           <p class="fare-section-label">Fare Details</p>
                           <div class="fare-line">
-                            <span class="fare-line-desc">({{ selectedBaseFare | number }}) × {{ selectedSeats.length || 1 }}</span>
-                            <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number }}</span>
+                            <span class="fare-line-desc">({{ selectedBaseFare | number }}) × {{ selectedSeats.length ||
+                              1 }}</span>
+                            <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) |
+                              number }}</span>
                           </div>
                           <div class="fare-divider slim"></div>
                           <div class="fare-line">
                             <span class="fare-line-desc">Subtotal</span>
-                            <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number }}</span>
+                            <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) |
+                              number }}</span>
                           </div>
                         </div>
                         <div class="fare-total-box">
                           <span class="fare-total-label">Total Fare</span>
-                          <span class="fare-total-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number }}</span>
+                          <span class="fare-total-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number
+                            }}</span>
                         </div>
                       </div>
                     </div>

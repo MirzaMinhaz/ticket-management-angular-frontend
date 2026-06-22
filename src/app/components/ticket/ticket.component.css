@@ -1252,6 +1252,36 @@ body {
   color: #f59e0b;
 }
 
+
+
+.customer-list-notice {
+  text-align: center;
+  padding: 32px 20px;
+  background: #f9fafb;
+  border: 1.5px dashed #d1d5db;
+  border-radius: 14px;
+  margin-top: 12px;
+}
+.customer-list-notice__icon {
+  font-size: 28px;
+  display: block;
+  margin-bottom: 10px;
+  opacity: 0.6;
+}
+.customer-list-notice p {
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0 0 10px;
+}
+.customer-list-notice__link {
+  color: #2563eb;
+  font-weight: 700;
+  font-size: 13.5px;
+  text-decoration: none;
+}
+.customer-list-notice__link:hover { text-decoration: underline; }
+
 /* ─────────────────────────────────────────────── */
 /*  RESPONSIVE                                      */
 /* ─────────────────────────────────────────────── */

@@ -503,10 +503,10 @@
     </form>
   </div>
 
+<!-- ═══════════════════════════════════════════════ -->
+  <!-- TICKET LIST TABLE — Admin only                  -->
   <!-- ═══════════════════════════════════════════════ -->
-  <!-- TICKET LIST TABLE                               -->
-  <!-- ═══════════════════════════════════════════════ -->
-  <div class="list-section">
+  <div class="list-section" *ngIf="isAdmin">
     <h3 class="card-title">Ticket List</h3>
     <div class="search-bar">
       <span class="search-icon">🔍</span>
@@ -603,13 +603,24 @@
     </div>
   </div>
 
-  <!-- PAGINATION -->
-  <div class="pagination">
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- PAGINATION — Admin only                          -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div class="pagination" *ngIf="isAdmin">
     <button class="page-btn nav-btn" [disabled]="currentPage === 1" (click)="goToPreviousPage()">‹ Prev</button>
     <ng-container *ngFor="let page of pages">
       <button class="page-btn" [class.active]="page === currentPage" (click)="goToPage(page)">{{ page }}</button>
     </ng-container>
     <button class="page-btn nav-btn" [disabled]="currentPage === totalPages" (click)="goToNextPage()">Next ›</button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- CUSTOMER-FACING NOTICE — replaces the list/table -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div class="customer-list-notice" *ngIf="!isAdmin">
+    <span class="customer-list-notice__icon">🎟️</span>
+    <p>Your ticket goes straight to your account once booked.</p>
+    <a routerLink="/customer/my-tickets" class="customer-list-notice__link">View My Tickets →</a>
   </div>
 
   <!-- ═══════════════════════════════════════════════ -->

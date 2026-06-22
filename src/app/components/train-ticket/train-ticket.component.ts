@@ -26,6 +26,33 @@ import { TicketService } from '../../services/ticket.service';
 import { TripService } from '../../services/trip.service';
 import { LocationService } from '../../services/location.service';
 import { SeatLockService } from '../../services/seat-lock.service';
+import { getUserRole } from '../../utils/auth.utils';
+
+
+const BRAND_LOGOS: Record<string, string> = {
+  scania: 'assets/img/scania.jpeg',
+  volvo: 'assets/img/volvo.jpeg',
+  hino: 'assets/img/hino.jpeg',
+  mercedes: 'assets/img/mercedes.jpeg',
+  man: 'assets/img/man.jpeg',
+  isuzu: 'assets/img/isuzu.jpeg',
+  yutong: 'assets/img/yutong.jpeg',
+  king: 'assets/img/king.jpeg',
+  golden: 'assets/img/golden.jpeg',
+  zhongtong: 'assets/img/zhongtong.jpeg',
+  daf: 'assets/img/daf.jpeg',
+  tata: 'assets/img/tata.jpeg',
+  ashok: 'assets/img/ashok.jpeg',
+  leyland: 'assets/img/ashok.jpeg',
+  eicher: 'assets/img/eicher.jpeg',
+  byd: 'assets/img/byd.jpeg',
+  neoplan: 'assets/img/neoplan.jpeg',
+  setra: 'assets/img/setra.jpeg',
+  irizar: 'assets/img/irizar.jpeg',
+  hyundai: 'assets/img/hyundai.jpeg',
+  mlw: 'assets/img/br.jpeg',
+  caetano: 'assets/img/caetano.jpeg',
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TYPES
@@ -130,6 +157,7 @@ export class TrainTicketComponent implements OnInit, OnDestroy {
   pages: number[] = [];
   sortField = '';
   sortAsc = true;
+  isAdmin: boolean = false;
 
   // ── Seat panel state ─────────────────────────────────────────────────────────
   seatBookingBusId: number | null = null;
@@ -184,6 +212,7 @@ export class TrainTicketComponent implements OnInit, OnDestroy {
     const today = new Date();
     const pad = (n: number) => n.toString().padStart(2, '0');
     this.todayString = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+    this.isAdmin = getUserRole() === 'Admin';
 
     this.loadAll();
 
@@ -1015,6 +1044,33 @@ private _applyLockedSeatsSnapshot(tripId: number): Promise<void> {
   openDatePicker(event: FocusEvent): void {
     const input = event.target as HTMLInputElement;
     if (typeof input?.showPicker === 'function') input.showPicker();
+  }
+
+
+
+  // ── Brand Logo Helpers ─────────────────────────────────────────────────────
+
+  getBrandLogo(model: string): string | null {
+    if (!model) return null;
+    const lower = model.toLowerCase();
+    for (const [key, path] of Object.entries(BRAND_LOGOS)) {
+      if (lower.includes(key)) return path;
+    }
+    return null;
+  }
+
+  getBrandName(model: string): string {
+    if (!model) return '';
+    const lower = model.toLowerCase();
+    for (const key of Object.keys(BRAND_LOGOS)) {
+      if (lower.includes(key))
+        return key.charAt(0).toUpperCase() + key.slice(1);
+    }
+    return '';
+  }
+
+  getBrandInitial(model: string): string {
+    return model ? model.charAt(0).toUpperCase() : '?';
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
