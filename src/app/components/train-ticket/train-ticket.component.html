@@ -521,7 +521,7 @@
                 <input [(ngModel)]="selectedArrivalDate" name="editArrivalDate" type="date" required readonly />
               </div>
             </div>
-          </div>
+          </div>`
 
           <!-- Available Trains (modal) -->
           <div class="section section-vehicles" *ngIf="availableVehicles.length">
@@ -542,7 +542,7 @@
                         <span *ngIf="!getBrandLogo(v.model)" class="brand-fallback">{{ getBrandInitial(v.model)
                           }}</span>
                         <div class="train-name-row">
-                          <span class="train-icon">🚂</span>
+                          <!-- <span class="train-icon">🚂</span> -->
                           <span class="train-name">{{ v.model }}</span>
                         </div>
                       </div>
