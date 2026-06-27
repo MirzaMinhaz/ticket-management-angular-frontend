@@ -38,7 +38,7 @@ const BRAND_LOGOS: Record<string, string> = {
   setra: 'assets/img/setra.jpeg',
   irizar: 'assets/img/irizar.jpeg',
   hyundai: 'assets/img/hyundai.jpeg',
-  mlw: 'assets/img/br.jpeg',
+  br: 'assets/img/br.jpeg',
   caetano: 'assets/img/caetano.jpeg',
 };
 
