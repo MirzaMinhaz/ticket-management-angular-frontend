@@ -80,7 +80,7 @@
           <label class="fg__label">Operator</label>
           <select class="fg__ctrl" [(ngModel)]="selectedOperatorCode" name="operatorCode" required>
             <option value="" disabled selected>Select Operator</option>
-            <option *ngFor="let op of operators" [value]="op.operatorCode">{{ op.name }}</option>
+            <option *ngFor="let op of filteredOperators" [value]="op.operatorCode">{{ op.name }}</option>
           </select>
         </div>
 
@@ -265,7 +265,7 @@
             <div class="fg">
               <label class="fg__label">Operator</label>
               <select class="fg__ctrl" [(ngModel)]="selectedOperatorCode" name="editOperatorCode">
-                <option *ngFor="let op of operators" [value]="op.operatorCode">{{ op.name }}</option>
+                <option *ngFor="let op of filteredOperators" [value]="op.operatorCode">{{ op.name }}</option>
               </select>
             </div>
 

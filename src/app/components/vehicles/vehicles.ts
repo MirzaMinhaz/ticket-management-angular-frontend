@@ -128,6 +128,16 @@ export class VehicleComponent implements OnInit {
     return this.operators.find((op) => op.operatorCode === code)?.name;
   }
 
+  // ─── Operator filtering (Train → only Bangladesh Railway) ──────────────
+  get filteredOperators(): OperatorDto[] {
+    if (this.selectedVehicle.type === 'Train') {
+      return this.operators.filter((op) =>
+        op.name?.toLowerCase().includes('bangladesh railway'),
+      );
+    }
+    return this.operators;
+  }
+
   // ─── Pagination ─────────────────────────────────────────────────────────
   get paginatedVehicles(): Vehicle[] {
     const start = (this.currentPage - 1) * this.itemsPerPage;
@@ -320,6 +330,7 @@ export class VehicleComponent implements OnInit {
       this.selectedVehicle.acType = '';
       this.selectedVehicle.busCategory = '';
       this.selectedVehicle.deckLevel = '';
+      this.setDefaultRailwayOperator();
     } else {
       this.selectedVehicle.capacity = 44;
       this.selectedVehicle.acType = 'AC';
@@ -327,6 +338,16 @@ export class VehicleComponent implements OnInit {
       this.selectedVehicle.deckLevel = 'Lower Deck';
     }
   }
+
+  // ─── Default operator for Train type ───────────────────────────────────
+  private setDefaultRailwayOperator(): void {
+  const railway = this.operators.find((op) =>
+    op.name?.toLowerCase().includes('bangladesh railway'),
+  );
+  if (railway) {
+    this.selectedOperatorCode = railway.operatorCode;
+  }
+}
 
   autoClearMessage(): void {
     setTimeout(() => {
