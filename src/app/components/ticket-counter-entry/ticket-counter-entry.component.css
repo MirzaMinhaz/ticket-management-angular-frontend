@@ -3,37 +3,152 @@
    Concept: an operations ledger for physical ticket counters.
    Codes/numbers set in mono like a ticket serial. Status shown as a
    signal dot, like a station departure board. The edit modal is styled
-   as a torn ticket stub — the one signature flourish; everything else
-   stays flat and quiet.
+   as a torn ticket stub. Toasts confirm actions top-right with a
+   shrinking countdown bar, like a boarding timer.
    ========================================================================== */
 
 .ticket-counter-container {
-  --ink: #16262f;              /* primary text */
-  --ink-muted: #5b6b66;        /* secondary text */
-  --paper: #eef1ec;            /* page background, cool sage-grey */
-  --surface: #ffffff;          /* card surface */
-  --line: #dbe1da;             /* hairline borders */
+  --ink: #16262f;
+  --ink-muted: #5b6b66;
+  --paper: #eef1ec;
+  --surface: #ffffff;
+  --line: #dbe1da;
   --line-strong: #b9c3ba;
 
-  --rail-teal: #0f5c56;        /* primary accent */
+  --rail-teal: #0f5c56;
   --rail-teal-dark: #0b433f;
-  --signal-amber: #b0791f;     /* edit / caution */
+  --signal-amber: #b0791f;
   --signal-amber-bg: #fbf1de;
-  --alert-red: #a13d2f;        /* delete / danger */
+  --alert-red: #a13d2f;
   --alert-red-bg: #f8e8e4;
-  --rail-green: #2f6b46;       /* active status */
+  --rail-green: #2f6b46;
   --rail-green-bg: #e6efe6;
 
   --font-display: 'Space Grotesk', 'Inter', sans-serif;
   --font-body: 'Inter', 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, monospace;
 
+  position: relative;
   background: var(--paper);
   padding: 40px 32px 64px;
   max-width: 1180px;
   margin: 0 auto;
   font-family: var(--font-body);
   color: var(--ink);
+}
+
+/* -------------------------------------------------------------------- */
+/* Toast notifications                                                  */
+/* -------------------------------------------------------------------- */
+
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 340px;
+  max-width: calc(100vw - 32px);
+}
+
+.toast {
+  position: relative;
+  background: linear-gradient(135deg, #14877d, var(--rail-teal-dark));
+  border-radius: 6px;
+  box-shadow: 0 10px 28px rgba(15, 92, 86, 0.35), 0 1px 2px rgba(22, 38, 47, 0.08);
+  overflow: hidden;
+  animation: toastIn 0.22s ease-out;
+}
+
+.toast.toast-error {
+  background: linear-gradient(135deg, #d1553f, #8f2f22);
+  box-shadow: 0 10px 28px rgba(161, 61, 47, 0.35), 0 1px 2px rgba(22, 38, 47, 0.08);
+}
+
+.toast.toast-leaving {
+  animation: toastOut 0.2s ease-in forwards;
+}
+
+.toast-body {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 12px 13px 14px;
+}
+
+.toast-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #ffffff;
+}
+
+.toast.toast-error .toast-dot {
+  background: #ffffff;
+}
+
+.toast-message {
+  flex: 1;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #ffffff;
+  line-height: 1.4;
+}
+
+.toast-close {
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  font-size: 17px;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: color 0.15s, background-color 0.15s;
+}
+
+.toast-close:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.18);
+}
+
+/* the "going backward" countdown line */
+.toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.85);
+  transform-origin: left;
+  animation: toastShrink 3s linear forwards;
+}
+
+.toast.toast-error .toast-progress {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.toast-progress.paused {
+  animation-play-state: paused;
+}
+
+@keyframes toastShrink {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes toastOut {
+  from { opacity: 1; transform: translateX(0); max-height: 80px; }
+  to { opacity: 0; transform: translateX(24px); max-height: 0; }
 }
 
 /* -------------------------------------------------------------------- */
@@ -71,7 +186,7 @@
 }
 
 /* -------------------------------------------------------------------- */
-/* Panels (flat, hairline-bordered, accent tab instead of drop shadow)  */
+/* Panels                                                                */
 /* -------------------------------------------------------------------- */
 
 .ticket-counter-card,
@@ -310,7 +425,6 @@ select.invalid:focus {
   gap: 8px;
 }
 
-/* status dot, like a platform indicator light */
 .status-pill {
   display: inline-flex;
   align-items: center;
@@ -379,38 +493,6 @@ select.invalid:focus {
 }
 
 /* -------------------------------------------------------------------- */
-/* Alerts — slim, left-accent banners instead of pastel boxes           */
-/* -------------------------------------------------------------------- */
-
-.alert {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
-  border-radius: 4px;
-  font-size: 13.5px;
-  font-weight: 500;
-  margin-bottom: 20px;
-  border-left: 3px solid transparent;
-}
-
-.alert.success-alert {
-  background-color: var(--rail-green-bg);
-  color: var(--rail-green-dark, #234f31);
-  border-left-color: var(--rail-green);
-}
-
-.alert.error-alert {
-  background-color: var(--alert-red-bg);
-  color: var(--alert-red);
-  border-left-color: var(--alert-red);
-}
-
-.alert.modal-alert {
-  margin-top: -6px;
-}
-
-/* -------------------------------------------------------------------- */
 /* Modal — styled as a torn ticket stub                                 */
 /* -------------------------------------------------------------------- */
 
@@ -437,7 +519,6 @@ select.invalid:focus {
   border-top: 4px solid var(--rail-teal);
 }
 
-/* perforated tear-edge just under the top accent bar */
 .modal::before {
   content: '';
   position: absolute;
@@ -527,5 +608,12 @@ select.invalid:focus {
   .ticket-counter-table {
     display: block;
     overflow-x: auto;
+  }
+
+  .toast-container {
+    top: 12px;
+    right: 12px;
+    left: 12px;
+    width: auto;
   }
 }

@@ -1,19 +1,24 @@
 <div class="ticket-counter-container">
 
+  <!-- Toast notifications -->
+  <div class="toast-container" aria-live="polite">
+    <div class="toast" *ngFor="let t of toasts"
+         [class.toast-success]="t.type === 'success'"
+         [class.toast-error]="t.type === 'error'"
+         [class.toast-leaving]="t.leaving">
+      <div class="toast-body">
+        <span class="toast-dot"></span>
+        <span class="toast-message">{{ t.message }}</span>
+        <button class="toast-close" (click)="dismissToast(t.id)" aria-label="Dismiss notification">×</button>
+      </div>
+      <div class="toast-progress" [class.paused]="t.leaving"></div>
+    </div>
+  </div>
+
   <div class="page-header">
     <span class="page-eyebrow">Operations · Ticket Counters</span>
     <h2 class="page-title">Counter Directory</h2>
     <p class="page-subtitle">Add, edit, and manage physical ticket counters across every location.</p>
-  </div>
-
-  <!-- Success Message -->
-  <div *ngIf="successMessage" class="alert success-alert">
-    {{ successMessage }}
-  </div>
-
-  <!-- Server / general error -->
-  <div *ngIf="validationErrors['server']" class="alert error-alert">
-    {{ validationErrors['server'] }}
   </div>
 
   <!-- Inline Form for Adding New Ticket Counter -->
@@ -138,14 +143,6 @@
       <span class="modal-serial">Counter · #{{ selectedCounter.id }}</span>
       <h3 class="modal-title">Edit Counter</h3>
 
-      <div *ngIf="modalSuccessMessage" class="alert success-alert modal-alert">
-        {{ modalSuccessMessage }}
-      </div>
-
-      <div *ngIf="validationErrors['server']" class="alert error-alert modal-alert">
-        {{ validationErrors['server'] }}
-      </div>
-
       <form (ngSubmit)="save()" #editForm="ngForm" class="ticket-counter-form">
         <input type="hidden" [(ngModel)]="selectedCounter.id" name="editTicketCounterId" />
 
@@ -183,7 +180,7 @@
         </div>
 
         <div class="form-actions">
-          <button type="submit" class="btn primary" [disabled]="isSaving || !!modalSuccessMessage">
+          <button type="submit" class="btn primary" [disabled]="isSaving">
             {{ isSaving ? 'Saving…' : 'Update Counter' }}
           </button>
           <button type="button" class="btn secondary" (click)="closeModal()" [disabled]="isSaving">Cancel</button>

@@ -7,6 +7,13 @@ import { LocationService } from '../../services/location.service';
 import { Subject, Observable, of } from 'rxjs';
 import { exhaustMap, catchError, finalize, tap } from 'rxjs/operators';
 
+interface ToastMessage {
+  id: number;
+  message: string;
+  type: 'success' | 'error';
+  leaving?: boolean;
+}
+
 @Component({
   selector: 'app-ticket-counter-entry',
   standalone: true,
@@ -20,8 +27,6 @@ export class TicketCounterEntryComponent implements OnInit, OnDestroy {
   selectedLocationCode: string = '';
   locations: LocationDto[] = [];
 
-  successMessage: string = '';
-  modalSuccessMessage: string = '';
   showModal: boolean = false;
 
   currentPage: number = 1;
@@ -32,18 +37,19 @@ export class TicketCounterEntryComponent implements OnInit, OnDestroy {
   counterToToDelete: TicketCounterDto | null = null;
   showDeleteConfirmModal: boolean = false;
 
-  // ✅ Pre-submit validation state
+  // ✅ Pre-submit field validation (unrelated to toasts — stays inline under fields)
   validationErrors: { [key: string]: string } = {};
 
   // ✅ True while a create/update request is actually in flight.
-  // Used to disable the Save button and show a "Saving..." state.
   isSaving: boolean = false;
 
-  // ✅ Every click on "Save"/"Update" pushes into this Subject instead of
-  // calling the HTTP service directly. exhaustMap() below ignores any new
-  // emissions while a previous save is still in progress, which is what
-  // actually prevents duplicate create/update requests from double-clicks
-  // or a slow network + impatient user.
+  // ✅ Toast notifications — top-right, auto-dismiss after 3s, closable
+  toasts: ToastMessage[] = [];
+  private toastIdCounter = 0;
+  private readonly TOAST_DURATION_MS = 3000;
+
+  // ✅ Save requests flow through this Subject; exhaustMap ignores new
+  // emissions while a save is already in progress (prevents double submit).
   private saveTrigger$ = new Subject<void>();
 
   constructor(
@@ -59,9 +65,34 @@ export class TicketCounterEntryComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    // Good practice: close the Subject so its internal subscription
-    // doesn't linger after the component is destroyed.
     this.saveTrigger$.complete();
+  }
+
+  // -------------------------------------------------------------------
+  // Toast notifications
+  // -------------------------------------------------------------------
+  showToast(message: string, type: 'success' | 'error' = 'success'): void {
+    const toast: ToastMessage = { id: ++this.toastIdCounter, message, type };
+    this.toasts = [...this.toasts, toast];
+
+    setTimeout(() => this.dismissToast(toast.id), this.TOAST_DURATION_MS);
+  }
+
+  dismissToast(id: number): void {
+    const toast = this.toasts.find(t => t.id === id);
+    if (!toast || toast.leaving) {
+      return;
+    }
+
+    // Mark as leaving first so the exit animation can play,
+    // then remove it from the array once the animation finishes.
+    toast.leaving = true;
+
+    setTimeout(() => {
+      this.ngZone.run(() => {
+        this.toasts = this.toasts.filter(t => t.id !== id);
+      });
+    }, 200);
   }
 
   // -------------------------------------------------------------------
@@ -77,13 +108,8 @@ export class TicketCounterEntryComponent implements OnInit, OnDestroy {
             catchError(err => {
               console.error('Failed to save ticket counter', err);
               this.ngZone.run(() => {
-                this.validationErrors = {
-                  ...this.validationErrors,
-                  server: '❌ Failed to save. Please check your input and try again.'
-                };
+                this.showToast('Failed to save. Please check your input and try again.', 'error');
               });
-              // Swallow the error here so the outer stream stays alive
-              // and can accept the next save attempt.
               return of(null);
             }),
             finalize(() => {
@@ -95,8 +121,6 @@ export class TicketCounterEntryComponent implements OnInit, OnDestroy {
       .subscribe();
   }
 
-  // Builds and fires off the actual create/update HTTP call.
-  // Returns an Observable so exhaustMap can manage its lifecycle.
   private performSave(): Observable<any> {
     const isUpdate = this.selectedCounter.id > 0;
 
@@ -111,15 +135,9 @@ export class TicketCounterEntryComponent implements OnInit, OnDestroy {
       return this.counterService.updateTicketCounter(this.selectedCounter.id, updateDto).pipe(
         tap(() => {
           this.ngZone.run(() => {
-            this.modalSuccessMessage = '✅ Counter updated successfully!';
             this.loadCounters();
-
-            setTimeout(() => {
-              this.ngZone.run(() => {
-                this.closeModal();
-                this.modalSuccessMessage = '';
-              });
-            }, 2000);
+            this.closeModal();
+            this.showToast('Counter updated successfully.', 'success');
           });
         })
       );
@@ -134,10 +152,9 @@ export class TicketCounterEntryComponent implements OnInit, OnDestroy {
       return this.counterService.createTicketCounter(createDto).pipe(
         tap(() => {
           this.ngZone.run(() => {
-            this.successMessage = '✅ Counter created successfully!';
             this.loadCounters();
             this.reset();
-            this.autoClearMessage();
+            this.showToast('Counter created successfully.', 'success');
           });
         })
       );
@@ -268,17 +285,12 @@ export class TicketCounterEntryComponent implements OnInit, OnDestroy {
         this.loadCounters();
         this.showDeleteConfirmModal = false;
         this.counterToToDelete = null;
-        this.successMessage = '🗑️ Ticket Counter deleted successfully!';
-        this.autoClearMessage();
+        this.showToast('Ticket counter deleted successfully.', 'success');
       },
-      error: err => console.error('Failed to delete Ticket Counter', err)
-    });
-  }
-
-  delete(id: number): void {
-    this.counterService.deleteTicketCounter(id).subscribe({
-      next: () => this.loadCounters(),
-      error: err => console.error('Failed to delete counter', err)
+      error: err => {
+        console.error('Failed to delete Ticket Counter', err);
+        this.showToast('Failed to delete counter. Please try again.', 'error');
+      }
     });
   }
 
@@ -301,14 +313,6 @@ export class TicketCounterEntryComponent implements OnInit, OnDestroy {
       createdAt: '',
       createdBy: ''
     };
-  }
-
-  autoClearMessage(): void {
-    setTimeout(() => {
-      this.ngZone.run(() => {
-        this.successMessage = '';
-      });
-    }, 3000);
   }
 
   sortBy(field: keyof TicketCounterDto): void {
