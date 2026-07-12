@@ -1,37 +1,119 @@
-/* Container and Layout */
+/* ==========================================================================
+   Ticket Counter Management — "Manifest" design system
+   Concept: an operations ledger for physical ticket counters.
+   Codes/numbers set in mono like a ticket serial. Status shown as a
+   signal dot, like a station departure board. The edit modal is styled
+   as a torn ticket stub — the one signature flourish; everything else
+   stays flat and quiet.
+   ========================================================================== */
+
 .ticket-counter-container {
-  padding: 30px;
-  max-width: 1100px;
-  margin: auto;
-  font-family: 'Segoe UI', sans-serif;
+  --ink: #16262f;              /* primary text */
+  --ink-muted: #5b6b66;        /* secondary text */
+  --paper: #eef1ec;            /* page background, cool sage-grey */
+  --surface: #ffffff;          /* card surface */
+  --line: #dbe1da;             /* hairline borders */
+  --line-strong: #b9c3ba;
+
+  --rail-teal: #0f5c56;        /* primary accent */
+  --rail-teal-dark: #0b433f;
+  --signal-amber: #b0791f;     /* edit / caution */
+  --signal-amber-bg: #fbf1de;
+  --alert-red: #a13d2f;        /* delete / danger */
+  --alert-red-bg: #f8e8e4;
+  --rail-green: #2f6b46;       /* active status */
+  --rail-green-bg: #e6efe6;
+
+  --font-display: 'Space Grotesk', 'Inter', sans-serif;
+  --font-body: 'Inter', 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, monospace;
+
+  background: var(--paper);
+  padding: 40px 32px 64px;
+  max-width: 1180px;
+  margin: 0 auto;
+  font-family: var(--font-body);
+  color: var(--ink);
+}
+
+/* -------------------------------------------------------------------- */
+/* Page header                                                          */
+/* -------------------------------------------------------------------- */
+
+.page-header {
+  margin-bottom: 32px;
+}
+
+.page-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--rail-teal);
+  font-weight: 600;
+  display: block;
+  margin-bottom: 8px;
 }
 
 .page-title {
-  text-align: center;
-  font-size: 28px;
-  margin-bottom: 30px;
-  color: #2c3e50;
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin: 0;
 }
 
-/* Card Sections */
+.page-subtitle {
+  color: var(--ink-muted);
+  font-size: 14px;
+  margin-top: 6px;
+}
+
+/* -------------------------------------------------------------------- */
+/* Panels (flat, hairline-bordered, accent tab instead of drop shadow)  */
+/* -------------------------------------------------------------------- */
+
 .ticket-counter-card,
 .list-section {
-  background-color: #ffffff;
-  border-radius: 10px;
-  padding: 25px;
-  margin-bottom: 30px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--rail-teal);
+  border-radius: 6px;
+  padding: 28px 28px 26px;
+  margin-bottom: 24px;
 }
 
 .card-title {
-  font-size: 20px;
-  margin-bottom: 20px;
-  color: #34495e;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin: 0 0 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
 }
 
-/* Form Styling */
+.card-title .count-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--rail-teal);
+  background: #e4ede9;
+  padding: 2px 8px;
+  border-radius: 3px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* -------------------------------------------------------------------- */
+/* Form                                                                  */
+/* -------------------------------------------------------------------- */
+
 .ticket-counter-form {
   display: flex;
   flex-direction: column;
@@ -39,7 +121,7 @@
 
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
   gap: 20px;
 }
 
@@ -49,221 +131,401 @@
 }
 
 label {
+  font-size: 12px;
   font-weight: 600;
-  margin-bottom: 6px;
-  color: #555;
+  letter-spacing: 0.03em;
+  color: var(--ink-muted);
+  margin-bottom: 7px;
 }
 
 input,
 select {
-  padding: 8px;
+  padding: 10px 12px;
   font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  transition: border-color 0.2s;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 input:focus,
 select:focus {
-  border-color: #007bff;
+  border-color: var(--rail-teal);
   outline: none;
+  box-shadow: 0 0 0 3px rgba(15, 92, 86, 0.12);
 }
 
-/* Form Actions */
+input.invalid,
+select.invalid {
+  border-color: var(--alert-red);
+}
+
+input.invalid:focus,
+select.invalid:focus {
+  box-shadow: 0 0 0 3px rgba(161, 61, 47, 0.12);
+}
+
+.error-text {
+  font-family: var(--font-mono);
+  color: var(--alert-red);
+  font-size: 11.5px;
+  margin-top: 6px;
+}
+
+/* -------------------------------------------------------------------- */
+/* Actions / buttons                                                    */
+/* -------------------------------------------------------------------- */
+
 .form-actions {
-  margin-top: 20px;
+  margin-top: 22px;
   display: flex;
-  gap: 15px;
-  justify-content: center;
+  gap: 12px;
 }
 
-/* Buttons */
 .btn {
-  padding: 8px 16px;
-  font-size: 14px;
-  border: none;
-  border-radius: 6px;
+  padding: 10px 20px;
+  font-size: 13.5px;
+  font-weight: 600;
+  font-family: var(--font-body);
+  border: 1px solid transparent;
+  border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.15s, border-color 0.15s, opacity 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .btn.primary {
-  background-color: #007bff;
-  color: white;
+  background-color: var(--rail-teal);
+  color: #fff;
 }
 
-.btn.primary:hover {
-  background-color: #0056b3;
+.btn.primary:hover:not(:disabled) {
+  background-color: var(--rail-teal-dark);
 }
 
 .btn.secondary {
-  background-color: #6c757d;
-  color: white;
+  background-color: transparent;
+  color: var(--ink-muted);
+  border-color: var(--line-strong);
 }
 
-.btn.secondary:hover {
-  background-color: #5a6268;
+.btn.secondary:hover:not(:disabled) {
+  border-color: var(--ink-muted);
+  color: var(--ink);
 }
 
 .btn.small {
   padding: 6px 10px;
-  font-size: 13px;
+  font-size: 12.5px;
 }
 
 .btn.edit {
-  background-color: #ffc107;
-  color: #212529;
+  background-color: var(--signal-amber-bg);
+  color: var(--signal-amber);
 }
 
 .btn.edit:hover {
-  background-color: #e0a800;
+  background-color: #f5e5c4;
 }
 
 .btn.delete {
-  background-color: #dc3545;
-  color: white;
+  background-color: var(--alert-red-bg);
+  color: var(--alert-red);
 }
 
 .btn.delete:hover {
-  background-color: #c82333;
+  background-color: #f1d6cf;
 }
 
-/* Table Styling */
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* -------------------------------------------------------------------- */
+/* Table — the "manifest"                                               */
+/* -------------------------------------------------------------------- */
+
 .ticket-counter-table {
   width: 100%;
   border-collapse: collapse;
-  border: 1px solid #ccc;
-}
-
-.ticket-counter-table th,
-.ticket-counter-table td {
-  border: 1px solid #ccc;
-  padding: 10px;
-  text-align: left;
 }
 
 .ticket-counter-table th {
-  background-color: #f8f9fa;
+  font-family: var(--font-mono);
+  font-size: 11px;
   font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line-strong);
   cursor: pointer;
   user-select: none;
+  white-space: nowrap;
+}
+
+.ticket-counter-table th:hover {
+  color: var(--rail-teal);
+}
+
+.ticket-counter-table th::after {
+  content: '⇅';
+  margin-left: 4px;
+  font-size: 9px;
+  color: var(--line-strong);
 }
 
 .ticket-counter-table td {
-  border-bottom: 1px solid #dee2e6;
+  padding: 12px;
+  font-size: 13.5px;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
 }
 
-.ticket-counter-table tr:hover {
-  background-color: #eaf4ff;
-  cursor: pointer;
+.ticket-counter-table tbody tr:hover {
+  background-color: #f5f7f4;
 }
 
 .ticket-counter-table th:first-child,
 .ticket-counter-table td:first-child {
-  width: 50px;
-  text-align: center;
-  color: #888;
+  width: 44px;
+  font-family: var(--font-mono);
+  color: var(--ink-muted);
+  font-size: 12px;
 }
 
-/* Pagination */
+.ticket-counter-table td:last-child {
+  display: flex;
+  gap: 8px;
+}
+
+/* status dot, like a platform indicator light */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-pill.is-active .status-dot {
+  background-color: var(--rail-green);
+  box-shadow: 0 0 0 3px var(--rail-green-bg);
+}
+.status-pill.is-active {
+  color: var(--rail-green);
+}
+
+.status-pill.is-inactive .status-dot {
+  background-color: var(--ink-muted);
+  box-shadow: 0 0 0 3px #e6e9e5;
+}
+.status-pill.is-inactive {
+  color: var(--ink-muted);
+}
+
+/* -------------------------------------------------------------------- */
+/* Pagination                                                            */
+/* -------------------------------------------------------------------- */
+
 .pagination {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 15px;
+  gap: 6px;
   margin-top: 20px;
 }
 
 .pagination .btn {
-  padding: 6px 12px;
-  font-size: 14px;
+  padding: 7px 12px;
+  font-size: 13px;
 }
 
 .page-btn {
-  background-color: #f1f1f1;
-  color: #333;
+  background-color: transparent;
+  color: var(--ink-muted);
+  border: 1px solid var(--line);
+  min-width: 34px;
+  justify-content: center;
 }
 
 .page-btn:hover {
-  background-color: #e0e0e0;
+  border-color: var(--rail-teal);
+  color: var(--rail-teal);
 }
 
 .page-btn.active {
-  background-color: #007bff;
-  color: white;
-  font-weight: bold;
+  background-color: var(--rail-teal);
+  color: #fff;
+  border-color: var(--rail-teal);
 }
 
-/* Success Message */
-.alert.success-alert {
-  background-color: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
-  padding: 12px 20px;
-  border-radius: 6px;
-  margin-bottom: 20px;
+/* -------------------------------------------------------------------- */
+/* Alerts — slim, left-accent banners instead of pastel boxes           */
+/* -------------------------------------------------------------------- */
+
+.alert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 4px;
+  font-size: 13.5px;
   font-weight: 500;
-  animation: fadeInOut 3s ease-in-out;
+  margin-bottom: 20px;
+  border-left: 3px solid transparent;
 }
 
-@keyframes fadeInOut {
-  0% { opacity: 0; }
-  10% { opacity: 1; }
-  90% { opacity: 1; }
-  100% { opacity: 0; }
+.alert.success-alert {
+  background-color: var(--rail-green-bg);
+  color: var(--rail-green-dark, #234f31);
+  border-left-color: var(--rail-green);
 }
 
-/* Modal Styling */
+.alert.error-alert {
+  background-color: var(--alert-red-bg);
+  color: var(--alert-red);
+  border-left-color: var(--alert-red);
+}
+
+.alert.modal-alert {
+  margin-top: -6px;
+}
+
+/* -------------------------------------------------------------------- */
+/* Modal — styled as a torn ticket stub                                 */
+/* -------------------------------------------------------------------- */
+
 .modal-backdrop {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.4);
+  inset: 0;
+  background-color: rgba(22, 38, 47, 0.45);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  padding: 20px;
 }
 
 .modal {
   position: relative;
-  background-color: #fff;
-  border-radius: 10px;
-  padding: 30px;
+  background-color: var(--surface);
+  border-radius: 8px;
+  padding: 34px 30px 28px;
   width: 600px;
-  max-width: 90%;
-  box-shadow: 0 8px 24px rgba(32, 20, 20, 0.2);
-  animation: fadeIn 0.3s ease-in-out;
+  max-width: 100%;
+  box-shadow: 0 12px 32px rgba(22, 38, 47, 0.18);
+  animation: modalIn 0.18s ease-out;
+  border-top: 4px solid var(--rail-teal);
+}
+
+/* perforated tear-edge just under the top accent bar */
+.modal::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 0;
+  right: 0;
+  height: 10px;
+  background-image: radial-gradient(circle, var(--paper) 2.5px, transparent 2.6px);
+  background-size: 16px 10px;
+  background-repeat: repeat-x;
+  background-position: 8px 0;
+}
+
+.modal-serial {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+  display: block;
+  margin: 6px 0 4px;
 }
 
 .modal-title {
-  font-size: 22px;
-  margin-bottom: 20px;
-  color: #2c3e50;
-  text-align: center;
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 22px;
 }
 
 .modal-close {
   position: absolute;
-  top: 18px;
-  right: 22px;
+  top: 16px;
+  right: 18px;
   background: transparent;
   border: none;
-  font-size: 24px;
-  font-weight: bold;
-  color: #555;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--ink-muted);
   cursor: pointer;
-  transition: color 0.2s;
-  z-index: 10;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.15s, background-color 0.15s;
 }
 
 .modal-close:hover {
-  color: #000;
+  color: var(--ink);
+  background-color: var(--paper);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(6px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.delete-modal {
+  width: 420px;
+  border-top-color: var(--alert-red);
+  text-align: center;
+}
+
+.delete-message {
+  color: var(--ink-muted);
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.delete-message strong {
+  color: var(--ink);
+}
+
+.delete-modal .form-actions {
+  justify-content: center;
+}
+
+/* -------------------------------------------------------------------- */
+/* Responsive                                                            */
+/* -------------------------------------------------------------------- */
+
+@media (max-width: 720px) {
+  .ticket-counter-container {
+    padding: 24px 16px 48px;
+  }
+
+  .ticket-counter-table {
+    display: block;
+    overflow-x: auto;
+  }
 }

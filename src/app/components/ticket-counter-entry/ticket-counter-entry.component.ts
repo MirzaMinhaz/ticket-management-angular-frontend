@@ -1,10 +1,11 @@
-import { Component, OnInit, NgZone } from '@angular/core';
+import { Component, OnInit, OnDestroy, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TicketCounterService } from '../../services/ticket-counter.service';
 import { TicketCounterDto, CreateTicketCounterDto, UpdateTicketCounterDto, LocationDto } from '../../models/common';
 import { LocationService } from '../../services/location.service';
-import { Observable, shareReplay, map } from 'rxjs';  
+import { Subject, Observable, of } from 'rxjs';
+import { exhaustMap, catchError, finalize, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-ticket-counter-entry',
@@ -13,7 +14,7 @@ import { Observable, shareReplay, map } from 'rxjs';
   templateUrl: './ticket-counter-entry.component.html',
   styleUrls: ['./ticket-counter-entry.component.css']
 })
-export class TicketCounterEntryComponent implements OnInit {
+export class TicketCounterEntryComponent implements OnInit, OnDestroy {
   counters: TicketCounterDto[] = [];
   selectedCounter: TicketCounterDto = this.getEmptyCounter();
   selectedLocationCode: string = '';
@@ -29,7 +30,21 @@ export class TicketCounterEntryComponent implements OnInit {
   sortAsc: boolean = true;
 
   counterToToDelete: TicketCounterDto | null = null;
-    showDeleteConfirmModal: boolean = false;
+  showDeleteConfirmModal: boolean = false;
+
+  // ✅ Pre-submit validation state
+  validationErrors: { [key: string]: string } = {};
+
+  // ✅ True while a create/update request is actually in flight.
+  // Used to disable the Save button and show a "Saving..." state.
+  isSaving: boolean = false;
+
+  // ✅ Every click on "Save"/"Update" pushes into this Subject instead of
+  // calling the HTTP service directly. exhaustMap() below ignores any new
+  // emissions while a previous save is still in progress, which is what
+  // actually prevents duplicate create/update requests from double-clicks
+  // or a slow network + impatient user.
+  private saveTrigger$ = new Subject<void>();
 
   constructor(
     private counterService: TicketCounterService,
@@ -40,22 +55,140 @@ export class TicketCounterEntryComponent implements OnInit {
   ngOnInit(): void {
     this.loadCounters();
     this.loadLocations();
+    this.setupSaveStream();
   }
 
+  ngOnDestroy(): void {
+    // Good practice: close the Subject so its internal subscription
+    // doesn't linger after the component is destroyed.
+    this.saveTrigger$.complete();
+  }
+
+  // -------------------------------------------------------------------
+  // exhaustMap save pipeline
+  // -------------------------------------------------------------------
+  private setupSaveStream(): void {
+    this.saveTrigger$
+      .pipe(
+        exhaustMap(() => {
+          this.ngZone.run(() => (this.isSaving = true));
+
+          return this.performSave().pipe(
+            catchError(err => {
+              console.error('Failed to save ticket counter', err);
+              this.ngZone.run(() => {
+                this.validationErrors = {
+                  ...this.validationErrors,
+                  server: '❌ Failed to save. Please check your input and try again.'
+                };
+              });
+              // Swallow the error here so the outer stream stays alive
+              // and can accept the next save attempt.
+              return of(null);
+            }),
+            finalize(() => {
+              this.ngZone.run(() => (this.isSaving = false));
+            })
+          );
+        })
+      )
+      .subscribe();
+  }
+
+  // Builds and fires off the actual create/update HTTP call.
+  // Returns an Observable so exhaustMap can manage its lifecycle.
+  private performSave(): Observable<any> {
+    const isUpdate = this.selectedCounter.id > 0;
+
+    if (isUpdate) {
+      const updateDto: UpdateTicketCounterDto = {
+        locationCode: this.selectedLocationCode,
+        counterName: this.selectedCounter.counterName.trim(),
+        addressDetails: this.selectedCounter.addressDetails?.trim(),
+        contactNumber: this.selectedCounter.contactNumber?.trim()
+      };
+
+      return this.counterService.updateTicketCounter(this.selectedCounter.id, updateDto).pipe(
+        tap(() => {
+          this.ngZone.run(() => {
+            this.modalSuccessMessage = '✅ Counter updated successfully!';
+            this.loadCounters();
+
+            setTimeout(() => {
+              this.ngZone.run(() => {
+                this.closeModal();
+                this.modalSuccessMessage = '';
+              });
+            }, 2000);
+          });
+        })
+      );
+    } else {
+      const createDto: CreateTicketCounterDto = {
+        locationCode: this.selectedLocationCode,
+        counterName: this.selectedCounter.counterName.trim(),
+        addressDetails: this.selectedCounter.addressDetails?.trim(),
+        contactNumber: this.selectedCounter.contactNumber?.trim()
+      };
+
+      return this.counterService.createTicketCounter(createDto).pipe(
+        tap(() => {
+          this.ngZone.run(() => {
+            this.successMessage = '✅ Counter created successfully!';
+            this.loadCounters();
+            this.reset();
+            this.autoClearMessage();
+          });
+        })
+      );
+    }
+  }
+
+  // -------------------------------------------------------------------
+  // Pre-submit validation
+  // -------------------------------------------------------------------
+  private validateForm(): boolean {
+    const errors: { [key: string]: string } = {};
+
+    if (!this.selectedCounter.counterName || !this.selectedCounter.counterName.trim()) {
+      errors['counterName'] = 'Counter name is required.';
+    }
+
+    if (!this.selectedLocationCode || !this.selectedLocationCode.trim()) {
+      errors['locationCode'] = 'Please select a location.';
+    }
+
+    if (this.selectedCounter.contactNumber && this.selectedCounter.contactNumber.trim()) {
+      const phonePattern = /^[0-9+\-\s]{6,20}$/;
+      if (!phonePattern.test(this.selectedCounter.contactNumber.trim())) {
+        errors['contactNumber'] = 'Enter a valid contact number (digits, spaces, + or - only).';
+      }
+    }
+
+    this.validationErrors = errors;
+    return Object.keys(errors).length === 0;
+  }
+
+  // -------------------------------------------------------------------
+  // Data loading
+  // -------------------------------------------------------------------
   loadCounters(): void {
     this.counterService.getAllTicketCounters().subscribe({
-      next: data => this.counters = data,
+      next: data => (this.counters = data),
       error: err => console.error('Failed to load counters', err)
     });
   }
 
   loadLocations(): void {
     this.locationService.getAllLocations().subscribe({
-      next: data => this.locations = data,
+      next: data => (this.locations = data),
       error: err => console.error('Failed to load locations', err)
     });
   }
 
+  // -------------------------------------------------------------------
+  // Pagination
+  // -------------------------------------------------------------------
   get paginatedCounters(): TicketCounterDto[] {
     const start = (this.currentPage - 1) * this.itemsPerPage;
     return this.counters.slice(start, start + this.itemsPerPage);
@@ -85,9 +218,13 @@ export class TicketCounterEntryComponent implements OnInit {
     return this.locations.find(loc => loc.locationCode === code)?.name;
   }
 
+  // -------------------------------------------------------------------
+  // Modal handling
+  // -------------------------------------------------------------------
   openModal(counter: TicketCounterDto): void {
     this.selectedCounter = { ...counter };
     this.selectedLocationCode = counter.locationCode;
+    this.validationErrors = {};
     this.showModal = true;
   }
 
@@ -96,77 +233,47 @@ export class TicketCounterEntryComponent implements OnInit {
     this.reset();
   }
 
-
- confirmDelete(ticketCounter: TicketCounterDto): void {
-  this.counterToToDelete = ticketCounter;
-  this.showDeleteConfirmModal = true;
-}
-
-cancelDelete(): void {
-  this.counterToToDelete = null;
-  this.showDeleteConfirmModal = false;
-}
-
-  save(): void {
-    if (this.selectedCounter.id>0) {
-      const updateDto: UpdateTicketCounterDto = {
-        locationCode: this.selectedLocationCode,
-        counterName: this.selectedCounter.counterName,
-        addressDetails: this.selectedCounter.addressDetails,
-        contactNumber: this.selectedCounter.contactNumber
-      };
-
-      this.counterService.updateTicketCounter(this.selectedCounter.id, updateDto).subscribe({
-        next: () => {
-          this.modalSuccessMessage = '✅ Counter updated successfully!';
-          this.loadCounters();
-
-          setTimeout(() => {
-            this.ngZone.run(() => {
-              this.closeModal();
-              this.modalSuccessMessage = '';
-            });
-          }, 2000);
-        },
-        error: err => console.error('Failed to update counter', err)
-      });
-
-    } else {
-      const createDto: CreateTicketCounterDto = {
-        locationCode: this.selectedLocationCode,
-        counterName: this.selectedCounter.counterName,
-        addressDetails: this.selectedCounter.addressDetails,
-        contactNumber: this.selectedCounter.contactNumber
-      };
-
-      this.counterService.createTicketCounter(createDto).subscribe({
-        next: () => {
-          this.successMessage = '✅ Counter created successfully!';
-          this.loadCounters();
-          this.reset();
-          this.autoClearMessage();
-        },
-        error: err => console.error('Failed to create counter', err)
-      });
-    }
+  confirmDelete(ticketCounter: TicketCounterDto): void {
+    this.counterToToDelete = ticketCounter;
+    this.showDeleteConfirmModal = true;
   }
 
+  cancelDelete(): void {
+    this.counterToToDelete = null;
+    this.showDeleteConfirmModal = false;
+  }
 
+  // -------------------------------------------------------------------
+  // Save entry point — called from the template (ngSubmit)
+  // -------------------------------------------------------------------
+  save(): void {
+    this.validationErrors = {};
+
+    if (!this.validateForm()) {
+      return; // stop here — no HTTP call fired, no chance of a 400
+    }
+
+    if (this.isSaving) {
+      return; // extra guard; exhaustMap already covers this
+    }
+
+    this.saveTrigger$.next();
+  }
 
   deleteConfirmed(): void {
-  if (!this.counterToToDelete) return;
+    if (!this.counterToToDelete) return;
 
-  this.counterService.deleteTicketCounter(this.counterToToDelete.id).subscribe({
-    next: () => {
-      this.loadCounters();
-      this.showDeleteConfirmModal = false;
-      this.counterToToDelete = null;
-      this.successMessage = '🗑️ Ticket Counter deleted successfully!';
-      this.autoClearMessage();
-    },
-    error: err => console.error('Failed to delete Ticket Counter', err)
-  });
-}
+    this.counterService.deleteTicketCounter(this.counterToToDelete.id).subscribe({
+      next: () => {
+        this.loadCounters();
+        this.showDeleteConfirmModal = false;
+        this.counterToToDelete = null;
+        this.successMessage = '🗑️ Ticket Counter deleted successfully!';
+        this.autoClearMessage();
+      },
+      error: err => console.error('Failed to delete Ticket Counter', err)
+    });
+  }
 
   delete(id: number): void {
     this.counterService.deleteTicketCounter(id).subscribe({
@@ -178,6 +285,7 @@ cancelDelete(): void {
   reset(): void {
     this.selectedCounter = this.getEmptyCounter();
     this.selectedLocationCode = '';
+    this.validationErrors = {};
   }
 
   getEmptyCounter(): TicketCounterDto {
