@@ -30,7 +30,7 @@
         <div class="form-group">
           <label for="counterName">Counter Name</label>
           <input [(ngModel)]="selectedCounter.counterName" name="counterName" id="counterName"
-                 [class.invalid]="validationErrors['counterName']" placeholder="e.g. Gabtoli Counter 3" required />
+                 [class.invalid]="validationErrors['counterName']" placeholder="e.g. Gabtoli" required />
           <span class="error-text" *ngIf="validationErrors['counterName']">{{ validationErrors['counterName'] }}</span>
         </div>
 
