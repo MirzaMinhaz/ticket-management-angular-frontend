@@ -28,6 +28,9 @@ import { CustomerHomeComponent } from './components/customer/customer-home/custo
 import { CustomerProfileComponent } from './components/customer/customer-profile/customer-profile.component';
 import { CustomerMyTicketsComponent } from './components/customer/customer-my-tickets/customer-my-tickets.component';
 
+// ← NEW: customer-only booking component (split out from the admin TicketComponent)
+import { CustomerTicketComponent } from './components/customer-ticket/customer-ticket.component';
+
 export const routes: Routes = [
   // ── Public ──────────────────────────────────────
   { path: '', component: AuthComponent },
@@ -64,7 +67,7 @@ export const routes: Routes = [
     children: [
       { path: 'home', component: CustomerHomeComponent },
       // Add more customer pages here as you build them:
-      { path: 'bus-booking', component: TicketComponent },
+      { path: 'bus-booking', component: CustomerTicketComponent }, // ← was TicketComponent
       { path: 'train-booking', component: TrainTicketComponent },
       { path: 'my-tickets', component: CustomerMyTicketsComponent },
       { path: 'profile', component: CustomerProfileComponent },
