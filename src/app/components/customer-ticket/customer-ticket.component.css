@@ -772,7 +772,7 @@ body {
   font-weight: 500;
   color: #C9D6EC;
   font-family: var(--font-mono);
-  background: rgba(255,255,255,0.1);
+  background: rgba(214, 21, 21, 0.1);
   padding: 2px 8px;
   border-radius: 6px;
   white-space: nowrap;

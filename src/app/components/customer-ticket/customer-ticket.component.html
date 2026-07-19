@@ -57,7 +57,7 @@
           <div class="location-row">
 
             <div class="location-field">
-              <span class="location-field-icon">🛫</span>
+              <span class="location-field-icon"></span>
               <div class="location-field-body">
                 <label for="fromLocation">From</label>
                 <select [(ngModel)]="selectedFromLocation" name="fromLocation" id="fromLocation" required
@@ -72,7 +72,7 @@
               [disabled]="!selectedFromLocation || !selectedToLocation" title="Swap From / To">⇄</button>
 
             <div class="location-field">
-              <span class="location-field-icon">🛬</span>
+              <span class="location-field-icon"></span>
               <div class="location-field-body">
                 <label for="toLocation">To</label>
                 <select [(ngModel)]="selectedToLocation" name="toLocation" id="toLocation" required
@@ -104,7 +104,7 @@
       <!-- SECTION 2: Vehicle Cards -->
       <div class="section section-vehicles" *ngIf="availableVehicles.length">
         <h4 class="section-title">
-          <span class="section-icon">🚌</span> Available Vehicles
+          <span class="section-icon"></span> Available Vehicles
         </h4>
         <div class="vehicle-list">
           <div *ngFor="let v of availableVehicles" class="vehicle-wrapper">
@@ -176,7 +176,7 @@
             <!-- SEAT PANEL (Add Form) -->
             <div class="seat-panel-container" *ngIf="seatBookingBusId === v.id">
               <div class="seat-panel-vehicle-header">
-                <span class="seat-panel-vehicle-icon">🚌</span>
+                <span class="seat-panel-vehicle-icon"></span>
                 <span class="seat-panel-vehicle-name">{{ getOperatorName(v.operatorCode) }}</span>
                 <span class="seat-panel-vehicle-model">{{ v.model }}</span>
                 <span class="layout-badge" [class.layout-badge--onetwo]="seatLayoutMode === 'one-two'">
@@ -688,7 +688,7 @@
               <div class="location-row">
 
                 <div class="location-field">
-                  <span class="location-field-icon">🛫</span>
+                  <span class="location-field-icon"></span>
                   <div class="location-field-body">
                     <label for="editFromLocation">From</label>
                     <select [(ngModel)]="selectedFromLocation" name="editFromLocation" id="editFromLocation" required
@@ -703,7 +703,7 @@
                   [disabled]="!selectedFromLocation || !selectedToLocation" title="Swap From / To">⇄</button>
 
                 <div class="location-field">
-                  <span class="location-field-icon">🛬</span>
+                  <span class="location-field-icon"></span>
                   <div class="location-field-body">
                     <label for="editToLocation">To</label>
                     <select [(ngModel)]="selectedToLocation" name="editToLocation" id="editToLocation" required
@@ -733,7 +733,7 @@
           <!-- SECTION 2: Vehicle Cards (modal) -->
           <div class="section section-vehicles" *ngIf="availableVehicles.length">
             <h4 class="section-title">
-              <span class="section-icon">🚌</span> Available Vehicles
+              <span class="section-icon"></span> Available Vehicles
               <span class="reschedule-hint" *ngIf="selectedTicket.seatNumber">
                 — changing date/vehicle requires new seat selection
               </span>
@@ -795,7 +795,7 @@
                 <!-- SEAT PANEL (Edit Modal) -->
                 <div class="seat-panel-container" *ngIf="seatBookingBusId === v.id">
                   <div class="seat-panel-vehicle-header">
-                    <span class="seat-panel-vehicle-icon">🚌</span>
+                    <span class="seat-panel-vehicle-icon"></span>
                     <span class="seat-panel-vehicle-name">{{ getOperatorName(v.operatorCode) }}</span>
                     <span class="seat-panel-vehicle-model">{{ v.model }}</span>
                     <span class="layout-badge" [class.layout-badge--onetwo]="seatLayoutMode === 'one-two'">
