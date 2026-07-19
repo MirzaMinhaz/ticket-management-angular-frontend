@@ -97,13 +97,33 @@ body {
 }
 
 /* ─────────────────────────────────────────────── */
-/*  HERO SECTION — Railway Thematic                 */
+/*  HERO SECTION — background image + dark overlay  */
 /* ─────────────────────────────────────────────── */
 
 .hero-section {
   text-align: center;
   margin-bottom: 32px;
-  padding-bottom: 8px;
+  border-radius: 20px;
+  background-image: url('/assets/img/train_img_1.jpeg');
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Dark overlay for text contrast — ~30% black */
+.hero-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 0;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  padding: 40px 24px 34px;
 }
 
 .hero-stations {
@@ -115,14 +135,16 @@ body {
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 2.5px;
-  color: #0f766e;
-  margin-bottom: 14px;
+  color: #ffffff;
+  margin: 0 0 14px;
   text-transform: uppercase;
   font-family: 'DM Mono', monospace;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  border: none;
 }
 
 .hero-dot {
-  color: #99f6e4;
+  color: rgba(255,255,255,0.6);
   font-size: 10px;
 }
 
@@ -133,57 +155,28 @@ body {
   gap: 10px;
   font-size: 30px;
   font-weight: 800;
-  color: #111827;
+  color: #ffffff;
   letter-spacing: -0.5px;
   margin: 0 0 10px;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  border: none;
 }
 
 .hero-title-icon {
   font-size: 28px;
   display: inline-block;
-  animation: chug 1.8s ease-in-out infinite;
-}
-
-@keyframes chug {
-  0%, 100% { transform: translateX(0); }
-  50%      { transform: translateX(3px); }
 }
 
 .hero-subtitle {
   font-size: 14.5px;
   font-weight: 500;
-  color: #6b7280;
-  margin: 0 0 22px;
+  color: rgba(255,255,255,0.92);
+  margin: 0;
   max-width: 480px;
   margin-left: auto;
   margin-right: auto;
   line-height: 1.5;
-}
-
-/* Railway track divider — replaces the old page-title::after underline */
-.hero-track {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  max-width: 280px;
-  margin: 0 auto;
-}
-
-.hero-track-line {
-  height: 3px;
-  width: 16px;
-  background: linear-gradient(90deg, #0f766e, #0369a1);
-  border-radius: 99px;
-  flex-shrink: 0;
-}
-
-.hero-track-tie {
-  width: 3px;
-  height: 12px;
-  background: #99f6e4;
-  border-radius: 1px;
-  flex-shrink: 0;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.35);
 }
 
 @media (max-width: 500px) {

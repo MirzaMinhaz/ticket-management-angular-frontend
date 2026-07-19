@@ -23,6 +23,7 @@ import { LocationService } from '../../services/location.service';
 import { SeatLockService } from '../../services/seat-lock.service';
 // NOTE: getUserName must exist in auth.utils (added alongside getUserRole).
 import { getUserName } from '../../utils/auth.utils';
+import { RouterLink } from '@angular/router';
 
 const BRAND_LOGOS: Record<string, string> = {
   scania: 'assets/img/scania.jpeg',
@@ -113,7 +114,7 @@ const BERTH_POSITIONS: BerthPosition[] = [
 @Component({
   selector: 'app-customer-train-ticket',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './customer-train-ticket.component.html',
   styleUrls: ['./customer-train-ticket.component.css'],
 })

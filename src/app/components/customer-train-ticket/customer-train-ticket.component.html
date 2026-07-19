@@ -1,31 +1,19 @@
 <div class="train-ticket-container">
-  <div class="hero-section">
-  <div class="hero-stations">
-    <span>DHAKA</span>
-    <span class="hero-dot">•</span>
-    <span>CHATTOGRAM</span>
-    <span class="hero-dot">•</span>
-    <span>SYLHET</span>
-    <span class="hero-dot">•</span>
-    <span>RAJSHAHI</span>
-  </div>
-  <h2 class="hero-title">
-    <span class="hero-title-icon">🚆</span> Book Your Train Ticket
-  </h2>
-  <p class="hero-subtitle">Pick your platform, claim your berth, ride the rails. Your ticket, booked before the whistle blows.</p>
-  <div class="hero-track">
-    <span class="hero-track-line"></span>
-    <span class="hero-track-tie"></span>
-    <span class="hero-track-tie"></span>
-    <span class="hero-track-tie"></span>
-    <span class="hero-track-tie"></span>
-    <span class="hero-track-tie"></span>
-    <span class="hero-track-tie"></span>
-    <span class="hero-track-tie"></span>
-    <span class="hero-track-tie"></span>
-    <span class="hero-track-tie"></span>
-    <span class="hero-track-tie"></span>
-    <span class="hero-track-line"></span>
+ <div class="hero-section">
+  <div class="hero-content">
+    <div class="hero-stations">
+      <span>DHAKA</span>
+      <span class="hero-dot">•</span>
+      <span>CHATTOGRAM</span>
+      <span class="hero-dot">•</span>
+      <span>SYLHET</span>
+      <span class="hero-dot">•</span>
+      <span>RAJSHAHI</span>
+    </div>
+    <h2 class="hero-title">
+      <span class="hero-title-icon">🚆</span> Book Your Train Ticket
+    </h2>
+    <p class="hero-subtitle">Pick your platform, claim your berth, ride the rails. Your ticket, booked before the whistle blows.</p>
   </div>
 </div>
 
@@ -117,7 +105,7 @@
       <!-- SECTION 2: Available Trains -->
       <div class="section section-vehicles" *ngIf="availableVehicles.length">
         <h4 class="section-title">
-          <span class="section-icon">🚆</span> Available Trains
+          <span class="section-icon"></span> Available Trains
         </h4>
         <div class="vehicle-list">
           <div *ngFor="let v of availableVehicles" class="vehicle-wrapper">
@@ -441,7 +429,7 @@
       </div>
 
       <div class="form-actions">
-        <button type="submit" class="btn primary">🚆 Confirm Booking</button>
+        <button type="submit" class="btn primary">Confirm Booking</button>
         <button type="button" class="btn secondary" (click)="reset()">🧹 Clear</button>
       </div>
 
@@ -452,9 +440,10 @@
   <!-- CUSTOMER-FACING NOTICE                          -->
   <!-- ═══════════════════════════════════════════════ -->
   <div class="customer-list-notice">
-    <span class="customer-list-notice__icon">🚆</span>
+    <span class="customer-list-notice__icon"></span>
     <p>Your ticket goes straight to your account once booked.</p>
     <a routerLink="/customer/my-tickets" class="customer-list-notice__link">View My Tickets →</a>
   </div>
+  
 
 </div>

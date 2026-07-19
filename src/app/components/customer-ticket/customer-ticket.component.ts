@@ -29,6 +29,7 @@ import { LocationDto } from '../../models/common';
 // getUserRole, returning the logged-in user's display name (e.g. `name` /
 // `fullName` claim).
 import { getUserRole, getUserName } from '../../utils/auth.utils';
+import { RouterLink } from '@angular/router';
 
 const BRAND_LOGOS: Record<string, string> = {
   scania: 'assets/img/scania.jpeg',
@@ -60,7 +61,7 @@ export type SeatLayoutMode = 'one-two' | 'two-two';
 @Component({
   selector: 'app-customer-ticket',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './customer-ticket.component.html',
   styleUrls: ['./customer-ticket.component.css'],
 })
