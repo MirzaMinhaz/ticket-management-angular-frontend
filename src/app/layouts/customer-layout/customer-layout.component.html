@@ -13,7 +13,7 @@
 
     <div class="c-actions">
       <div class="c-user" tabindex="0">
-        <span class="c-avatar">{{ username?.charAt(0)?.toUpperCase() }}</span>
+        <span class="c-avatar">{{ username.charAt(0).toUpperCase() }}</span>
         <span class="c-user-text">
           <span class="c-user-label">Logged in</span>
           <span class="c-user-name">{{ username }}</span>
@@ -30,7 +30,7 @@
 
   <div class="c-mobile" [class.open]="menuOpen">
     <div class="c-mobile-user">
-      <span class="c-avatar">{{ username?.charAt(0)?.toUpperCase() }}</span>
+      <span class="c-avatar">{{ username.charAt(0).toUpperCase() }}</span>
       <span class="c-user-name">{{ username }}</span>
     </div>
     <a routerLink="/customer/bus-booking" (click)="menuOpen=false">Bus Tickets</a>

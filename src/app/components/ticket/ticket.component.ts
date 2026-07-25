@@ -25,6 +25,7 @@ import { TripService } from '../../services/trip.service';
 import { LocationService } from '../../services/location.service';
 import { LocationDto } from '../../models/common';
 import { getUserRole } from '../../utils/auth.utils'; // ← NEW: role check
+import { RouterLink } from '@angular/router';
 
 const BRAND_LOGOS: Record<string, string> = {
   scania: 'assets/img/scania.jpeg',
@@ -56,7 +57,7 @@ export type SeatLayoutMode = 'one-two' | 'two-two';
 @Component({
   selector: 'app-ticket',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink], // ← added RouterLink
   templateUrl: './ticket.component.html',
   styleUrls: ['./ticket.component.css'],
 })
@@ -80,6 +81,8 @@ export class TicketComponent implements OnInit {
   // ── Selected / form state ────────────────────────────────────────────────────
   selectedTicket: TicketDto = this.emptyTicket();
   selectedRouteCode: string = '';
+  selectedFromLocation: string = '';   // ← NEW
+  selectedToLocation: string = '';     // ← NEW
   selectedVehicleCode: string = '';
   selectedDepartureDate: string = '';
   selectedArrivalDate: string = '';
@@ -552,6 +555,86 @@ export class TicketComponent implements OnInit {
         (c) => c.locationCode === route.destinationLocationCode,
       ).length === 0
     );
+  }
+
+
+
+
+  // 4. Add this block near getSelectedRoute() / getLocationName()
+
+  /** All unique locations that are a valid departure ("From") point on some route. */
+  get fromLocations(): LocationDto[] {
+    const codes = new Set(this.routes.map((r) => r.departureLocationCode));
+    return this.locations.filter((l) => codes.has(l.locationCode));
+  }
+
+  /** Locations reachable ("To") from the currently selected From location. */
+  get toLocations(): LocationDto[] {
+    if (!this.selectedFromLocation) return [];
+    const codes = new Set(
+      this.routes
+        .filter((r) => r.departureLocationCode === this.selectedFromLocation)
+        .map((r) => r.destinationLocationCode),
+    );
+    return this.locations.filter((l) => codes.has(l.locationCode));
+  }
+
+  onFromLocationChange(): void {
+    this.selectedToLocation = '';
+    this.selectedRouteCode = '';
+    this.availableVehicles = [];
+    this.selectedArrivalDate = '';
+    this.closeSeatPanel();
+    this.selectedTicket.seatNumber = '';
+    this.selectedTicket.farePaid = 0;
+  }
+
+  onToLocationChange(): void {
+    const route = this.routes.find(
+      (r) =>
+        r.departureLocationCode === this.selectedFromLocation &&
+        r.destinationLocationCode === this.selectedToLocation,
+    );
+
+    if (!route) {
+      this.selectedRouteCode = '';
+      this.availableVehicles = [];
+      this.showToast('error', 'No route found for this From/To combination.');
+      return;
+    }
+
+    this.selectedRouteCode = String(route.id);
+    this.calculateArrivalDate();
+  }
+
+  swapLocations(): void {
+    if (!this.selectedFromLocation || !this.selectedToLocation) return;
+
+    const newFrom = this.selectedToLocation;
+    const hasReverseRoute = this.routes.some(
+      (r) => r.departureLocationCode === newFrom,
+    );
+    if (!hasReverseRoute) {
+      this.showToast('warn', 'No return route available from this destination.');
+      return;
+    }
+
+    const newTo = this.selectedFromLocation;
+    this.selectedFromLocation = newFrom;
+    this.selectedToLocation = newTo;
+    this.onToLocationChange();
+  }
+
+  /** Sets From/To selects to match a route id (used when opening the edit modal). */
+  private syncFromToWithRoute(routeId: number | string | null): void {
+    const route = this.routes.find((r) => r.id === Number(routeId));
+    if (route) {
+      this.selectedFromLocation = route.departureLocationCode;
+      this.selectedToLocation = route.destinationLocationCode;
+    } else {
+      this.selectedFromLocation = '';
+      this.selectedToLocation = '';
+    }
   }
 
   // ── Brand Logo Helpers ─────────────────────────────────────────────────────
