@@ -63,7 +63,7 @@
                 <label for="fromLocation">From</label>
                 <select [(ngModel)]="selectedFromLocation" name="fromLocation" id="fromLocation" required
                   (change)="onFromLocationChange()">
-                  <option value="" disabled selected>Select origin station</option>
+                  <option value="" disabled selected>Select from station</option>
                   <option *ngFor="let l of fromLocations" [value]="l.locationCode">{{ l.name }}</option>
                 </select>
               </div>

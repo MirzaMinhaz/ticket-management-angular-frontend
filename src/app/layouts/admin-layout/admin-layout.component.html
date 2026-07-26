@@ -2,14 +2,18 @@
   <div class="navbar-container">
     <a routerLink="/home" class="navbar-brand">TMS</a>
     <div class="navbar-links">
-      <a routerLink="/locations"             class="nav-link" routerLinkActive="active">Locations</a>
-      <a routerLink="/ticket-counters/entry" class="nav-link" routerLinkActive="active">Ticket Counters</a>
-      <a routerLink="/vehicles"              class="nav-link" routerLinkActive="active">Vehicles</a>
-      <a routerLink="/ticket"                class="nav-link" routerLinkActive="active">Bus Tickets</a>
-      <a routerLink="/trainTicket"           class="nav-link" routerLinkActive="active">Train Tickets</a>
-      <a routerLink="/operators"             class="nav-link" routerLinkActive="active">Operators</a>
-      <a routerLink="/routes"                class="nav-link" routerLinkActive="active">Routes</a>
-      <a routerLink="/schedules"             class="nav-link" routerLinkActive="active">Schedules</a>
+      <ng-container *ngIf="isAdminOrManager()">
+        <a routerLink="/locations"             class="nav-link" routerLinkActive="active">Locations</a>
+        <a routerLink="/ticket-counters/entry" class="nav-link" routerLinkActive="active">Ticket Counters</a>
+        <a routerLink="/vehicles"              class="nav-link" routerLinkActive="active">Vehicles</a>
+        <a routerLink="/operators"             class="nav-link" routerLinkActive="active">Operators</a>
+        <a routerLink="/routes"                class="nav-link" routerLinkActive="active">Routes</a>
+        <a routerLink="/schedules"              class="nav-link" routerLinkActive="active">Schedules</a>
+      </ng-container>
+      <ng-container *ngIf="!isAdminOrManager()">
+        <a routerLink="/ticket"      class="nav-link" routerLinkActive="active">Bus Tickets</a>
+        <a routerLink="/trainTicket" class="nav-link" routerLinkActive="active">Train Tickets</a>
+      </ng-container>
     </div>
     <div class="navbar-right">
       <div class="user-chip" *ngIf="getLoggedInUser()">
@@ -30,14 +34,18 @@
     </div>
   </div>
   <div class="mobile-menu" [class.open]="mobileMenuOpen">
-    <a routerLink="/locations"             class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Locations</a>
-    <a routerLink="/ticket-counters/entry" class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Ticket Counters</a>
-    <a routerLink="/vehicles"              class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Vehicles</a>
-    <a routerLink="/ticket"                class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Bus Tickets</a>
-    <a routerLink="/trainTicket"           class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Train Tickets</a>
-    <a routerLink="/operators"             class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Operators</a>
-    <a routerLink="/routes"                class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Routes</a>
-    <a routerLink="/schedules"             class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Schedules</a>
+    <ng-container *ngIf="isAdminOrManager()">
+      <a routerLink="/locations"             class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Locations</a>
+      <a routerLink="/ticket-counters/entry" class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Ticket Counters</a>
+      <a routerLink="/vehicles"              class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Vehicles</a>
+      <a routerLink="/operators"             class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Operators</a>
+      <a routerLink="/routes"                class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Routes</a>
+      <a routerLink="/schedules"              class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Schedules</a>
+    </ng-container>
+    <ng-container *ngIf="!isAdminOrManager()">
+      <a routerLink="/ticket"      class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Bus Tickets</a>
+      <a routerLink="/trainTicket" class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Train Tickets</a>
+    </ng-container>
     <div class="mobile-menu-bottom">
       <div class="user-chip" *ngIf="getLoggedInUser()">
         <div class="user-avatar">{{ getLoggedInUser()?.charAt(0)?.toUpperCase() }}</div>

@@ -14,4 +14,8 @@ export class HomeComponent {
 
   currentYear: number = new Date().getFullYear();
 
+  scrollToFaq(): void {
+    document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' });
+  }
+
 }

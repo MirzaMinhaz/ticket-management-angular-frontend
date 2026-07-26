@@ -20,6 +20,13 @@ export class AdminLayoutComponent {
     return localStorage.getItem('username');
   }
 
+  isAdminOrManager(): boolean {
+    const username = this.getLoggedInUser();
+    if (!username) return false;
+    const lower = username.toLowerCase();
+    return lower.includes('admin') || lower.includes('manager');
+  }
+
   logout() {
     localStorage.clear();
     this.router.navigate(['/']);

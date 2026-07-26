@@ -2,6 +2,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { forkJoin } from 'rxjs';
 import {
   TicketDto,
   CreateTicketDto,
@@ -24,7 +25,7 @@ import { TicketService } from '../../services/ticket.service';
 import { TripService } from '../../services/trip.service';
 import { LocationService } from '../../services/location.service';
 import { LocationDto } from '../../models/common';
-import { getUserRole } from '../../utils/auth.utils'; // ← NEW: role check
+import { getUserRole } from '../../utils/auth.utils';
 import { RouterLink } from '@angular/router';
 
 const BRAND_LOGOS: Record<string, string> = {
@@ -57,14 +58,13 @@ export type SeatLayoutMode = 'one-two' | 'two-two';
 @Component({
   selector: 'app-ticket',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink], // ← added RouterLink
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './ticket.component.html',
   styleUrls: ['./ticket.component.css'],
 })
 export class TicketComponent implements OnInit {
   // ── Role gate ────────────────────────────────────────────────────────────────
-  /** True only when the logged-in user is Admin. Controls visibility of the ticket list/table. */
-  isAdmin: boolean = false; // ← NEW
+  isAdmin: boolean = false;
 
   // ── Data lists ───────────────────────────────────────────────────────────────
   tickets: TicketDto[] = [];
@@ -81,8 +81,8 @@ export class TicketComponent implements OnInit {
   // ── Selected / form state ────────────────────────────────────────────────────
   selectedTicket: TicketDto = this.emptyTicket();
   selectedRouteCode: string = '';
-  selectedFromLocation: string = '';   // ← NEW
-  selectedToLocation: string = '';     // ← NEW
+  selectedFromLocation: string = '';
+  selectedToLocation: string = '';
   selectedVehicleCode: string = '';
   selectedDepartureDate: string = '';
   selectedArrivalDate: string = '';
@@ -97,7 +97,6 @@ export class TicketComponent implements OnInit {
   ticketToCancel: TicketDto | null = null;
   cancelReason: string = 'Counter request';
 
-  /** True while the seat panel is loading from the backend */
   seatPanelLoading = false;
 
   // ── Pagination ───────────────────────────────────────────────────────────────
@@ -149,17 +148,29 @@ export class TicketComponent implements OnInit {
     const pad = (n: number) => n.toString().padStart(2, '0');
     this.todayString = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
 
-    // ── NEW: determine role from JWT and gate the ticket list accordingly ──────
     this.isAdmin = getUserRole() === 'Admin';
 
     this.loadRoutes();
     this.loadVehicles();
     this.loadOperators();
-    this.loadSchedules();
     this.loadCounters();
-    this.loadTickets();
-    this.loadTrips();
     this.loadLocations();
+
+    // ── Load trips + vehicles + schedules FIRST, then tickets — so the
+    //    Bus-only filter in loadTickets() has data to filter against.
+    forkJoin({
+      trips: this.tripService.getAll(),
+      vehicles: this.vehicleService.getAll(),
+      schedules: this.scheduleService.getAllSchedules(),
+    }).subscribe({
+      next: ({ trips, vehicles, schedules }) => {
+        this.trips = trips;
+        this.vehicles = vehicles;
+        this.schedules = schedules;
+        this.loadTickets();
+      },
+      error: (e) => console.error('Failed to load trips/vehicles/schedules', e),
+    });
   }
 
   // ── Data loaders ─────────────────────────────────────────────────────────────
@@ -199,19 +210,37 @@ export class TicketComponent implements OnInit {
     });
   }
 
+  /** Loads tickets and keeps only those whose trip resolves to a Bus vehicle — Train tickets never appear here. */
   loadTickets(): void {
     this.ticketService.getTickets().subscribe({
       next: (d) => {
-        this.tickets = d;
+        this.tickets = this.filterBusTickets(d);
         this.updatePagination();
       },
       error: (e) => console.error('Failed to load tickets', e),
     });
   }
 
+  /** Filters a ticket list down to Bus-only tickets using trip → schedule → vehicle resolution. */
+  private filterBusTickets(allTickets: TicketDto[]): TicketDto[] {
+    return allTickets.filter((ticket) => {
+      const trip = this.trips.find((t) => t.id === ticket.tripId);
+      if (!trip) return false;
+      const schedule = this.schedules.find((s) => s.id === trip.scheduleId);
+      if (!schedule) return false;
+      const vehicle = this.vehicles.find((v) => v.id === schedule.vehicleId);
+      return vehicle?.type === 'Bus';
+    });
+  }
+
   loadTrips(): void {
     this.tripService.getAll().subscribe({
-      next: (d) => (this.trips = d),
+      next: (d) => {
+        this.trips = d;
+        // Re-apply the Bus filter whenever trips are refreshed after a save/cancel,
+        // since ticket visibility depends on trip → schedule → vehicle resolution.
+        this.loadTickets();
+      },
       error: (e) => console.error('Failed to load trips', e),
     });
   }
@@ -398,7 +427,7 @@ export class TicketComponent implements OnInit {
 
     this.availableVehicles = this.vehicles
       .filter((v) =>
-        v.type === 'Bus' &&   // ← add this condition
+        v.type === 'Bus' &&
         this.schedules.some(
           (s) =>
             s.routeId === Number(this.selectedRouteCode) &&
@@ -557,15 +586,12 @@ export class TicketComponent implements OnInit {
     );
   }
 
-
-
-
-  // 4. Add this block near getSelectedRoute() / getLocationName()
-
   /** All unique locations that are a valid departure ("From") point on some route. */
   get fromLocations(): LocationDto[] {
     const codes = new Set(this.routes.map((r) => r.departureLocationCode));
-    return this.locations.filter((l) => codes.has(l.locationCode));
+    return this.locations
+    .filter((l) => codes.has(l.locationCode))
+    .sort((a, b) => a.name.localeCompare(b.name));
   }
 
   /** Locations reachable ("To") from the currently selected From location. */
@@ -576,7 +602,9 @@ export class TicketComponent implements OnInit {
         .filter((r) => r.departureLocationCode === this.selectedFromLocation)
         .map((r) => r.destinationLocationCode),
     );
-    return this.locations.filter((l) => codes.has(l.locationCode));
+    return this.locations
+    .filter((l) => codes.has(l.locationCode))
+    .sort((a, b) => a.name.localeCompare(b.name));
   }
 
   onFromLocationChange(): void {
@@ -1089,7 +1117,6 @@ export class TicketComponent implements OnInit {
 
             this.ticketService.updateTicket(dto).subscribe({
               next: () => {
-                this.loadTickets();
                 this.loadTrips();
                 this.editingOriginalSeats = [];
                 this.editSeatsPreSelected = false;
@@ -1138,7 +1165,6 @@ export class TicketComponent implements OnInit {
 
             this.ticketService.createTicket(dto).subscribe({
               next: () => {
-                this.loadTickets();
                 this.loadTrips();
                 this.showToast('success', 'Ticket saved successfully!');
                 this.reset();
@@ -1184,7 +1210,6 @@ export class TicketComponent implements OnInit {
     };
     this.ticketService.cancelTicket(dto).subscribe({
       next: () => {
-        this.loadTickets();
         this.loadTrips();
         this.cancelCancelAction();
         this.showToast('success', 'Ticket cancelled successfully.');
@@ -1205,6 +1230,8 @@ export class TicketComponent implements OnInit {
     });
     this.selectedTicket = this.emptyTicket();
     this.selectedRouteCode = '';
+    this.selectedFromLocation = '';
+    this.selectedToLocation = '';
     this.selectedVehicleCode = '';
     this.selectedTicket.departureCounterId = 0;
     this.selectedTicket.arrivalCounterId = 0;
@@ -1236,6 +1263,7 @@ export class TicketComponent implements OnInit {
       const schedule = this.schedules.find((s) => s.id === trip.scheduleId);
       if (schedule) {
         this.selectedRouteCode = String(schedule.routeId);
+        this.syncFromToWithRoute(schedule.routeId);
 
         const vehicle = this.vehicles.find((v) => v.id === schedule.vehicleId);
         if (vehicle) {
@@ -1280,7 +1308,7 @@ export class TicketComponent implements OnInit {
 
     this.availableVehicles = this.vehicles
       .filter((v) =>
-        v.type === 'Bus' &&   // ← add this condition
+        v.type === 'Bus' &&
         this.schedules.some(
           (s) =>
             s.routeId === Number(this.selectedRouteCode) &&
@@ -1314,6 +1342,8 @@ export class TicketComponent implements OnInit {
     this.closeSeatPanel();
     this.selectedTicket = this.emptyTicket();
     this.selectedRouteCode = '';
+    this.selectedFromLocation = '';
+    this.selectedToLocation = '';
     this.selectedVehicleCode = '';
     this.selectedDepartureDate = '';
     this.selectedArrivalDate = '';
