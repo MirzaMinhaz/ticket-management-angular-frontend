@@ -55,6 +55,34 @@ const BRAND_LOGOS: Record<string, string> = {
 
 export type SeatLayoutMode = 'one-two' | 'two-two';
 
+// ─── Time-of-day filter buckets ──────────────────────────────────────────────
+type TimeCategory = 'Dawn' | 'Morning' | 'Afternoon' | 'Evening' | 'Night';
+
+const TIME_CATEGORY_ORDER: TimeCategory[] = ['Dawn', 'Morning', 'Afternoon', 'Evening', 'Night'];
+
+const TIME_CATEGORY_LABELS: Record<TimeCategory, string> = {
+  Dawn: 'Dawn · 4–9 AM',
+  Morning: 'Morning · 9 AM–1 PM',
+  Afternoon: 'Afternoon · 1–6 PM',
+  Evening: 'Evening · 6–9 PM',
+  Night: 'Night · 9 PM–4 AM',
+};
+
+const TIME_CATEGORY_ICONS: Record<TimeCategory, string> = {
+  Dawn: '🌅',
+  Morning: '☀️',
+  Afternoon: '🌤️',
+  Evening: '🌇',
+  Night: '🌙',
+};
+
+export interface FilterOption {
+  value: string;
+  label: string;
+  icon: string;
+  count: number;
+}
+
 @Component({
   selector: 'app-ticket',
   standalone: true,
@@ -130,6 +158,11 @@ export class TicketComponent implements OnInit {
   upperRows: string[] = [];
   isDualDeck = false;
 
+  // ── Vehicle filter state ─────────────────────────────────────────────────────
+  selectedAcFilters: Set<string> = new Set();
+  selectedDeckFilters: Set<string> = new Set();
+  selectedTimeFilters: Set<string> = new Set();
+
   constructor(
     private routeService: RouteService,
     private vehicleService: VehicleService,
@@ -156,8 +189,6 @@ export class TicketComponent implements OnInit {
     this.loadCounters();
     this.loadLocations();
 
-    // ── Load trips + vehicles + schedules FIRST, then tickets — so the
-    //    Bus-only filter in loadTickets() has data to filter against.
     forkJoin({
       trips: this.tripService.getAll(),
       vehicles: this.vehicleService.getAll(),
@@ -237,8 +268,6 @@ export class TicketComponent implements OnInit {
     this.tripService.getAll().subscribe({
       next: (d) => {
         this.trips = d;
-        // Re-apply the Bus filter whenever trips are refreshed after a save/cancel,
-        // since ticket visibility depends on trip → schedule → vehicle resolution.
         this.loadTickets();
       },
       error: (e) => console.error('Failed to load trips', e),
@@ -355,6 +384,139 @@ export class TicketComponent implements OnInit {
     }
   }
 
+  // ── Vehicle filters ──────────────────────────────────────────────────────────
+
+  /** Resets all vehicle filters — called whenever the route/vehicle list changes. */
+  clearAllFilters(): void {
+    this.selectedAcFilters.clear();
+    this.selectedDeckFilters.clear();
+    this.selectedTimeFilters.clear();
+  }
+
+  get hasActiveFilters(): boolean {
+    return (
+      this.selectedAcFilters.size > 0 ||
+      this.selectedDeckFilters.size > 0 ||
+      this.selectedTimeFilters.size > 0
+    );
+  }
+
+  toggleAcFilter(value: string): void {
+    if (this.selectedAcFilters.has(value)) this.selectedAcFilters.delete(value);
+    else this.selectedAcFilters.add(value);
+  }
+
+  toggleDeckFilter(value: string): void {
+    if (this.selectedDeckFilters.has(value)) this.selectedDeckFilters.delete(value);
+    else this.selectedDeckFilters.add(value);
+  }
+
+  toggleTimeFilter(value: string): void {
+    if (this.selectedTimeFilters.has(value)) this.selectedTimeFilters.delete(value);
+    else this.selectedTimeFilters.add(value);
+  }
+
+  private classifyTimeCategory(minutes: number): TimeCategory {
+    if (minutes >= 240 && minutes < 540) return 'Dawn';       // 04:00–08:59
+    if (minutes >= 540 && minutes < 780) return 'Morning';    // 09:00–12:59
+    if (minutes >= 780 && minutes < 1080) return 'Afternoon'; // 13:00–17:59
+    if (minutes >= 1080 && minutes < 1260) return 'Evening';  // 18:00–20:59
+    return 'Night';                                            // 21:00–03:59
+  }
+
+  /** Time-of-day category for a vehicle's departure on the selected route. */
+  getTimeCategoryForVehicle(vehicleId: number): TimeCategory {
+    const s = this.schedules.find(
+      (s) =>
+        s.vehicleId === vehicleId &&
+        s.routeId === Number(this.selectedRouteCode),
+    );
+    return this.classifyTimeCategory(this.getDepartureMinutes(s));
+  }
+
+  getTimeCategoryIcon(vehicleId: number): string {
+    return TIME_CATEGORY_ICONS[this.getTimeCategoryForVehicle(vehicleId)];
+  }
+
+  getTimeCategoryShortLabel(vehicleId: number): string {
+    return this.getTimeCategoryForVehicle(vehicleId);
+  }
+
+  getDeckIcon(deck: string | undefined): string {
+    const d = (deck ?? '').toLowerCase();
+    if (d.includes('sleeper')) return '🛌';
+    if (d.includes('double')) return '🏢';
+    if (d.includes('upper')) return '🔼';
+    if (d.includes('lower')) return '🔽';
+    return '🚌';
+  }
+
+  /** AC/Non-AC filter options — only values actually present in availableVehicles, with counts. */
+  get acFilterOptions(): FilterOption[] {
+    const map = new Map<string, number>();
+    for (const v of this.availableVehicles) {
+      const key = v.acType || 'Unknown';
+      map.set(key, (map.get(key) ?? 0) + 1);
+    }
+    return Array.from(map.entries())
+      .map(([value, count]) => ({
+        value,
+        label: value,
+        icon: value === 'AC' ? '❄️' : '🌬️',
+        count,
+      }))
+      .sort((a, b) => b.count - a.count);
+  }
+
+  /** Bus-type (deck level) filter options — only values actually present, with counts. */
+  get deckFilterOptions(): FilterOption[] {
+    const map = new Map<string, number>();
+    for (const v of this.availableVehicles) {
+      const key = v.deckLevel || 'Unknown';
+      map.set(key, (map.get(key) ?? 0) + 1);
+    }
+    return Array.from(map.entries())
+      .map(([value, count]) => ({
+        value,
+        label: value,
+        icon: this.getDeckIcon(value),
+        count,
+      }))
+      .sort((a, b) => b.count - a.count);
+  }
+
+  /** Departure-time filter options — only time buckets that actually have a vehicle, in day order. */
+  get timeFilterOptions(): FilterOption[] {
+    const map = new Map<TimeCategory, number>();
+    for (const v of this.availableVehicles) {
+      const cat = this.getTimeCategoryForVehicle(v.id);
+      map.set(cat, (map.get(cat) ?? 0) + 1);
+    }
+    return TIME_CATEGORY_ORDER.filter((cat) => map.has(cat)).map((cat) => ({
+      value: cat,
+      label: TIME_CATEGORY_LABELS[cat],
+      icon: TIME_CATEGORY_ICONS[cat],
+      count: map.get(cat)!,
+    }));
+  }
+
+  /** Final vehicle list shown to the agent — filtered by active filters, already time-sorted from availableVehicles. */
+  get filteredVehicles(): Vehicle[] {
+    return this.availableVehicles.filter((v) => {
+      if (this.selectedAcFilters.size && !this.selectedAcFilters.has(v.acType || 'Unknown')) {
+        return false;
+      }
+      if (this.selectedDeckFilters.size && !this.selectedDeckFilters.has(v.deckLevel || 'Unknown')) {
+        return false;
+      }
+      if (this.selectedTimeFilters.size) {
+        const cat = this.getTimeCategoryForVehicle(v.id);
+        if (!this.selectedTimeFilters.has(cat)) return false;
+      }
+      return true;
+    });
+  }
+
   // ── Template helpers ─────────────────────────────────────────────────────────
 
   getOperatorName(operatorCode: string | undefined): string {
@@ -449,6 +611,9 @@ export class TicketComponent implements OnInit {
           this.getDepartureMinutes(schedA) - this.getDepartureMinutes(schedB)
         );
       });
+
+    // ← NEW: a new route/date means a new filter context — start clean.
+    this.clearAllFilters();
 
     this.closeSeatPanel();
 
@@ -590,8 +755,8 @@ export class TicketComponent implements OnInit {
   get fromLocations(): LocationDto[] {
     const codes = new Set(this.routes.map((r) => r.departureLocationCode));
     return this.locations
-    .filter((l) => codes.has(l.locationCode))
-    .sort((a, b) => a.name.localeCompare(b.name));
+      .filter((l) => codes.has(l.locationCode))
+      .sort((a, b) => a.name.localeCompare(b.name));
   }
 
   /** Locations reachable ("To") from the currently selected From location. */
@@ -603,8 +768,8 @@ export class TicketComponent implements OnInit {
         .map((r) => r.destinationLocationCode),
     );
     return this.locations
-    .filter((l) => codes.has(l.locationCode))
-    .sort((a, b) => a.name.localeCompare(b.name));
+      .filter((l) => codes.has(l.locationCode))
+      .sort((a, b) => a.name.localeCompare(b.name));
   }
 
   onFromLocationChange(): void {
@@ -612,6 +777,7 @@ export class TicketComponent implements OnInit {
     this.selectedRouteCode = '';
     this.availableVehicles = [];
     this.selectedArrivalDate = '';
+    this.clearAllFilters();
     this.closeSeatPanel();
     this.selectedTicket.seatNumber = '';
     this.selectedTicket.farePaid = 0;
@@ -1243,6 +1409,7 @@ export class TicketComponent implements OnInit {
     this.editingOriginalSeats = [];
     this.editingOriginalVehicleId = null;
     this.editSeatsPreSelected = false;
+    this.clearAllFilters();
     this.closeSeatPanel();
   }
 
@@ -1331,6 +1498,9 @@ export class TicketComponent implements OnInit {
         );
       });
 
+    // ← NEW: clear filters when the edit-modal vehicle list is (re)populated.
+    this.clearAllFilters();
+
     this.refreshAvailableSeatCounts();
   }
 
@@ -1339,6 +1509,7 @@ export class TicketComponent implements OnInit {
     this.editingOriginalSeats = [];
     this.editingOriginalVehicleId = null;
     this.editSeatsPreSelected = false;
+    this.clearAllFilters();
     this.closeSeatPanel();
     this.selectedTicket = this.emptyTicket();
     this.selectedRouteCode = '';

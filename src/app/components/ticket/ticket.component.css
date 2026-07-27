@@ -120,7 +120,7 @@ body {
 }
 
 /* ─────────────────────────────────────────────── */
-/*  AGENT HEADER — professional, functional          */
+/*  AGENT HEADER                                    */
 /* ─────────────────────────────────────────────── */
 
 .agent-header {
@@ -243,8 +243,20 @@ body {
 
 .section-icon { font-size: 13px; }
 
+.vehicle-count-badge {
+  font-size: 10px;
+  font-weight: 800;
+  color: #4338ca;
+  background: #e0e7ff;
+  border: 1px solid #c7d2fe;
+  padding: 2px 8px;
+  border-radius: 99px;
+  text-transform: none;
+  letter-spacing: 0.2px;
+}
+
 /* ─────────────────────────────────────────────── */
-/*  AGENT ROUTE CARD — From / To, compact & professional */
+/*  AGENT ROUTE CARD — From / To                    */
 /* ─────────────────────────────────────────────── */
 
 .agent-route-card {
@@ -365,7 +377,7 @@ body {
 }
 
 /* ─────────────────────────────────────────────── */
-/*  FORM GRID & INPUTS — redesigned                 */
+/*  FORM GRID & INPUTS                              */
 /* ─────────────────────────────────────────────── */
 
 .form-grid {
@@ -492,8 +504,368 @@ body {
 }
 
 /* ─────────────────────────────────────────────── */
-/*  VEHICLE DETAIL TAGS                             */
+/*  VEHICLES LAYOUT — sidebar + list                */
 /* ─────────────────────────────────────────────── */
+
+.vehicles-layout {
+  display: grid;
+  grid-template-columns: 224px 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .vehicles-layout { grid-template-columns: 1fr; }
+}
+
+/* ─────────────────────────────────────────────── */
+/*  FILTER SIDEBAR                                  */
+/* ─────────────────────────────────────────────── */
+
+.filter-sidebar {
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: 16px;
+}
+
+@media (max-width: 900px) {
+  .filter-sidebar { position: static; }
+}
+
+.filter-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1.5px solid #e2e8f0;
+}
+
+.filter-sidebar-title {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.filter-clear-btn {
+  background: transparent;
+  border: none;
+  color: #4f46e5;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 2px 4px;
+  transition: color 0.15s;
+}
+.filter-clear-btn:hover { color: #4338ca; text-decoration: underline; }
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-group-title {
+  font-size: 10px;
+  font-weight: 800;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  margin-bottom: 2px;
+}
+
+/* ── AC TYPE — horizontal pill buttons ─────────────────────────────── */
+
+.filter-pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.filter-pill:hover {
+  border-color: #a5b4fc;
+  background: #eef2ff;
+  transform: translateY(-1px);
+}
+
+.filter-pill.active {
+  background: linear-gradient(135deg, #4f46e5, #4338ca);
+  border-color: #4338ca;
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgba(79, 70, 229, 0.32);
+}
+
+.filter-pill-icon { font-size: 13px; line-height: 1; }
+.filter-pill-label { line-height: 1; }
+
+.filter-pill-count {
+  font-size: 10px;
+  font-weight: 800;
+  font-family: 'DM Mono', monospace;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.filter-pill.active .filter-pill-count {
+  background: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+}
+
+/* ── BUS TYPE — vertical rectangular buttons ───────────────────────── */
+
+.filter-row-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-row-btn {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 9px 10px;
+  border-radius: 9px;
+  border: 1.5px solid #e2e8f0;
+  border-left: 3.5px solid #e2e8f0;
+  background: #ffffff;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.filter-row-btn:hover {
+  border-color: #6ee7b7;
+  border-left-color: #10b981;
+  background: #f0fdf9;
+}
+
+.filter-row-btn.active {
+  border-color: #10b981;
+  border-left-color: #10b981;
+  background: #ecfdf5;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.18);
+}
+
+.filter-row-icon {
+  font-size: 15px;
+  line-height: 1;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.filter-row-btn.active .filter-row-icon { background: rgba(16, 185, 129, 0.15); }
+
+.filter-row-label {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #334155;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filter-row-btn.active .filter-row-label { color: #065f46; }
+
+.filter-row-count {
+  font-size: 10px;
+  font-weight: 800;
+  font-family: 'DM Mono', monospace;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.filter-row-btn.active .filter-row-count { background: rgba(16, 185, 129, 0.18); color: #047857; }
+
+/* ── DEPARTURE TIME — vertical block buttons ───────────────────────── */
+
+.filter-block-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-block-btn {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 10px 11px;
+  border-radius: 10px;
+  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.filter-block-btn:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.filter-block-btn.active {
+  background: linear-gradient(135deg, #1e1b4b, #312e81);
+  border-color: #312e81;
+  box-shadow: 0 4px 14px rgba(49, 46, 129, 0.3);
+}
+
+.filter-block-icon {
+  font-size: 16px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.filter-block-label {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #334155;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filter-block-btn.active .filter-block-label { color: #ffffff; }
+
+.filter-block-count {
+  font-size: 10px;
+  font-weight: 800;
+  font-family: 'DM Mono', monospace;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.filter-block-btn.active .filter-block-count { background: rgba(245, 165, 36, 0.25); color: #fcd34d; }
+
+/* ─────────────────────────────────────────────── */
+/*  VEHICLE LIST                                    */
+/* ─────────────────────────────────────────────── */
+
+.vehicle-list-wrap { min-width: 0; }
+
+.vehicle-list { display: flex; flex-direction: column; gap: 10px; }
+
+.vehicle-wrapper { display: flex; flex-direction: column; gap: 8px; }
+
+.vehicle-card {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  transition: all 0.18s ease;
+  overflow: hidden;
+}
+
+.vehicle-card:hover {
+  border-color: #a5b4fc;
+  box-shadow: 0 4px 16px rgba(79,70,229,0.1);
+}
+
+.vehicle-card.selected {
+  border: 2px solid #4f46e5;
+  background: #eef2ff;
+  box-shadow: 0 4px 16px rgba(79,70,229,0.15);
+}
+
+.vehicle-info-main {
+  display: grid;
+  grid-template-columns: 200px 1fr 190px;
+  padding: 14px 18px;
+  gap: 16px;
+  align-items: center;
+}
+
+@media (max-width: 700px) {
+  .vehicle-info-main { grid-template-columns: 1fr; }
+}
+
+.vehicle-left { display: flex; flex-direction: column; gap: 3px; }
+
+.model-cell { display: flex; align-items: center; gap: 10px; }
+
+.brand-logo {
+  width: 46px;
+  height: 28px;
+  object-fit: contain;
+  flex-shrink: 0;
+  border-radius: 4px;
+  background: transparent;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.12));
+}
+
+.brand-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: #e0e7ff;
+  color: #3730a3;
+  font-size: 1rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.operator-name { font-weight: 800; font-size: 0.92rem; color: #0f172a; margin: 0; }
+.bus-model { font-size: 0.8rem; color: #475569; font-weight: 500; margin: 0; }
+
+.type-tag {
+  margin-top: 5px;
+  padding: 3px 9px;
+  background: #ede9fe;
+  color: #5b21b6;
+  border-radius: 99px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  display: inline-block;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
 
 .detail-tags {
   display: flex;
@@ -547,20 +919,6 @@ body {
 /*  LAYOUT MODE BADGE                               */
 /* ─────────────────────────────────────────────── */
 
-.layout-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 9px;
-  border-radius: 99px;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.4px;
-  background: #f1f5f9;
-  color: #475569;
-  border: 1px solid #cbd5e1;
-  white-space: nowrap;
-}
-
 .layout-badge--onetwo {
   background: #e0e7ff;
   color: #3730a3;
@@ -568,57 +926,8 @@ body {
 }
 
 /* ─────────────────────────────────────────────── */
-/*  VEHICLE CARDS                                   */
+/*  VEHICLE MIDDLE / TIME                           */
 /* ─────────────────────────────────────────────── */
-
-.vehicle-list { display: flex; flex-direction: column; gap: 10px; }
-
-.vehicle-wrapper { display: flex; flex-direction: column; gap: 8px; }
-
-.vehicle-card {
-  background: #ffffff;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 12px;
-  transition: all 0.18s ease;
-  overflow: hidden;
-}
-
-.vehicle-card:hover {
-  border-color: #a5b4fc;
-  box-shadow: 0 4px 16px rgba(79,70,229,0.1);
-}
-
-.vehicle-card.selected {
-  border: 2px solid #4f46e5;
-  background: #eef2ff;
-  box-shadow: 0 4px 16px rgba(79,70,229,0.15);
-}
-
-.vehicle-info-main {
-  display: grid;
-  grid-template-columns: 200px 1fr 190px;
-  padding: 14px 18px;
-  gap: 16px;
-  align-items: center;
-}
-
-.vehicle-left { display: flex; flex-direction: column; gap: 3px; }
-
-.operator-name { font-weight: 800; font-size: 0.92rem; color: #0f172a; margin: 0; }
-.bus-model { font-size: 0.8rem; color: #475569; font-weight: 500; margin: 0; }
-
-.type-tag {
-  margin-top: 5px;
-  padding: 3px 9px;
-  background: #ede9fe;
-  color: #5b21b6;
-  border-radius: 99px;
-  font-size: 0.68rem;
-  font-weight: 700;
-  display: inline-block;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
 
 .vehicle-middle {
   display: flex;
@@ -642,6 +951,18 @@ body {
   color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+.time-cat-badge {
+  margin-top: 2px;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #4338ca;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  padding: 1px 7px;
+  border-radius: 99px;
+  white-space: nowrap;
 }
 
 .journey-path {
@@ -684,7 +1005,32 @@ body {
 .seat-indicator.full { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
 
 /* ─────────────────────────────────────────────── */
-/*  SEAT PANEL — redesigned                         */
+/*  FILTERED-EMPTY STATE                            */
+/* ─────────────────────────────────────────────── */
+
+.vehicle-empty-filtered {
+  text-align: center;
+  padding: 40px 20px;
+  background: #f8fafc;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.vehicle-empty-filtered-icon { font-size: 28px; opacity: 0.5; }
+
+.vehicle-empty-filtered p {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* ─────────────────────────────────────────────── */
+/*  SEAT PANEL                                      */
 /* ─────────────────────────────────────────────── */
 
 .seat-panel-container { margin-top: 4px; }
@@ -733,15 +1079,17 @@ body {
 }
 
 .layout-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  border-radius: 99px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
   background: rgba(255,255,255,0.1);
   color: #e0e7ff;
   border: 1px solid rgba(255,255,255,0.2);
-}
-
-.layout-badge--onetwo {
-  background: rgba(129,140,248,0.25);
-  color: #e0e7ff;
-  border-color: rgba(165,180,252,0.4);
 }
 
 .layout-badge--dualdeck {
@@ -796,6 +1144,11 @@ body {
   animation: panelSlideDown 0.18s ease;
 }
 
+@keyframes panelSlideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 .seat-loading {
   display: flex;
   align-items: center;
@@ -816,6 +1169,8 @@ body {
   flex-shrink: 0;
 }
 
+@keyframes spin { to { transform: rotate(360deg); } }
+
 .seat-empty {
   text-align: center;
   color: #94a3b8;
@@ -835,7 +1190,7 @@ body {
 }
 
 /* ─────────────────────────────────────────────── */
-/*  SEAT GRID — redesigned                          */
+/*  SEAT GRID                                       */
 /* ─────────────────────────────────────────────── */
 
 .seat-grid {
@@ -989,7 +1344,7 @@ body {
 .seat-btn.booked:hover { transform: none; box-shadow: none; }
 
 /* ─────────────────────────────────────────────── */
-/*  LEGEND & DOT (in-panel, light background)       */
+/*  LEGEND & DOT                                    */
 /* ─────────────────────────────────────────────── */
 
 .legend { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
@@ -1016,7 +1371,7 @@ body {
 }
 
 /* ─────────────────────────────────────────────── */
-/*  FARE SUMMARY PANEL — redesigned                 */
+/*  FARE SUMMARY PANEL                              */
 /* ─────────────────────────────────────────────── */
 
 .fare-summary-panel {
@@ -1255,7 +1610,7 @@ body {
   background: #fff;
   border-radius: 16px;
   width: 100%;
-  max-width: 900px;
+  max-width: 1040px;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
@@ -1379,35 +1734,8 @@ body {
 .cancel-modal-actions .btn { flex: 1; max-width: 180px; padding: 11px 20px; font-size: 13.5px; }
 
 /* ─────────────────────────────────────────────────────────
-   Brand Logos
+   Brand Logos — Ticket List Table (miniature)
 ───────────────────────────────────────────────────────── */
-
-.model-cell { display: flex; align-items: center; gap: 10px; }
-
-.brand-logo {
-  width: 46px;
-  height: 28px;
-  object-fit: contain;
-  flex-shrink: 0;
-  border-radius: 4px;
-  background: transparent;
-  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.12));
-}
-
-.brand-fallback {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 8px;
-  background: #e0e7ff;
-  color: #3730a3;
-  font-size: 1rem;
-  font-weight: 700;
-  flex-shrink: 0;
-  line-height: 1;
-}
 
 .op-model-row { display: flex; align-items: center; gap: 6px; }
 
@@ -1568,9 +1896,6 @@ body {
 /* ─────────────────────────────────────────────── */
 
 @media (max-width: 700px) {
-  .seat-panel-layout { flex-direction: column; }
-  .fare-summary-panel { width: 100%; flex: none; border-left: none; border-top: 1.5px solid #c7d2fe; }
-  .vehicle-info-main { grid-template-columns: 1fr; }
   .seat-panel-vehicle-header { gap: 7px; }
   .toast-stack { width: calc(100vw - 32px); right: 16px; top: 12px; }
   .agent-header { flex-direction: column; align-items: flex-start; }
