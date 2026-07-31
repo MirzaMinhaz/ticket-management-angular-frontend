@@ -1,0 +1,115 @@
+<div class="enroll-page">
+  <div class="enroll-shell">
+
+    <!-- Header -->
+    <header class="enroll-header">
+      <span class="eyebrow">Personnel Manifest</span>
+      <h1>Enroll a staff account</h1>
+      <p class="sub">Issue login credentials for Managers, Station Agents, and Counter Agents.</p>
+    </header>
+
+    <div class="enroll-body">
+
+      <!-- Form -->
+      <form class="enroll-form" (ngSubmit)="onRegister()" #f="ngForm">
+
+        <div class="field">
+          <label for="username">Username</label>
+          <input
+            id="username"
+            type="text"
+            name="username"
+            placeholder="e.g. dhaka_station"
+            [(ngModel)]="formData.username"
+            required
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="field">
+          <label for="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            name="email"
+            placeholder="name@tms.com"
+            [(ngModel)]="formData.email"
+            required
+          />
+        </div>
+
+        <div class="field">
+          <label for="password">Temporary password</label>
+          <div class="password-wrapper">
+            <input
+              id="password"
+              [type]="showPassword ? 'text' : 'password'"
+              name="password"
+              placeholder="Min. 6 characters"
+              [(ngModel)]="formData.password"
+              required
+              minlength="6"
+            />
+            <button type="button" class="eye-btn" (click)="showPassword = !showPassword" [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
+              <i class="{{ showPassword ? 'fas fa-eye-slash' : 'fas fa-eye' }}"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Role selector -->
+        <div class="field">
+          <label>Assign role</label>
+          <div class="role-picker">
+            <button
+              type="button"
+              *ngFor="let role of roles"
+              class="role-option"
+              [class.selected]="formData.role === role.value"
+              [style.--role-color]="role.color"
+              (click)="formData.role = role.value"
+            >
+              <span class="role-dot"></span>
+              <span class="role-text">
+                <span class="role-name">{{ role.label }}</span>
+                <span class="role-desc">{{ role.desc }}</span>
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="submit-btn" [disabled]="loading || !f.form.valid || !formData.role">
+          <span *ngIf="!loading">Issue credentials</span>
+          <span *ngIf="loading" class="spinner"></span>
+        </button>
+
+        <p class="hint">The account can log in immediately at the staff portal with these credentials.</p>
+      </form>
+
+      <!-- Live ID stub preview -->
+      <aside class="stub" [style.--role-color]="selectedRoleColor">
+        <div class="stub-top">
+          <span class="stub-eyebrow">TMS · Staff ID</span>
+          <span class="stub-role-tag">{{ selectedRoleLabel || 'Unassigned' }}</span>
+        </div>
+
+        <div class="stub-punch"></div>
+
+        <div class="stub-main">
+          <span class="stub-label">Holder</span>
+          <span class="stub-value">{{ formData.username || '—' }}</span>
+
+          <span class="stub-label">Contact</span>
+          <span class="stub-value stub-value--small">{{ formData.email || '—' }}</span>
+        </div>
+
+        <div class="stub-tear"></div>
+
+        <div class="stub-bottom">
+          <span class="stub-code">TMS-{{ stubCode }}</span>
+          <span class="stub-status">PENDING ISSUE</span>
+        </div>
+      </aside>
+
+    </div>
+  </div>
+</div>

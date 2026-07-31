@@ -7,6 +7,7 @@ import { CustomerLayoutComponent } from './layouts/customer-layout/customer-layo
 // Guards
 import { adminGuard } from './guards/admin.guard';
 import { customerGuard } from './guards/customer.guard';
+import { adminOrManagerGuard } from './guards/admin-or-manager.guard';
 
 // Admin pages (existing — untouched)
 import { HomeComponent } from './components/home/home.component';
@@ -19,6 +20,9 @@ import { TicketComponent } from './components/ticket/ticket.component';
 import { TrainTicketComponent } from './components/train-ticket/train-ticket.component';
 import { RoutesComponent } from './components/routes/routes.component';
 import { ScheduleComponent } from './components/schedule/schedule.component';
+
+// ← NEW: staff enrollment page (Admin/Manager only)
+import { UserRegistrationComponent } from './components/user-registration/user-registration.component';
 
 // Auth pages
 import { AuthComponent } from './components/auth/auth.component';
@@ -57,6 +61,11 @@ export const routes: Routes = [
       { path: 'seat-booking/:vehicleId', component: SeatBookingComponent },
       { path: 'ticket', component: TicketComponent },
       { path: 'trainTicket', component: TrainTicketComponent },
+      {
+        path: 'user-registration',
+        component: UserRegistrationComponent,
+        canActivate: [adminOrManagerGuard],
+      },
     ],
   },
 

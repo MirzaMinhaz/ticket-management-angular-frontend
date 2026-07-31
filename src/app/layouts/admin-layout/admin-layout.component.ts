@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
+import { hasRole, getUserName } from '../../utils/auth.utils'; // adjust path to your actual file
 
 @Component({
   selector: 'app-admin-layout',
@@ -17,14 +18,24 @@ export class AdminLayoutComponent {
   toggleMobileMenu() { this.mobileMenuOpen = !this.mobileMenuOpen; }
 
   getLoggedInUser(): string | null {
-    return localStorage.getItem('username');
+    return getUserName();
   }
 
   isAdminOrManager(): boolean {
-    const username = this.getLoggedInUser();
-    if (!username) return false;
-    const lower = username.toLowerCase();
-    return lower.includes('admin') || lower.includes('manager');
+    return hasRole('Admin') || hasRole('Manager');
+  }
+
+  isStation(): boolean {
+    return hasRole('StationAgent');
+  }
+
+  isCounter(): boolean {
+    return hasRole('CounterAgent');
+  }
+
+  // Plain customers (or anyone not admin/manager/station/counter) see both
+  isGeneralCustomer(): boolean {
+    return !this.isAdminOrManager() && !this.isStation() && !this.isCounter();
   }
 
   logout() {
