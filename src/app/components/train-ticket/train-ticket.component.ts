@@ -26,7 +26,7 @@ import { TicketService } from '../../services/ticket.service';
 import { TripService } from '../../services/trip.service';
 import { LocationService } from '../../services/location.service';
 import { SeatLockService } from '../../services/seat-lock.service';
-import { getUserRole } from '../../utils/auth.utils';
+import { getUserRole, getUserName } from '../../utils/auth.utils';
 
 const BRAND_LOGOS: Record<string, string> = {
   scania: 'assets/img/scania.jpeg',
@@ -401,36 +401,26 @@ export class TrainTicketComponent implements OnInit, OnDestroy {
   // ── Data loaders ─────────────────────────────────────────────────────────────
 
   private loadAll(): void {
-    this.routeService
-      .getAllRoutes()
-      .subscribe({
-        next: (d) => (this.routes = d),
-        error: (e) => console.error(e),
-      });
-    this.operatorService
-      .getAll()
-      .subscribe({
-        next: (d) => (this.operators = d),
-        error: (e) => console.error(e),
-      });
-    this.scheduleService
-      .getAllSchedules()
-      .subscribe({
-        next: (d) => (this.schedules = d),
-        error: (e) => console.error(e),
-      });
-    this.ticketCounterService
-      .getAllTicketCounters()
-      .subscribe({
-        next: (d) => (this.counters = d),
-        error: (e) => console.error(e),
-      });
-    this.locationService
-      .getAllLocations()
-      .subscribe({
-        next: (d) => (this.locations = d),
-        error: (e) => console.error(e),
-      });
+    this.routeService.getAllRoutes().subscribe({
+      next: (d) => (this.routes = d),
+      error: (e) => console.error(e),
+    });
+    this.operatorService.getAll().subscribe({
+      next: (d) => (this.operators = d),
+      error: (e) => console.error(e),
+    });
+    this.scheduleService.getAllSchedules().subscribe({
+      next: (d) => (this.schedules = d),
+      error: (e) => console.error(e),
+    });
+    this.ticketCounterService.getAllTicketCounters().subscribe({
+      next: (d) => (this.counters = d),
+      error: (e) => console.error(e),
+    });
+    this.locationService.getAllLocations().subscribe({
+      next: (d) => (this.locations = d),
+      error: (e) => console.error(e),
+    });
 
     forkJoin({
       trips: this.tripService.getAll(),
@@ -932,7 +922,6 @@ export class TrainTicketComponent implements OnInit, OnDestroy {
     });
   }
 
-  /** @param releaseLocks Pass `false` right after a successful booking (see clearSelection). */
   async closeSeatPanel(releaseLocks: boolean = true): Promise<void> {
     if (this.activeTripId !== null && this.seatLockService.isConnected) {
       if (releaseLocks) {
@@ -1155,30 +1144,20 @@ export class TrainTicketComponent implements OnInit, OnDestroy {
     this._refreshBogieAvailCounts();
   }
 
-  /**
-   * @param releaseLocks Pass `false` right after a successful booking — those
-   * seats were already confirmed via `confirmBooking()` and removed from the
-   * lock store server-side. Releasing them here too would broadcast
-   * SeatReleased and make them look free again to everyone else.
-   */
-  async clearSelection(releaseLocks: boolean = true): Promise<void> {
-    for (const s of this.selectedSeats) {
-      if (s.status !== 'reserved') s.status = 'available';
-      if (
-        releaseLocks &&
-        this.activeTripId !== null &&
-        this.seatLockService.isConnected
-      ) {
-        await this.seatLockService.releaseSeat(this.activeTripId, s.seatNumber);
-      }
+
+async clearSelection(releaseLocks: boolean = true): Promise<void> {
+  for (const s of this.selectedSeats) {
+    if (s.status !== 'reserved') s.status = 'available';
+    if (releaseLocks && this.activeTripId !== null && this.seatLockService.isConnected) {
+      await this.seatLockService.releaseSeat(this.activeTripId, s.seatNumber);
     }
-    this.selectedSeats = [];
-    this.selectedTicket.seatNumber = '';
-    this.selectedTicket.trainClass = '';
-    this.selectedTicket.farePaid = 0;
-    if (this.showModal) this.editingOriginalSeats = [];
-    this._refreshBogieAvailCounts();
   }
+  this.selectedSeats = [];
+  this.selectedTicket.seatNumber = '';
+  this.selectedTicket.trainClass = '';
+  this.selectedTicket.farePaid = 0;
+  this._refreshBogieAvailCounts();
+}
 
   private updateSeatNumberField(): void {
     this.selectedTicket.seatNumber = this.selectedSeats
@@ -1591,25 +1570,23 @@ export class TrainTicketComponent implements OnInit, OnDestroy {
   }
 
   /** @param releaseLocks Pass `false` right after a successful booking (see clearSelection). */
-  async reset(releaseLocks: boolean = true): Promise<void> {
-    await this.clearSelection(releaseLocks);
-    this.selectedTicket = this.emptyTicket();
-    this.selectedRouteCode = '';
-    this.selectedFromLocation = '';
-    this.selectedToLocation = '';
-    this.selectedVehicleCode = '';
-    this.selectedDepartureDate = '';
-    this.selectedArrivalDate = '';
-    this.selectedBaseFare = 0;
-    this.availableVehicles = [];
-    this.availableSeatCounts = {};
-    this.vehicleClassConfigs = {};
-    this.editingOriginalSeats = [];
-    this.editingOriginalVehicleId = null;
-    this.editSeatsPreSelected = false;
-    this.clearAllFilters();
-    await this.closeSeatPanel(releaseLocks);
-  }
+async reset(releaseLocks: boolean = true): Promise<void> {
+  await this.clearSelection(releaseLocks);
+  this.selectedTicket = this.emptyTicket();
+  const name = getUserName();
+  if (name) this.selectedTicket.passengerName = name;
+  this.selectedRouteCode = '';
+  this.selectedFromLocation = '';
+  this.selectedToLocation = '';
+  this.selectedVehicleCode = '';
+  this.selectedDepartureDate = '';
+  this.selectedArrivalDate = '';
+  this.selectedBaseFare = 0;
+  this.availableVehicles = [];
+  this.availableSeatCounts = {};
+  this.vehicleClassConfigs = {};
+  await this.closeSeatPanel(releaseLocks);
+}
 
   openModal(ticket: TrainTicketDto): void {
     this.selectedTicket = { ...ticket };
