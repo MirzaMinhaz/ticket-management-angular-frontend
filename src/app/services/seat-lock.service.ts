@@ -8,6 +8,7 @@ import {
   SeatReleasedEvent,
   LockFailedEvent,
   LockedSeatsSnapshotEvent,
+  SeatsBookedEvent,
 } from './seat-hub.service';
 import { Observable } from 'rxjs';
 
@@ -18,12 +19,16 @@ export class SeatLockService {
   readonly seatReleased$:        Observable<SeatReleasedEvent>;
   readonly lockFailed$:          Observable<LockFailedEvent>;
   readonly lockedSeatsSnapshot$: Observable<LockedSeatsSnapshotEvent>;
+  /** Fires when seats are permanently booked (ticket saved) — use this to flip
+   *  seats to "Taken" in real time, distinct from the temporary lock events. */
+  readonly seatsBooked$:         Observable<SeatsBookedEvent>;
 
   constructor(private hub: SeatHubService) {
     this.seatLocked$          = hub.seatLocked$;
     this.seatReleased$        = hub.seatReleased$;
     this.lockFailed$          = hub.lockFailed$;
     this.lockedSeatsSnapshot$ = hub.lockedSeatsSnapshot$;
+    this.seatsBooked$         = hub.seatsBooked$;
   }
 
   /** Alias for SeatHubService.connect() — now re-throws on failure */
@@ -45,4 +50,7 @@ export class SeatLockService {
   lockSeat(tripId: number, seatNumber: string):           Promise<void> { return this.hub.lockSeat(tripId, seatNumber); }
   releaseSeat(tripId: number, seatNumber: string):        Promise<void> { return this.hub.releaseSeat(tripId, seatNumber); }
   getLockedSeats(tripId: number):                         Promise<void> { return this.hub.getLockedSeats(tripId); }
+
+  /** Call the instant a ticket save/update succeeds, with the seats it booked. */
+  confirmBooking(tripId: number, seatNumbers: string[]):  Promise<void> { return this.hub.confirmBooking(tripId, seatNumbers); }
 }

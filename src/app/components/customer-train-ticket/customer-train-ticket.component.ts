@@ -228,6 +228,30 @@ export class CustomerTrainTicketComponent implements OnInit, OnDestroy {
       ),
     );
 
+    // Fires the moment ANY agent/customer successfully saves a ticket for
+    // seats on this trip — including seats this client never touched.
+    // This is what makes booking real-time: the seat flips straight to
+    // "Taken" for everyone with the panel open, no refresh needed.
+    this.signalrSubs.push(
+      this.seatLockService.seatsBooked$.subscribe(({ tripId, seatNumbers }) => {
+        if (tripId !== this.activeTripId) return;
+
+        for (const seatNumber of seatNumbers) {
+          const seat = this.seatMap[seatNumber];
+          if (!seat) continue;
+          seat.status = 'reserved';
+          seat.isBooked = true;
+          // Defensive: drop it from our own selection if it was somehow
+          // still selected, so fare/seat-number fields stay consistent.
+          this.selectedSeats = this.selectedSeats.filter(
+            (s) => s.seatNumber !== seatNumber,
+          );
+        }
+
+        this._refreshBogieAvailCounts();
+      }),
+    );
+
     this.signalrSubs.push(
       this.seatLockService.seatReleased$.subscribe(({ tripId, seatNumber }) => {
         if (tripId !== this.activeTripId) return;
@@ -279,10 +303,30 @@ export class CustomerTrainTicketComponent implements OnInit, OnDestroy {
   // ── Data loaders ─────────────────────────────────────────────────────────────
 
   private loadAll(): void {
-    this.routeService.getAllRoutes().subscribe({ next: (d) => (this.routes = d), error: (e) => console.error(e) });
-    this.operatorService.getAll().subscribe({ next: (d) => (this.operators = d), error: (e) => console.error(e) });
-    this.scheduleService.getAllSchedules().subscribe({ next: (d) => (this.schedules = d), error: (e) => console.error(e) });
-    this.locationService.getAllLocations().subscribe({ next: (d) => (this.locations = d), error: (e) => console.error(e) });
+    this.routeService
+      .getAllRoutes()
+      .subscribe({
+        next: (d) => (this.routes = d),
+        error: (e) => console.error(e),
+      });
+    this.operatorService
+      .getAll()
+      .subscribe({
+        next: (d) => (this.operators = d),
+        error: (e) => console.error(e),
+      });
+    this.scheduleService
+      .getAllSchedules()
+      .subscribe({
+        next: (d) => (this.schedules = d),
+        error: (e) => console.error(e),
+      });
+    this.locationService
+      .getAllLocations()
+      .subscribe({
+        next: (d) => (this.locations = d),
+        error: (e) => console.error(e),
+      });
 
     forkJoin({
       vehicles: this.vehicleService.getAll(),
@@ -352,7 +396,10 @@ export class CustomerTrainTicketComponent implements OnInit, OnDestroy {
       (r) => r.departureLocationCode === newFrom,
     );
     if (!hasReverseRoute) {
-      this.showToast('warn', 'No return route available from this destination.');
+      this.showToast(
+        'warn',
+        'No return route available from this destination.',
+      );
       return;
     }
 
@@ -482,8 +529,14 @@ export class CustomerTrainTicketComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (!this.selectedRouteCode) { this.showToast('error', 'Please select From and To first.'); return; }
-    if (!this.selectedDepartureDate) { this.showToast('error', 'Please select a departure date first.'); return; }
+    if (!this.selectedRouteCode) {
+      this.showToast('error', 'Please select From and To first.');
+      return;
+    }
+    if (!this.selectedDepartureDate) {
+      this.showToast('error', 'Please select a departure date first.');
+      return;
+    }
 
     this.selectedVehicleCode = vehicleCode;
     this.seatBookingBusId = vehicleId;
@@ -493,13 +546,18 @@ export class CustomerTrainTicketComponent implements OnInit, OnDestroy {
     this.bogiesByClass = {};
     this.activeClassTab = '';
 
-    const vehicle = this.vehicles.find(v => v.id === vehicleId);
+    const vehicle = this.vehicles.find((v) => v.id === vehicleId);
     const schedule = this.schedules.find(
-      s => s.vehicleId === vehicleId && s.routeId === Number(this.selectedRouteCode)
+      (s) =>
+        s.vehicleId === vehicleId &&
+        s.routeId === Number(this.selectedRouteCode),
     );
 
     if (!vehicle || !schedule) {
-      this.showToast('error', 'Could not find vehicle or schedule information.');
+      this.showToast(
+        'error',
+        'Could not find vehicle or schedule information.',
+      );
       this.seatPanelLoading = false;
       return;
     }
@@ -507,71 +565,96 @@ export class CustomerTrainTicketComponent implements OnInit, OnDestroy {
     this.trainClasses = this.getTrainClasses(vehicle);
     this.selectedBaseFare = this.trainClasses[0]?.fare ?? 0;
 
-    this.tripService.findOrCreate({ scheduleId: schedule.id, tripDate: this.selectedDepartureDate }).subscribe({
-      next: async (trip) => {
-        this.activeTripId = trip.id;
+    this.tripService
+      .findOrCreate({
+        scheduleId: schedule.id,
+        tripDate: this.selectedDepartureDate,
+      })
+      .subscribe({
+        next: async (trip) => {
+          this.activeTripId = trip.id;
 
-        if (this.seatLockService.isConnected) {
-          await this.seatLockService.joinTrip(trip.id);
-        }
+          if (this.seatLockService.isConnected) {
+            await this.seatLockService.joinTrip(trip.id);
+          }
 
-        this.tripService.getBookedSeats(trip.id).subscribe({
-          next: async (booked) => {
-            this.liveBookedSeats = booked;
+          this.tripService.getBookedSeats(trip.id).subscribe({
+            next: async (booked) => {
+              this.liveBookedSeats = booked;
 
-            this.buildAllBogies(vehicle);
+              this.buildAllBogies(vehicle);
 
-            if (this.seatLockService.isConnected) {
-              await this._applyLockedSeatsSnapshot(trip.id);
-            }
+              if (this.seatLockService.isConnected) {
+                await this._applyLockedSeatsSnapshot(trip.id);
+              }
 
-            this.trainClasses.forEach(cfg => {
-              cfg.availableSeats = (this.bogiesByClass[cfg.classType] ?? [])
-                .reduce((s, b) => s + b.availableCount, 0);
-            });
-            const totalAvail = this.trainClasses.reduce((s, c) => s + c.availableSeats, 0);
-            this.availableSeatCounts[vehicleId] = totalAvail;
+              this.trainClasses.forEach((cfg) => {
+                cfg.availableSeats = (
+                  this.bogiesByClass[cfg.classType] ?? []
+                ).reduce((s, b) => s + b.availableCount, 0);
+              });
+              const totalAvail = this.trainClasses.reduce(
+                (s, c) => s + c.availableSeats,
+                0,
+              );
+              this.availableSeatCounts[vehicleId] = totalAvail;
 
-            const firstAvail = this.trainClasses.find(c => c.availableSeats > 0);
-            this.activeClassTab = firstAvail?.classType ?? this.trainClasses[0]?.classType ?? '';
-            this.selectedBaseFare = this.trainClasses.find(c => c.classType === this.activeClassTab)?.fare ?? 0;
+              const firstAvail = this.trainClasses.find(
+                (c) => c.availableSeats > 0,
+              );
+              this.activeClassTab =
+                firstAvail?.classType ?? this.trainClasses[0]?.classType ?? '';
+              this.selectedBaseFare =
+                this.trainClasses.find(
+                  (c) => c.classType === this.activeClassTab,
+                )?.fare ?? 0;
 
-            this.seatPanelLoading = false;
-          },
-          error: e => { console.error(e); this.seatPanelLoading = false; },
-        });
-      },
-      error: e => { console.error(e); this.seatPanelLoading = false; },
-    });
+              this.seatPanelLoading = false;
+            },
+            error: (e) => {
+              console.error(e);
+              this.seatPanelLoading = false;
+            },
+          });
+        },
+        error: (e) => {
+          console.error(e);
+          this.seatPanelLoading = false;
+        },
+      });
   }
 
   private _applyLockedSeatsSnapshot(tripId: number): Promise<void> {
-    return new Promise<void>(resolve => {
+    return new Promise<void>((resolve) => {
       const TIMEOUT_MS = 3_000;
 
       const timer = setTimeout(() => {
         sub.unsubscribe();
-        console.warn('[CustomerTrainTicket] Snapshot timeout — proceeding without locked seats.');
+        console.warn(
+          '[CustomerTrainTicket] Snapshot timeout — proceeding without locked seats.',
+        );
         resolve();
       }, TIMEOUT_MS);
 
-      const sub = this.seatLockService.lockedSeatsSnapshot$.subscribe(({ tripId: tid, seats }) => {
-        if (tid !== tripId) return;
+      const sub = this.seatLockService.lockedSeatsSnapshot$.subscribe(
+        ({ tripId: tid, seats }) => {
+          if (tid !== tripId) return;
 
-        clearTimeout(timer);
-        sub.unsubscribe();
+          clearTimeout(timer);
+          sub.unsubscribe();
 
-        for (const { seatNumber, connectionId } of seats) {
-          if (connectionId === this.seatLockService.connectionId) continue;
-          const seat = this.seatMap[seatNumber];
-          if (seat && seat.status === 'available') {
-            seat.status = 'locked';
+          for (const { seatNumber, connectionId } of seats) {
+            if (connectionId === this.seatLockService.connectionId) continue;
+            const seat = this.seatMap[seatNumber];
+            if (seat && seat.status === 'available') {
+              seat.status = 'locked';
+            }
           }
-        }
 
-        this._refreshBogieAvailCounts();
-        resolve();
-      });
+          this._refreshBogieAvailCounts();
+          resolve();
+        },
+      );
 
       this.seatLockService.getLockedSeats(tripId);
     });
@@ -1003,8 +1086,7 @@ export class CustomerTrainTicketComponent implements OnInit, OnDestroy {
         s.routeId === Number(this.selectedRouteCode) &&
         s.vehicleId === vehicleId,
     );
-    if (!schedule)
-      return fail('Please select From, To and a valid train.');
+    if (!schedule) return fail('Please select From, To and a valid train.');
 
     this.tripService
       .findOrCreate({
@@ -1031,7 +1113,10 @@ export class CustomerTrainTicketComponent implements OnInit, OnDestroy {
             },
             error: (e) => {
               console.error(e);
-              this.showToast('error', 'Failed to book ticket. Please try again.');
+              this.showToast(
+                'error',
+                'Failed to book ticket. Please try again.',
+              );
             },
           });
         },

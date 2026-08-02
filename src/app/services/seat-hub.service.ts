@@ -35,6 +35,9 @@ export interface SeatReleasedEvent        { tripId: number; seatNumber: string; 
 export interface LockFailedEvent          { tripId: number; seatNumber: string; reason: string; }
 export interface LockedSeat               { seatNumber: string; connectionId: string; }
 export interface LockedSeatsSnapshotEvent { tripId: number; seats: LockedSeat[]; }
+/** Fired when seats have been permanently booked (a ticket was saved) — as
+ *  opposed to SeatLockedEvent, which is only a temporary in-progress hold. */
+export interface SeatsBookedEvent         { tripId: number; seatNumbers: string[]; }
 
 const SIGNALR_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js';
 
@@ -45,6 +48,7 @@ export class SeatHubService implements OnDestroy {
   readonly seatReleased$        = new Subject<SeatReleasedEvent>();
   readonly lockFailed$          = new Subject<LockFailedEvent>();
   readonly lockedSeatsSnapshot$ = new Subject<LockedSeatsSnapshotEvent>();
+  readonly seatsBooked$         = new Subject<SeatsBookedEvent>();
 
   private connection: IHubConnection | null = null;
   private scriptLoaded  = false;
@@ -136,6 +140,17 @@ export class SeatHubService implements OnDestroy {
     await this.invoke('GetLockedSeats', tripId);
   }
 
+  /**
+   * Call this the moment a ticket save/update succeeds for the given seats.
+   * Tells the server to drop the temporary locks and broadcast to every
+   * connected client (on this trip) that these seats are now permanently
+   * booked — so they flip to "Taken" immediately, with no page refresh.
+   */
+  async confirmBooking(tripId: number, seatNumbers: string[]): Promise<void> {
+    if (!seatNumbers.length) return;
+    await this.invoke('ConfirmBooking', tripId, seatNumbers);
+  }
+
   // ── Internals ─────────────────────────────────────────────────────────────
 
   private async invoke(method: string, ...args: unknown[]): Promise<void> {
@@ -177,6 +192,13 @@ export class SeatHubService implements OnDestroy {
       this.lockedSeatsSnapshot$.next({
         tripId: tripId as number,
         seats: seats as LockedSeat[],
+      });
+    });
+
+    this.connection.on('SeatsBooked', (tripId: unknown, seatNumbers: unknown) => {
+      this.seatsBooked$.next({
+        tripId: tripId as number,
+        seatNumbers: seatNumbers as string[],
       });
     });
   }
