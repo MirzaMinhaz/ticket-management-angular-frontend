@@ -32,306 +32,390 @@
 
     <form (ngSubmit)="save()" #ticketForm="ngForm" class="ticket-form">
 
-      <!-- SECTION 1: Route & Dates -->
-      <div class="section section-route-dates">
+      <!-- SECTION 1: From / To Route Search + Dates -->
+      <div class="section section-route-search">
         <h4 class="section-title">
           <span class="section-icon">📍</span> Route &amp; Dates
         </h4>
-        <div class="form-grid">
 
-          <div class="form-group">
-            <label for="route">Route</label>
-            <select [(ngModel)]="selectedRouteCode" name="route" id="route" required (change)="calculateArrivalDate()">
-              <option value="" disabled selected>Select Route</option>
-              <option *ngFor="let r of routes" [value]="r.id">{{ r.routeName }}</option>
-            </select>
+        <div class="agent-route-card">
+          <div class="location-row">
+
+            <div class="location-field">
+              <span class="location-field-icon">🚉</span>
+              <div class="location-field-body">
+                <label for="fromLocation">From</label>
+                <select [(ngModel)]="selectedFromLocation" name="fromLocation" id="fromLocation" required
+                  (change)="onFromLocationChange()">
+                  <option value="" disabled selected>Select origin</option>
+                  <option *ngFor="let l of fromLocations" [value]="l.locationCode">{{ l.name }}</option>
+                </select>
+              </div>
+            </div>
+
+            <button type="button" class="swap-btn" (click)="swapLocations()"
+              [disabled]="!selectedFromLocation || !selectedToLocation" title="Swap From / To">⇄</button>
+
+            <div class="location-field">
+              <span class="location-field-icon">🏁</span>
+              <div class="location-field-body">
+                <label for="toLocation">To</label>
+                <select [(ngModel)]="selectedToLocation" name="toLocation" id="toLocation" required
+                  [disabled]="!selectedFromLocation" (change)="onToLocationChange()">
+                  <option value="" disabled selected>Select destination</option>
+                  <option *ngFor="let l of toLocations" [value]="l.locationCode">{{ l.name }}</option>
+                </select>
+              </div>
+            </div>
+
           </div>
 
-          <div class="form-group">
-            <label for="departureDate">Departure Date</label>
-            <input [(ngModel)]="selectedDepartureDate" name="departureDate" id="departureDate" type="date" required
-              (change)="calculateArrivalDate()" [attr.min]="todayString" (focus)="openDatePicker($event)" />
-          </div>
+          <div class="date-row">
+            <div class="form-group">
+              <label for="departureDate">Departure Date</label>
+              <input [(ngModel)]="selectedDepartureDate" name="departureDate" id="departureDate" type="date" required
+                (change)="calculateArrivalDate()" [attr.min]="todayString" (focus)="openDatePicker($event)" />
+            </div>
 
-          <div class="form-group">
-            <label for="arrivalDate">Arrival Date</label>
-            <input [(ngModel)]="selectedArrivalDate" name="arrivalDate" id="arrivalDate" type="date" required
-              readonly />
+            <div class="form-group">
+              <label for="arrivalDate">Arrival Date</label>
+              <input [(ngModel)]="selectedArrivalDate" name="arrivalDate" id="arrivalDate" type="date" required
+                readonly />
+            </div>
           </div>
-
         </div>
       </div>
 
-      <!-- SECTION 2: Available Trains -->
+      <!-- SECTION 2: Filters + Available Trains -->
       <div class="section section-vehicles" *ngIf="availableVehicles.length">
         <h4 class="section-title">
           <span class="section-icon">🚆</span> Available Trains
+          <span class="vehicle-count-badge">{{ filteredVehicles.length }} of {{ availableVehicles.length }}</span>
         </h4>
-        <div class="vehicle-list">
-          <div *ngFor="let v of availableVehicles" class="vehicle-wrapper">
 
-            <div class="vehicle-card" [class.selected]="selectedVehicleCode === v.vehicleCode">
-              <div class="vehicle-info-main">
+        <div class="vehicles-layout">
 
-                <!-- LEFT: Train Info -->
-                <div class="vehicle-left">
-                  <div class="model-cell">
-                    <img *ngIf="getBrandLogo(v.model)" [src]="getBrandLogo(v.model)" [alt]="getBrandName(v.model)"
-                      class="brand-logo" />
-                    <span *ngIf="!getBrandLogo(v.model)" class="brand-fallback">{{ getBrandInitial(v.model) }}</span>
-                    <div class="train-name-row">
-                      <span class="train-icon"></span>
-                      <span class="train-name">{{ v.model }}</span>
-                    </div>
-                  </div>
-                  <p class="operator-name">{{ getOperatorName(v.operatorCode) }}</p>
-                </div>
-                <!-- MIDDLE: Times -->
-                <div class="vehicle-middle">
-                  <div class="time-point">
-                    <div class="time-block">
-                      <span class="time">{{ getDepartureTimeForVehicle(v.id) }}</span>
-                      <span class="station">Departure</span>
-                    </div>
-                  </div>
-                  <div class="journey-path">
-                    <span class="journey-icon">🛤️</span>
-                  </div>
-                  <div class="time-point">
-                    <div class="time-block">
-                      <span class="time">{{ getArrivalTimeForVehicle(v.id) }}</span>
-                      <span class="station">Arrival</span>
-                    </div>
-                  </div>
-                </div>
+          <!-- FILTER SIDEBAR -->
+          <aside class="filter-sidebar">
+            <div class="filter-sidebar-header">
+              <span class="filter-sidebar-title">🔍 Filters</span>
+              <button type="button" class="filter-clear-btn" *ngIf="hasActiveFilters" (click)="clearAllFilters()">
+                Clear all
+              </button>
+            </div>
 
-                <!-- RIGHT: Fare & Seats -->
-                <div class="vehicle-right">
-                  <div class="price-container">
-                    <span class="price-from">From ৳</span>
-                    <span class="amount">{{ getMinFareForVehicle(v.id) }}</span>
-                  </div>
-                  <div class="seat-indicator" [ngClass]="getSeatClass(v.id)">
-                    <ng-container *ngIf="getTotalAvailableSeats(v.id) === 0; else seatsAvailable">
-                      🚫 Fully Booked
-                    </ng-container>
-                    <ng-template #seatsAvailable>
-                      {{ getTotalAvailableSeats(v.id) }} seats left
-                    </ng-template>
-                  </div>
-                  <button type="button" class="btn primary small" [disabled]="getTotalAvailableSeats(v.id) === 0"
-                    (click)="openSeatPanel(v.vehicleCode, v.id)">
-                    {{ seatBookingBusId === v.id ? '✕ Close' : '🪑 Select Seats' }}
-                  </button>
-                </div>
-
+            <!-- TRAIN CLASS — horizontal pill buttons -->
+            <div class="filter-group" *ngIf="classFilterOptions.length > 1">
+              <div class="filter-group-title">Train Class</div>
+              <div class="filter-pill-row">
+                <button type="button" class="filter-pill" *ngFor="let opt of classFilterOptions"
+                  [class.active]="selectedClassFilters.has(opt.value)"
+                  (click)="toggleClassFilter(opt.value)">
+                  <span class="filter-pill-icon">{{ opt.icon }}</span>
+                  <span class="filter-pill-label">{{ opt.label }}</span>
+                  <span class="filter-pill-count">{{ opt.count }}</span>
+                </button>
               </div>
             </div>
 
-            <!-- SEAT PANEL -->
-            <div class="seat-panel-container" *ngIf="seatBookingBusId === v.id">
-              <div class="seat-panel-vehicle-header">
-                <span class="seat-panel-vehicle-icon"></span>
-                <span class="seat-panel-vehicle-name">{{ v.model }}</span>
-                <span class="seat-panel-vehicle-model">{{ getOperatorName(v.operatorCode) }}</span>
-                <div class="legend">
-                  <span><span class="dot available"></span> Free</span>
-                  <span><span class="dot selected"></span> Yours</span>
-                  <span><span class="dot locked"></span> Others</span>
-                  <span><span class="dot booked"></span> Taken</span>
-                </div>
-                <button class="btn secondary small" type="button" (click)="clearSelection()"
-                  [disabled]="!selectedSeats.length" style="margin-left:auto;">
-                  Clear
+            <!-- DEPARTURE TIME — vertical block buttons -->
+            <div class="filter-group" *ngIf="timeFilterOptions.length > 1">
+              <div class="filter-group-title">Departure Time</div>
+              <div class="filter-block-stack">
+                <button type="button" class="filter-block-btn" *ngFor="let opt of timeFilterOptions"
+                  [class.active]="selectedTimeFilters.has(opt.value)"
+                  (click)="toggleTimeFilter(opt.value)">
+                  <span class="filter-block-icon">{{ opt.icon }}</span>
+                  <span class="filter-block-label">{{ opt.label }}</span>
+                  <span class="filter-block-count">{{ opt.count }}</span>
                 </button>
               </div>
+            </div>
+          </aside>
 
-              <div *ngIf="seatPanelLoading" class="seat-loading-bar">
-                <div class="seat-loading-spinner"></div>
-                <span>Loading seat data…</span>
-              </div>
+          <!-- TRAIN LIST -->
+          <div class="vehicle-list-wrap">
+            <div class="vehicle-list">
+              <div *ngFor="let v of filteredVehicles" class="vehicle-wrapper">
 
-              <!-- CLASS TABS -->
-              <div class="class-tabs" *ngIf="!seatPanelLoading">
-                <button type="button" *ngFor="let cls of trainClasses" class="class-tab"
-                  [class.active]="activeClassTab === cls.classType" [ngClass]="getClassTabCss(cls.classType)"
-                  (click)="setActiveClassTab(cls.classType)">
-                  <span class="class-tab-icon">{{ getClassIcon(cls.classType) }}</span>
-                  <span class="class-tab-name">{{ cls.classType }}</span>
-                  <span class="class-tab-fare">৳{{ cls.fare }}</span>
-                  <span class="class-tab-seats"
-                    [ngClass]="cls.availableSeats === 0 ? 'tab-full' : (cls.availableSeats < 10 ? 'tab-low' : 'tab-ok')">
-                    {{ cls.availableSeats }} left
-                  </span>
-                </button>
-              </div>
+                <div class="vehicle-card" [class.selected]="selectedVehicleCode === v.vehicleCode">
+                  <div class="vehicle-info-main">
 
-              <!-- SEAT LAYOUT AREA -->
-              <div class="seat-panel-layout" *ngIf="!seatPanelLoading && activeClassTab">
-
-                <!-- BERTH CLASS -->
-                <ng-container *ngIf="isBerthClass(activeClassTab); else chairClassLayout">
-                  <div class="berth-layout-area">
-                    <div class="berth-intro">
-                      <span class="berth-intro-icon">🛏️</span>
-                      <span class="berth-intro-text">Select a berth compartment, then pick your berth position</span>
-                    </div>
-                    <div class="bogies-container">
-                      <div *ngFor="let bogie of getActiveBogies()" class="bogie-card">
-                        <div class="bogie-header">
-                          <span class="bogie-label">{{ bogie.bogieName }}</span>
-                          <span class="bogie-avail">{{ bogie.availableCount }} available</span>
+                    <!-- LEFT: Train Info -->
+                    <div class="vehicle-left">
+                      <div class="model-cell">
+                        <img *ngIf="getBrandLogo(v.model)" [src]="getBrandLogo(v.model)" [alt]="getBrandName(v.model)"
+                          class="brand-logo" />
+                        <span *ngIf="!getBrandLogo(v.model)" class="brand-fallback">{{ getBrandInitial(v.model) }}</span>
+                        <div class="train-name-row">
+                          <span class="train-icon">🚂</span>
+                          <span class="train-name">{{ v.model }}</span>
                         </div>
-                        <div class="berth-compartments">
-                          <div *ngFor="let comp of bogie.compartments" class="berth-compartment"
-                            [class.comp-selected]="isCompartmentSelected(comp)"
-                            [class.comp-full]="comp.availableCount === 0">
-                            <div class="comp-header">
-                              <span class="comp-label">{{ comp.compartmentName }}</span>
-                              <span class="comp-avail-badge" [class.avail-zero]="comp.availableCount === 0">
-                                {{ comp.availableCount }}/{{ comp.totalCount }}
-                              </span>
-                            </div>
-                            <div class="berth-seats-grid">
-                              <button *ngFor="let seat of comp.seats" type="button" class="berth-seat-btn"
-                                [class.berth-available]="seat.status === 'available'"
-                                [class.berth-selected]="seat.status === 'selected'"
-                                [class.berth-locked]="seat.status === 'locked'"
-                                [class.berth-booked]="seat.status === 'reserved'"
-                                [disabled]="seat.status === 'reserved' || seat.status === 'locked'"
-                                [title]="seat.status === 'reserved' ? 'Already booked' : seat.status === 'locked' ? 'Selected by another user' : seat.seatNumber"
-                                (click)="toggleSeat(seat)">
-                                <span class="berth-position-icon">{{ getBerthPositionIcon(seat.berthPosition) }}</span>
-                                <span class="berth-seat-num">{{ seat.seatNumber }}</span>
-                                <span class="berth-pos-label">{{ seat.berthPosition }}</span>
-                              </button>
-                            </div>
-                          </div>
+                      </div>
+                      <p class="operator-name">{{ getOperatorName(v.operatorCode) }}</p>
+                      <div class="train-class-tags">
+                        <span *ngFor="let cls of getTrainClasses(v)" class="class-tag"
+                          [ngClass]="getClassTagCss(cls.classType)">
+                          {{ cls.classType }}
+                        </span>
+                      </div>
+                    </div>
+                    <!-- MIDDLE: Times -->
+                    <div class="vehicle-middle">
+                      <div class="time-point">
+                        <div class="time-block">
+                          <span class="time">{{ getDepartureTimeForVehicle(v.id) }}</span>
+                          <span class="station">Departure</span>
+                          <span class="time-cat-badge">{{ getTimeCategoryIcon(v.id) }} {{ getTimeCategoryShortLabel(v.id) }}</span>
+                        </div>
+                      </div>
+                      <div class="journey-path">
+                        <span class="journey-icon">🛤️</span>
+                      </div>
+                      <div class="time-point">
+                        <div class="time-block">
+                          <span class="time">{{ getArrivalTimeForVehicle(v.id) }}</span>
+                          <span class="station">Arrival</span>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </ng-container>
 
-                <!-- CHAIR CLASS -->
-                <ng-template #chairClassLayout>
-                  <div class="chair-layout-area">
-                    <div class="bogies-container">
-                      <div *ngFor="let bogie of getActiveBogies()" class="bogie-card bogie-card--chair">
-                        <div class="bogie-header">
-                          <span class="bogie-label">{{ bogie.bogieName }}</span>
-                          <span class="bogie-avail">{{ bogie.availableCount }} available</span>
+                    <!-- RIGHT: Fare & Seats -->
+                    <div class="vehicle-right">
+                      <div class="price-container">
+                        <span class="price-from">From ৳</span>
+                        <span class="amount">{{ getMinFareForVehicle(v.id) }}</span>
+                      </div>
+                      <div class="seat-indicator" [ngClass]="getSeatClass(v.id)">
+                        <ng-container *ngIf="getTotalAvailableSeats(v.id) === 0; else seatsAvailable">
+                          🚫 Fully Booked
+                        </ng-container>
+                        <ng-template #seatsAvailable>
+                          {{ getTotalAvailableSeats(v.id) }} seats left
+                        </ng-template>
+                      </div>
+                      <button type="button" class="btn primary small" [disabled]="getTotalAvailableSeats(v.id) === 0"
+                        (click)="openSeatPanel(v.vehicleCode, v.id)">
+                        {{ seatBookingBusId === v.id ? '✕ Close' : '🪑 Select Seats' }}
+                      </button>
+                    </div>
+
+                  </div>
+                </div>
+
+                <!-- SEAT PANEL -->
+                <div class="seat-panel-container" *ngIf="seatBookingBusId === v.id">
+                  <div class="seat-panel-vehicle-header">
+                    <span class="seat-panel-vehicle-icon">🚂</span>
+                    <span class="seat-panel-vehicle-name">{{ v.model }}</span>
+                    <span class="seat-panel-vehicle-model">{{ getOperatorName(v.operatorCode) }}</span>
+                    <div class="legend">
+                      <span><span class="dot available"></span> Free</span>
+                      <span><span class="dot selected"></span> Yours</span>
+                      <span><span class="dot locked"></span> Others</span>
+                      <span><span class="dot booked"></span> Taken</span>
+                    </div>
+                    <button class="btn secondary small" type="button" (click)="clearSelection()"
+                      [disabled]="!selectedSeats.length" style="margin-left:auto;">
+                      Clear
+                    </button>
+                  </div>
+
+                  <div *ngIf="seatPanelLoading" class="seat-loading-bar">
+                    <div class="seat-loading-spinner"></div>
+                    <span>Loading seat data…</span>
+                  </div>
+
+                  <!-- CLASS TABS -->
+                  <div class="class-tabs" *ngIf="!seatPanelLoading">
+                    <button type="button" *ngFor="let cls of trainClasses" class="class-tab"
+                      [class.active]="activeClassTab === cls.classType" [ngClass]="getClassTabCss(cls.classType)"
+                      (click)="setActiveClassTab(cls.classType)">
+                      <span class="class-tab-icon">{{ getClassIcon(cls.classType) }}</span>
+                      <span class="class-tab-name">{{ cls.classType }}</span>
+                      <span class="class-tab-fare">৳{{ cls.fare }}</span>
+                      <span class="class-tab-seats"
+                        [ngClass]="cls.availableSeats === 0 ? 'tab-full' : (cls.availableSeats < 10 ? 'tab-low' : 'tab-ok')">
+                        {{ cls.availableSeats }} left
+                      </span>
+                    </button>
+                  </div>
+
+                  <!-- SEAT LAYOUT AREA -->
+                  <div class="seat-panel-layout" *ngIf="!seatPanelLoading && activeClassTab">
+
+                    <!-- BERTH CLASS -->
+                    <ng-container *ngIf="isBerthClass(activeClassTab); else chairClassLayout">
+                      <div class="berth-layout-area">
+                        <div class="berth-intro">
+                          <span class="berth-intro-icon">🛏️</span>
+                          <span class="berth-intro-text">Select a berth compartment, then pick your berth position</span>
                         </div>
-                        <div class="seat-grid-wrap">
-                          <div class="seat-grid">
-                            <!-- Loco row -->
-                            <div class="seat-row driver-integrated-row">
-                              <span class="row-label"></span>
-                              <div class="seat-group">
-                                <div class="seat-btn-placeholder"></div>
-                                <div class="seat-btn-placeholder"></div>
-                              </div>
-                              <div class="aisle-gap"></div>
-                              <div class="seat-group">
-                                <div class="seat-btn-placeholder"></div>
-                                <div class="driver-cell-inline">
-                                  <div class="driver-circle">🚂</div>
-                                  <span class="driver-text">Loco</span>
+                        <div class="bogies-container">
+                          <div *ngFor="let bogie of getActiveBogies()" class="bogie-card">
+                            <div class="bogie-header">
+                              <span class="bogie-label">{{ bogie.bogieName }}</span>
+                              <span class="bogie-avail">{{ bogie.availableCount }} available</span>
+                            </div>
+                            <div class="berth-compartments">
+                              <div *ngFor="let comp of bogie.compartments" class="berth-compartment"
+                                [class.comp-selected]="isCompartmentSelected(comp)"
+                                [class.comp-full]="comp.availableCount === 0">
+                                <div class="comp-header">
+                                  <span class="comp-label">{{ comp.compartmentName }}</span>
+                                  <span class="comp-avail-badge" [class.avail-zero]="comp.availableCount === 0">
+                                    {{ comp.availableCount }}/{{ comp.totalCount }}
+                                  </span>
+                                </div>
+                                <div class="berth-seats-grid">
+                                  <button *ngFor="let seat of comp.seats" type="button" class="berth-seat-btn"
+                                    [class.berth-available]="seat.status === 'available'"
+                                    [class.berth-selected]="seat.status === 'selected'"
+                                    [class.berth-locked]="seat.status === 'locked'"
+                                    [class.berth-booked]="seat.status === 'reserved'"
+                                    [disabled]="seat.status === 'reserved' || seat.status === 'locked'"
+                                    [title]="seat.status === 'reserved' ? 'Already booked' : seat.status === 'locked' ? 'Selected by another user' : seat.seatNumber"
+                                    (click)="toggleSeat(seat)">
+                                    <span class="berth-position-icon">{{ getBerthPositionIcon(seat.berthPosition) }}</span>
+                                    <span class="berth-seat-num">{{ seat.seatNumber }}</span>
+                                    <span class="berth-pos-label">{{ seat.berthPosition }}</span>
+                                  </button>
                                 </div>
                               </div>
                             </div>
-                            <!-- Seat rows -->
-                            <div class="seat-row" *ngFor="let row of getBogieSeatRows(bogie)">
-                              <span class="row-label">{{ row }}</span>
-                              <div class="seat-group">
-                                <ng-container *ngFor="let col of [1, 2]">
-                                  <ng-container *ngIf="getSeatByBogiePosition(bogie, row, col) as seat">
-                                    <button type="button" class="seat-btn"
-                                      [class.available]="seat.status === 'available'"
-                                      [class.selected]="seat.status === 'selected'"
-                                      [class.locked]="seat.status === 'locked'"
-                                      [class.booked]="seat.status === 'reserved'"
-                                      [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.status === 'locked' ? 'Selected by another user' : seat.seatNumber"
-                                      [disabled]="seat.status === 'reserved' || seat.status === 'locked'"
-                                      (click)="toggleSeat(seat)">
-                                      <span class="seat-label-num">{{ row }}{{ col }}</span>
-                                    </button>
-                                  </ng-container>
-                                </ng-container>
-                              </div>
-                              <div class="aisle-gap"></div>
-                              <div class="seat-group">
-                                <ng-container *ngFor="let col of [3, 4]">
-                                  <ng-container *ngIf="getSeatByBogiePosition(bogie, row, col) as seat">
-                                    <button type="button" class="seat-btn"
-                                      [class.available]="seat.status === 'available'"
-                                      [class.selected]="seat.status === 'selected'"
-                                      [class.locked]="seat.status === 'locked'"
-                                      [class.booked]="seat.status === 'reserved'"
-                                      [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.status === 'locked' ? 'Selected by another user' : seat.seatNumber"
-                                      [disabled]="seat.status === 'reserved' || seat.status === 'locked'"
-                                      (click)="toggleSeat(seat)">
-                                      <span class="seat-label-num">{{ row }}{{ col }}</span>
-                                    </button>
-                                  </ng-container>
-                                </ng-container>
+                          </div>
+                        </div>
+                      </div>
+                    </ng-container>
+
+                    <!-- CHAIR CLASS -->
+                    <ng-template #chairClassLayout>
+                      <div class="chair-layout-area">
+                        <div class="bogies-container">
+                          <div *ngFor="let bogie of getActiveBogies()" class="bogie-card bogie-card--chair">
+                            <div class="bogie-header">
+                              <span class="bogie-label">{{ bogie.bogieName }}</span>
+                              <span class="bogie-avail">{{ bogie.availableCount }} available</span>
+                            </div>
+                            <div class="seat-grid-wrap">
+                              <div class="seat-grid">
+                                <!-- Loco row -->
+                                <div class="seat-row driver-integrated-row">
+                                  <span class="row-label"></span>
+                                  <div class="seat-group">
+                                    <div class="seat-btn-placeholder"></div>
+                                    <div class="seat-btn-placeholder"></div>
+                                  </div>
+                                  <div class="aisle-gap"></div>
+                                  <div class="seat-group">
+                                    <div class="seat-btn-placeholder"></div>
+                                    <div class="driver-cell-inline">
+                                      <div class="driver-circle">🚂</div>
+                                      <span class="driver-text">Loco</span>
+                                    </div>
+                                  </div>
+                                </div>
+                                <!-- Seat rows -->
+                                <div class="seat-row" *ngFor="let row of getBogieSeatRows(bogie)">
+                                  <span class="row-label">{{ row }}</span>
+                                  <div class="seat-group">
+                                    <ng-container *ngFor="let col of [1, 2]">
+                                      <ng-container *ngIf="getSeatByBogiePosition(bogie, row, col) as seat">
+                                        <button type="button" class="seat-btn"
+                                          [class.available]="seat.status === 'available'"
+                                          [class.selected]="seat.status === 'selected'"
+                                          [class.locked]="seat.status === 'locked'"
+                                          [class.booked]="seat.status === 'reserved'"
+                                          [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.status === 'locked' ? 'Selected by another user' : seat.seatNumber"
+                                          [disabled]="seat.status === 'reserved' || seat.status === 'locked'"
+                                          (click)="toggleSeat(seat)">
+                                          <span class="seat-label-num">{{ row }}{{ col }}</span>
+                                        </button>
+                                      </ng-container>
+                                    </ng-container>
+                                  </div>
+                                  <div class="aisle-gap"></div>
+                                  <div class="seat-group">
+                                    <ng-container *ngFor="let col of [3, 4]">
+                                      <ng-container *ngIf="getSeatByBogiePosition(bogie, row, col) as seat">
+                                        <button type="button" class="seat-btn"
+                                          [class.available]="seat.status === 'available'"
+                                          [class.selected]="seat.status === 'selected'"
+                                          [class.locked]="seat.status === 'locked'"
+                                          [class.booked]="seat.status === 'reserved'"
+                                          [attr.title]="seat.status === 'reserved' ? 'Already booked' : seat.status === 'locked' ? 'Selected by another user' : seat.seatNumber"
+                                          [disabled]="seat.status === 'reserved' || seat.status === 'locked'"
+                                          (click)="toggleSeat(seat)">
+                                          <span class="seat-label-num">{{ row }}{{ col }}</span>
+                                        </button>
+                                      </ng-container>
+                                    </ng-container>
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                </ng-template>
+                    </ng-template>
 
-                <!-- Fare Summary -->
-                <div class="fare-summary-panel">
-                  <div class="fare-summary-inner">
-                    <div class="fare-section">
-                      <p class="fare-section-label">Class</p>
-                      <span class="class-badge" [ngClass]="getClassTagCss(activeClassTab)">{{ activeClassTab }}</span>
-                    </div>
-                    <div class="fare-divider"></div>
-                    <div class="fare-section">
-                      <p class="fare-section-label">Seats Selected</p>
-                      <div class="fare-seats-list">
-                        <ng-container *ngIf="selectedSeats.length; else noSeatsSelected">
-                          <span *ngFor="let s of selectedSeats" class="chip">{{ s.seatNumber }}</span>
-                        </ng-container>
-                        <ng-template #noSeatsSelected>
-                          <em class="fare-none">None selected</em>
-                        </ng-template>
+                    <!-- Fare Summary -->
+                    <div class="fare-summary-panel">
+                      <div class="fare-summary-inner">
+                        <div class="fare-section">
+                          <p class="fare-section-label">Class</p>
+                          <span class="class-badge" [ngClass]="getClassTagCss(activeClassTab)">{{ activeClassTab }}</span>
+                        </div>
+                        <div class="fare-divider"></div>
+                        <div class="fare-section">
+                          <p class="fare-section-label">Seats Selected</p>
+                          <div class="fare-seats-list">
+                            <ng-container *ngIf="selectedSeats.length; else noSeatsSelected">
+                              <span *ngFor="let s of selectedSeats" class="chip">{{ s.seatNumber }}</span>
+                            </ng-container>
+                            <ng-template #noSeatsSelected>
+                              <em class="fare-none">None selected</em>
+                            </ng-template>
+                          </div>
+                        </div>
+                        <div class="fare-divider"></div>
+                        <div class="fare-section">
+                          <p class="fare-section-label">Fare Details</p>
+                          <div class="fare-line">
+                            <span class="fare-line-desc">({{ selectedBaseFare | number }}) × {{ selectedSeats.length || 1
+                              }}</span>
+                            <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number
+                              }}</span>
+                          </div>
+                          <div class="fare-divider slim"></div>
+                          <div class="fare-line">
+                            <span class="fare-line-desc">Subtotal</span>
+                            <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number
+                              }}</span>
+                          </div>
+                        </div>
+                        <div class="fare-total-box">
+                          <span class="fare-total-label">Total Fare</span>
+                          <span class="fare-total-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number
+                            }}</span>
+                        </div>
                       </div>
                     </div>
-                    <div class="fare-divider"></div>
-                    <div class="fare-section">
-                      <p class="fare-section-label">Fare Details</p>
-                      <div class="fare-line">
-                        <span class="fare-line-desc">({{ selectedBaseFare | number }}) × {{ selectedSeats.length || 1
-                          }}</span>
-                        <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number
-                          }}</span>
-                      </div>
-                      <div class="fare-divider slim"></div>
-                      <div class="fare-line">
-                        <span class="fare-line-desc">Subtotal</span>
-                        <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number
-                          }}</span>
-                      </div>
-                    </div>
-                    <div class="fare-total-box">
-                      <span class="fare-total-label">Total Fare</span>
-                      <span class="fare-total-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number
-                        }}</span>
-                    </div>
+
                   </div>
                 </div>
+                <!-- END seat panel -->
 
               </div>
-            </div>
-            <!-- END seat panel -->
 
+              <div class="vehicle-empty-filtered" *ngIf="filteredVehicles.length === 0">
+                <span class="vehicle-empty-filtered-icon">🚫</span>
+                <p>No trains match the selected filters.</p>
+                <button type="button" class="btn secondary small" (click)="clearAllFilters()">Clear Filters</button>
+              </div>
+            </div>
           </div>
+
         </div>
       </div>
 
@@ -389,9 +473,10 @@
   </div>
 
   <!-- ═══════════════════════════════════════════════ -->
-  <!-- TICKET LIST TABLE                               -->
+  <!-- TICKET LIST TABLE — visible to any logged-in agent -->
+  <!-- (so bookings can be edited/cancelled from the counter) -->
   <!-- ═══════════════════════════════════════════════ -->
-  <div class="list-section" *ngIf="isAdmin">
+  <div class="list-section">
     <h3 class="card-title">Train Ticket List</h3>
     <div class="search-bar">
       <span class="search-icon">🔍</span>
@@ -470,8 +555,8 @@
     </div>
   </div>
 
-  <!-- PAGINATION -->
-  <div class="pagination" *ngIf="isAdmin">
+  <!-- PAGINATION — visible to any logged-in agent -->
+  <div class="pagination">
     <button class="page-btn nav-btn" [disabled]="currentPage === 1" (click)="goToPreviousPage()">‹ Prev</button>
     <ng-container *ngFor="let page of pages">
       <button class="page-btn" [class.active]="page === currentPage" (click)="goToPage(page)">{{ page }}</button>
@@ -501,289 +586,365 @@
           <input type="hidden" [(ngModel)]="selectedTicket.id" name="editTicketId" />
 
           <!-- Route & Dates -->
-          <div class="section section-route-dates">
+          <div class="section section-route-search">
             <h4 class="section-title"><span class="section-icon">📍</span> Route &amp; Dates</h4>
-            <div class="form-grid">
-              <div class="form-group">
-                <label>Route</label>
-                <select [(ngModel)]="selectedRouteCode" name="editRoute" required (change)="calculateArrivalDate()">
-                  <option value="" disabled>Select Route</option>
-                  <option *ngFor="let r of routes" [value]="r.id">{{ r.routeName }}</option>
-                </select>
+
+            <div class="agent-route-card">
+              <div class="location-row">
+
+                <div class="location-field">
+                  <span class="location-field-icon">🚉</span>
+                  <div class="location-field-body">
+                    <label for="editFromLocation">From</label>
+                    <select [(ngModel)]="selectedFromLocation" name="editFromLocation" id="editFromLocation" required
+                      (change)="onFromLocationChange()">
+                      <option value="" disabled selected>Select origin</option>
+                      <option *ngFor="let l of fromLocations" [value]="l.locationCode">{{ l.name }}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <button type="button" class="swap-btn" (click)="swapLocations()"
+                  [disabled]="!selectedFromLocation || !selectedToLocation" title="Swap From / To">⇄</button>
+
+                <div class="location-field">
+                  <span class="location-field-icon">🏁</span>
+                  <div class="location-field-body">
+                    <label for="editToLocation">To</label>
+                    <select [(ngModel)]="selectedToLocation" name="editToLocation" id="editToLocation" required
+                      [disabled]="!selectedFromLocation" (change)="onToLocationChange()">
+                      <option value="" disabled selected>Select destination</option>
+                      <option *ngFor="let l of toLocations" [value]="l.locationCode">{{ l.name }}</option>
+                    </select>
+                  </div>
+                </div>
+
               </div>
-              <div class="form-group">
-                <label>Departure Date</label>
-                <input [(ngModel)]="selectedDepartureDate" name="editDepartureDate" type="date" required
-                  (change)="calculateArrivalDate()" />
-              </div>
-              <div class="form-group">
-                <label>Arrival Date</label>
-                <input [(ngModel)]="selectedArrivalDate" name="editArrivalDate" type="date" required readonly />
+
+              <div class="date-row">
+                <div class="form-group">
+                  <label>Departure Date</label>
+                  <input [(ngModel)]="selectedDepartureDate" name="editDepartureDate" type="date" required
+                    (change)="calculateArrivalDate()" />
+                </div>
+                <div class="form-group">
+                  <label>Arrival Date</label>
+                  <input [(ngModel)]="selectedArrivalDate" name="editArrivalDate" type="date" required readonly />
+                </div>
               </div>
             </div>
-          </div>`
+          </div>
 
           <!-- Available Trains (modal) -->
           <div class="section section-vehicles" *ngIf="availableVehicles.length">
             <h4 class="section-title">
               <span class="section-icon">🚆</span> Available Trains
+              <span class="vehicle-count-badge">{{ filteredVehicles.length }} of {{ availableVehicles.length }}</span>
               <span class="reschedule-hint" *ngIf="selectedTicket.seatNumber">
                 — changing date/train requires new seat selection
               </span>
             </h4>
-            <div class="vehicle-list">
-              <div *ngFor="let v of availableVehicles" class="vehicle-wrapper">
-                <div class="vehicle-card" [class.selected]="selectedVehicleCode === v.vehicleCode">
-                  <div class="vehicle-info-main">
-                    <div class="vehicle-left">
-                      <div class="model-cell">
-                        <img *ngIf="getBrandLogo(v.model)" [src]="getBrandLogo(v.model)" [alt]="getBrandName(v.model)"
-                          class="brand-logo" />
-                        <span *ngIf="!getBrandLogo(v.model)" class="brand-fallback">{{ getBrandInitial(v.model)
-                          }}</span>
-                        <div class="train-name-row">
-                          <!-- <span class="train-icon">🚂</span> -->
-                          <span class="train-name">{{ v.model }}</span>
-                        </div>
-                      </div>
-                      <p class="operator-name">{{ getOperatorName(v.operatorCode) }}</p>
-                      <div class="train-name-row">
-                        <span class="train-icon">🚂</span>
-                        <span class="train-name">{{ v.model }}</span>
-                      </div>
-                      <p class="operator-name">{{ getOperatorName(v.operatorCode) }}</p>
-                      <div class="train-class-tags">
-                        <span *ngFor="let cls of getTrainClasses(v)" class="class-tag"
-                          [ngClass]="getClassTagCss(cls.classType)">
-                          {{ cls.classType }}
-                        </span>
-                      </div>
-                    </div>
-                    <div class="vehicle-middle">
-                      <div class="time-point">
-                        <div class="time-block">
-                          <span class="time">{{ getDepartureTimeForVehicle(v.id) }}</span>
-                          <span class="station">Departure</span>
-                        </div>
-                      </div>
-                      <div class="journey-path"><span class="journey-icon">🛤️</span></div>
-                      <div class="time-point">
-                        <div class="time-block">
-                          <span class="time">{{ getArrivalTimeForVehicle(v.id) }}</span>
-                          <span class="station">Arrival</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="vehicle-right">
-                      <div class="price-container">
-                        <span class="price-from">From ৳</span>
-                        <span class="amount">{{ getMinFareForVehicle(v.id) }}</span>
-                      </div>
-                      <div class="seat-indicator" [ngClass]="getSeatClass(v.id)">
-                        <ng-container *ngIf="getTotalAvailableSeats(v.id) === 0; else modalSeatsAvail">
-                          🚫 Fully Booked
-                        </ng-container>
-                        <ng-template #modalSeatsAvail>{{ getTotalAvailableSeats(v.id) }} seats left</ng-template>
-                      </div>
-                      <button type="button" class="btn primary small" [disabled]="getTotalAvailableSeats(v.id) === 0"
-                        (click)="openSeatPanel(v.vehicleCode, v.id)">
-                        {{ seatBookingBusId === v.id ? '✕ Close' : '🪑 Select Seats' }}
-                      </button>
-                    </div>
+
+            <div class="vehicles-layout">
+
+              <!-- FILTER SIDEBAR (modal) -->
+              <aside class="filter-sidebar">
+                <div class="filter-sidebar-header">
+                  <span class="filter-sidebar-title">🔍 Filters</span>
+                  <button type="button" class="filter-clear-btn" *ngIf="hasActiveFilters" (click)="clearAllFilters()">
+                    Clear all
+                  </button>
+                </div>
+
+                <!-- TRAIN CLASS — horizontal pill buttons -->
+                <div class="filter-group" *ngIf="classFilterOptions.length > 1">
+                  <div class="filter-group-title">Train Class</div>
+                  <div class="filter-pill-row">
+                    <button type="button" class="filter-pill" *ngFor="let opt of classFilterOptions"
+                      [class.active]="selectedClassFilters.has(opt.value)"
+                      (click)="toggleClassFilter(opt.value)">
+                      <span class="filter-pill-icon">{{ opt.icon }}</span>
+                      <span class="filter-pill-label">{{ opt.label }}</span>
+                      <span class="filter-pill-count">{{ opt.count }}</span>
+                    </button>
                   </div>
                 </div>
 
-                <!-- SEAT PANEL (modal) — same structure as above -->
-                <div class="seat-panel-container" *ngIf="seatBookingBusId === v.id">
-                  <div class="seat-panel-vehicle-header">
-                    <span class="seat-panel-vehicle-icon">🚂</span>
-                    <span class="seat-panel-vehicle-name">{{ v.model }}</span>
-                    <span class="seat-panel-vehicle-model">{{ getOperatorName(v.operatorCode) }}</span>
-                    <div class="legend">
-                      <span><span class="dot available"></span> Free</span>
-                      <span><span class="dot selected"></span> Yours</span>
-                      <span><span class="dot locked"></span> Others</span>
-                      <span><span class="dot booked"></span> Taken</span>
-                    </div>
-                    <button class="btn secondary small" type="button" (click)="clearSelection()"
-                      [disabled]="!selectedSeats.length" style="margin-left:auto;">🧹 Clear</button>
-                  </div>
-
-                  <div *ngIf="seatPanelLoading" class="seat-loading-bar">
-                    <div class="seat-loading-spinner"></div>
-                    <span>Loading seat data…</span>
-                  </div>
-
-                  <div class="class-tabs" *ngIf="!seatPanelLoading">
-                    <button type="button" *ngFor="let cls of trainClasses" class="class-tab"
-                      [class.active]="activeClassTab === cls.classType" [ngClass]="getClassTabCss(cls.classType)"
-                      (click)="setActiveClassTab(cls.classType)">
-                      <span class="class-tab-icon">{{ getClassIcon(cls.classType) }}</span>
-                      <span class="class-tab-name">{{ cls.classType }}</span>
-                      <span class="class-tab-fare">৳{{ cls.fare }}</span>
-                      <span class="class-tab-seats"
-                        [ngClass]="cls.availableSeats === 0 ? 'tab-full' : (cls.availableSeats < 10 ? 'tab-low' : 'tab-ok')">
-                        {{ cls.availableSeats }} left
-                      </span>
+                <!-- DEPARTURE TIME — vertical block buttons -->
+                <div class="filter-group" *ngIf="timeFilterOptions.length > 1">
+                  <div class="filter-group-title">Departure Time</div>
+                  <div class="filter-block-stack">
+                    <button type="button" class="filter-block-btn" *ngFor="let opt of timeFilterOptions"
+                      [class.active]="selectedTimeFilters.has(opt.value)"
+                      (click)="toggleTimeFilter(opt.value)">
+                      <span class="filter-block-icon">{{ opt.icon }}</span>
+                      <span class="filter-block-label">{{ opt.label }}</span>
+                      <span class="filter-block-count">{{ opt.count }}</span>
                     </button>
                   </div>
+                </div>
+              </aside>
 
-                  <div class="seat-panel-layout" *ngIf="!seatPanelLoading && activeClassTab">
-                    <ng-container *ngIf="isBerthClass(activeClassTab); else modalChairLayout">
-                      <div class="berth-layout-area">
-                        <div class="berth-intro">
-                          <span class="berth-intro-icon">🛏️</span>
-                          <span class="berth-intro-text">Select a berth compartment, then pick your berth
-                            position</span>
-                        </div>
-                        <div class="bogies-container">
-                          <div *ngFor="let bogie of getActiveBogies()" class="bogie-card">
-                            <div class="bogie-header">
-                              <span class="bogie-label">{{ bogie.bogieName }}</span>
-                              <span class="bogie-avail">{{ bogie.availableCount }} available</span>
+              <!-- TRAIN LIST (modal) -->
+              <div class="vehicle-list-wrap">
+                <div class="vehicle-list">
+                  <div *ngFor="let v of filteredVehicles" class="vehicle-wrapper">
+                    <div class="vehicle-card" [class.selected]="selectedVehicleCode === v.vehicleCode">
+                      <div class="vehicle-info-main">
+                        <div class="vehicle-left">
+                          <div class="model-cell">
+                            <img *ngIf="getBrandLogo(v.model)" [src]="getBrandLogo(v.model)" [alt]="getBrandName(v.model)"
+                              class="brand-logo" />
+                            <span *ngIf="!getBrandLogo(v.model)" class="brand-fallback">{{ getBrandInitial(v.model)
+                              }}</span>
+                            <div class="train-name-row">
+                              <span class="train-icon">🚂</span>
+                              <span class="train-name">{{ v.model }}</span>
                             </div>
-                            <div class="berth-compartments">
-                              <div *ngFor="let comp of bogie.compartments" class="berth-compartment"
-                                [class.comp-selected]="isCompartmentSelected(comp)"
-                                [class.comp-full]="comp.availableCount === 0">
-                                <div class="comp-header">
-                                  <span class="comp-label">{{ comp.compartmentName }}</span>
-                                  <span class="comp-avail-badge" [class.avail-zero]="comp.availableCount === 0">
-                                    {{ comp.availableCount }}/{{ comp.totalCount }}
-                                  </span>
-                                </div>
-                                <div class="berth-seats-grid">
-                                  <button *ngFor="let seat of comp.seats" type="button" class="berth-seat-btn"
-                                    [class.berth-available]="seat.status === 'available'"
-                                    [class.berth-selected]="seat.status === 'selected'"
-                                    [class.berth-locked]="seat.status === 'locked'"
-                                    [class.berth-booked]="seat.status === 'reserved'"
-                                    [disabled]="seat.status === 'reserved' || seat.status === 'locked'"
-                                    [title]="seat.status === 'reserved' ? 'Already booked' : seat.status === 'locked' ? 'Selected by another user' : seat.seatNumber"
-                                    (click)="toggleSeat(seat)">
-                                    <span class="berth-position-icon">{{ getBerthPositionIcon(seat.berthPosition)
-                                      }}</span>
-                                    <span class="berth-seat-num">{{ seat.seatNumber }}</span>
-                                    <span class="berth-pos-label">{{ seat.berthPosition }}</span>
-                                  </button>
-                                </div>
-                              </div>
+                          </div>
+                          <p class="operator-name">{{ getOperatorName(v.operatorCode) }}</p>
+                          <div class="train-class-tags">
+                            <span *ngFor="let cls of getTrainClasses(v)" class="class-tag"
+                              [ngClass]="getClassTagCss(cls.classType)">
+                              {{ cls.classType }}
+                            </span>
+                          </div>
+                        </div>
+                        <div class="vehicle-middle">
+                          <div class="time-point">
+                            <div class="time-block">
+                              <span class="time">{{ getDepartureTimeForVehicle(v.id) }}</span>
+                              <span class="station">Departure</span>
+                              <span class="time-cat-badge">{{ getTimeCategoryIcon(v.id) }} {{ getTimeCategoryShortLabel(v.id) }}</span>
+                            </div>
+                          </div>
+                          <div class="journey-path"><span class="journey-icon">🛤️</span></div>
+                          <div class="time-point">
+                            <div class="time-block">
+                              <span class="time">{{ getArrivalTimeForVehicle(v.id) }}</span>
+                              <span class="station">Arrival</span>
                             </div>
                           </div>
                         </div>
+                        <div class="vehicle-right">
+                          <div class="price-container">
+                            <span class="price-from">From ৳</span>
+                            <span class="amount">{{ getMinFareForVehicle(v.id) }}</span>
+                          </div>
+                          <div class="seat-indicator" [ngClass]="getSeatClass(v.id)">
+                            <ng-container *ngIf="getTotalAvailableSeats(v.id) === 0; else modalSeatsAvail">
+                              🚫 Fully Booked
+                            </ng-container>
+                            <ng-template #modalSeatsAvail>{{ getTotalAvailableSeats(v.id) }} seats left</ng-template>
+                          </div>
+                          <button type="button" class="btn primary small" [disabled]="getTotalAvailableSeats(v.id) === 0"
+                            (click)="openSeatPanel(v.vehicleCode, v.id)">
+                            {{ seatBookingBusId === v.id ? '✕ Close' : '🪑 Select Seats' }}
+                          </button>
+                        </div>
                       </div>
-                    </ng-container>
-                    <ng-template #modalChairLayout>
-                      <div class="chair-layout-area">
-                        <div class="bogies-container">
-                          <div *ngFor="let bogie of getActiveBogies()" class="bogie-card bogie-card--chair">
-                            <div class="bogie-header">
-                              <span class="bogie-label">{{ bogie.bogieName }}</span>
-                              <span class="bogie-avail">{{ bogie.availableCount }} available</span>
+                    </div>
+
+                    <!-- SEAT PANEL (modal) — same structure as above -->
+                    <div class="seat-panel-container" *ngIf="seatBookingBusId === v.id">
+                      <div class="seat-panel-vehicle-header">
+                        <span class="seat-panel-vehicle-icon">🚂</span>
+                        <span class="seat-panel-vehicle-name">{{ v.model }}</span>
+                        <span class="seat-panel-vehicle-model">{{ getOperatorName(v.operatorCode) }}</span>
+                        <div class="legend">
+                          <span><span class="dot available"></span> Free</span>
+                          <span><span class="dot selected"></span> Yours</span>
+                          <span><span class="dot locked"></span> Others</span>
+                          <span><span class="dot booked"></span> Taken</span>
+                        </div>
+                        <button class="btn secondary small" type="button" (click)="clearSelection()"
+                          [disabled]="!selectedSeats.length" style="margin-left:auto;">🧹 Clear</button>
+                      </div>
+
+                      <div *ngIf="seatPanelLoading" class="seat-loading-bar">
+                        <div class="seat-loading-spinner"></div>
+                        <span>Loading seat data…</span>
+                      </div>
+
+                      <div class="class-tabs" *ngIf="!seatPanelLoading">
+                        <button type="button" *ngFor="let cls of trainClasses" class="class-tab"
+                          [class.active]="activeClassTab === cls.classType" [ngClass]="getClassTabCss(cls.classType)"
+                          (click)="setActiveClassTab(cls.classType)">
+                          <span class="class-tab-icon">{{ getClassIcon(cls.classType) }}</span>
+                          <span class="class-tab-name">{{ cls.classType }}</span>
+                          <span class="class-tab-fare">৳{{ cls.fare }}</span>
+                          <span class="class-tab-seats"
+                            [ngClass]="cls.availableSeats === 0 ? 'tab-full' : (cls.availableSeats < 10 ? 'tab-low' : 'tab-ok')">
+                            {{ cls.availableSeats }} left
+                          </span>
+                        </button>
+                      </div>
+
+                      <div class="seat-panel-layout" *ngIf="!seatPanelLoading && activeClassTab">
+                        <ng-container *ngIf="isBerthClass(activeClassTab); else modalChairLayout">
+                          <div class="berth-layout-area">
+                            <div class="berth-intro">
+                              <span class="berth-intro-icon">🛏️</span>
+                              <span class="berth-intro-text">Select a berth compartment, then pick your berth
+                                position</span>
                             </div>
-                            <div class="seat-grid-wrap">
-                              <div class="seat-grid">
-                                <div class="seat-row driver-integrated-row">
-                                  <span class="row-label"></span>
-                                  <div class="seat-group">
-                                    <div class="seat-btn-placeholder"></div>
-                                    <div class="seat-btn-placeholder"></div>
-                                  </div>
-                                  <div class="aisle-gap"></div>
-                                  <div class="seat-group">
-                                    <div class="seat-btn-placeholder"></div>
-                                    <div class="driver-cell-inline">
-                                      <div class="driver-circle">🚂</div>
-                                      <span class="driver-text">Loco</span>
+                            <div class="bogies-container">
+                              <div *ngFor="let bogie of getActiveBogies()" class="bogie-card">
+                                <div class="bogie-header">
+                                  <span class="bogie-label">{{ bogie.bogieName }}</span>
+                                  <span class="bogie-avail">{{ bogie.availableCount }} available</span>
+                                </div>
+                                <div class="berth-compartments">
+                                  <div *ngFor="let comp of bogie.compartments" class="berth-compartment"
+                                    [class.comp-selected]="isCompartmentSelected(comp)"
+                                    [class.comp-full]="comp.availableCount === 0">
+                                    <div class="comp-header">
+                                      <span class="comp-label">{{ comp.compartmentName }}</span>
+                                      <span class="comp-avail-badge" [class.avail-zero]="comp.availableCount === 0">
+                                        {{ comp.availableCount }}/{{ comp.totalCount }}
+                                      </span>
+                                    </div>
+                                    <div class="berth-seats-grid">
+                                      <button *ngFor="let seat of comp.seats" type="button" class="berth-seat-btn"
+                                        [class.berth-available]="seat.status === 'available'"
+                                        [class.berth-selected]="seat.status === 'selected'"
+                                        [class.berth-locked]="seat.status === 'locked'"
+                                        [class.berth-booked]="seat.status === 'reserved'"
+                                        [disabled]="seat.status === 'reserved' || seat.status === 'locked'"
+                                        [title]="seat.status === 'reserved' ? 'Already booked' : seat.status === 'locked' ? 'Selected by another user' : seat.seatNumber"
+                                        (click)="toggleSeat(seat)">
+                                        <span class="berth-position-icon">{{ getBerthPositionIcon(seat.berthPosition)
+                                          }}</span>
+                                        <span class="berth-seat-num">{{ seat.seatNumber }}</span>
+                                        <span class="berth-pos-label">{{ seat.berthPosition }}</span>
+                                      </button>
                                     </div>
                                   </div>
                                 </div>
-                                <div class="seat-row" *ngFor="let row of getBogieSeatRows(bogie)">
-                                  <span class="row-label">{{ row }}</span>
-                                  <div class="seat-group">
-                                    <ng-container *ngFor="let col of [1, 2]">
-                                      <ng-container *ngIf="getSeatByBogiePosition(bogie, row, col) as seat">
-                                        <button type="button" class="seat-btn"
-                                          [class.available]="seat.status === 'available'"
-                                          [class.selected]="seat.status === 'selected'"
-                                          [class.locked]="seat.status === 'locked'"
-                                          [class.booked]="seat.status === 'reserved'"
-                                          [disabled]="seat.status === 'reserved' || seat.status === 'locked'"
-                                          (click)="toggleSeat(seat)">
-                                          <span class="seat-label-num">{{ row }}{{ col }}</span>
-                                        </button>
-                                      </ng-container>
-                                    </ng-container>
-                                  </div>
-                                  <div class="aisle-gap"></div>
-                                  <div class="seat-group">
-                                    <ng-container *ngFor="let col of [3, 4]">
-                                      <ng-container *ngIf="getSeatByBogiePosition(bogie, row, col) as seat">
-                                        <button type="button" class="seat-btn"
-                                          [class.available]="seat.status === 'available'"
-                                          [class.selected]="seat.status === 'selected'"
-                                          [class.locked]="seat.status === 'locked'"
-                                          [class.booked]="seat.status === 'reserved'"
-                                          [disabled]="seat.status === 'reserved' || seat.status === 'locked'"
-                                          (click)="toggleSeat(seat)">
-                                          <span class="seat-label-num">{{ row }}{{ col }}</span>
-                                        </button>
-                                      </ng-container>
-                                    </ng-container>
+                              </div>
+                            </div>
+                          </div>
+                        </ng-container>
+                        <ng-template #modalChairLayout>
+                          <div class="chair-layout-area">
+                            <div class="bogies-container">
+                              <div *ngFor="let bogie of getActiveBogies()" class="bogie-card bogie-card--chair">
+                                <div class="bogie-header">
+                                  <span class="bogie-label">{{ bogie.bogieName }}</span>
+                                  <span class="bogie-avail">{{ bogie.availableCount }} available</span>
+                                </div>
+                                <div class="seat-grid-wrap">
+                                  <div class="seat-grid">
+                                    <div class="seat-row driver-integrated-row">
+                                      <span class="row-label"></span>
+                                      <div class="seat-group">
+                                        <div class="seat-btn-placeholder"></div>
+                                        <div class="seat-btn-placeholder"></div>
+                                      </div>
+                                      <div class="aisle-gap"></div>
+                                      <div class="seat-group">
+                                        <div class="seat-btn-placeholder"></div>
+                                        <div class="driver-cell-inline">
+                                          <div class="driver-circle">🚂</div>
+                                          <span class="driver-text">Loco</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div class="seat-row" *ngFor="let row of getBogieSeatRows(bogie)">
+                                      <span class="row-label">{{ row }}</span>
+                                      <div class="seat-group">
+                                        <ng-container *ngFor="let col of [1, 2]">
+                                          <ng-container *ngIf="getSeatByBogiePosition(bogie, row, col) as seat">
+                                            <button type="button" class="seat-btn"
+                                              [class.available]="seat.status === 'available'"
+                                              [class.selected]="seat.status === 'selected'"
+                                              [class.locked]="seat.status === 'locked'"
+                                              [class.booked]="seat.status === 'reserved'"
+                                              [disabled]="seat.status === 'reserved' || seat.status === 'locked'"
+                                              (click)="toggleSeat(seat)">
+                                              <span class="seat-label-num">{{ row }}{{ col }}</span>
+                                            </button>
+                                          </ng-container>
+                                        </ng-container>
+                                      </div>
+                                      <div class="aisle-gap"></div>
+                                      <div class="seat-group">
+                                        <ng-container *ngFor="let col of [3, 4]">
+                                          <ng-container *ngIf="getSeatByBogiePosition(bogie, row, col) as seat">
+                                            <button type="button" class="seat-btn"
+                                              [class.available]="seat.status === 'available'"
+                                              [class.selected]="seat.status === 'selected'"
+                                              [class.locked]="seat.status === 'locked'"
+                                              [class.booked]="seat.status === 'reserved'"
+                                              [disabled]="seat.status === 'reserved' || seat.status === 'locked'"
+                                              (click)="toggleSeat(seat)">
+                                              <span class="seat-label-num">{{ row }}{{ col }}</span>
+                                            </button>
+                                          </ng-container>
+                                        </ng-container>
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      </div>
-                    </ng-template>
+                        </ng-template>
 
-                    <div class="fare-summary-panel">
-                      <div class="fare-summary-inner">
-                        <div class="fare-section">
-                          <p class="fare-section-label">Class</p>
-                          <span class="class-badge" [ngClass]="getClassTagCss(activeClassTab)">{{ activeClassTab
-                            }}</span>
-                        </div>
-                        <div class="fare-divider"></div>
-                        <div class="fare-section">
-                          <p class="fare-section-label">Seats Selected</p>
-                          <div class="fare-seats-list">
-                            <ng-container *ngIf="selectedSeats.length; else noSeatsSelectedModal">
-                              <span *ngFor="let s of selectedSeats" class="chip">{{ s.seatNumber }}</span>
-                            </ng-container>
-                            <ng-template #noSeatsSelectedModal>
-                              <em class="fare-none">None selected</em>
-                            </ng-template>
+                        <div class="fare-summary-panel">
+                          <div class="fare-summary-inner">
+                            <div class="fare-section">
+                              <p class="fare-section-label">Class</p>
+                              <span class="class-badge" [ngClass]="getClassTagCss(activeClassTab)">{{ activeClassTab
+                                }}</span>
+                            </div>
+                            <div class="fare-divider"></div>
+                            <div class="fare-section">
+                              <p class="fare-section-label">Seats Selected</p>
+                              <div class="fare-seats-list">
+                                <ng-container *ngIf="selectedSeats.length; else noSeatsSelectedModal">
+                                  <span *ngFor="let s of selectedSeats" class="chip">{{ s.seatNumber }}</span>
+                                </ng-container>
+                                <ng-template #noSeatsSelectedModal>
+                                  <em class="fare-none">None selected</em>
+                                </ng-template>
+                              </div>
+                            </div>
+                            <div class="fare-divider"></div>
+                            <div class="fare-section">
+                              <p class="fare-section-label">Fare Details</p>
+                              <div class="fare-line">
+                                <span class="fare-line-desc">({{ selectedBaseFare | number }}) × {{ selectedSeats.length ||
+                                  1 }}</span>
+                                <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) |
+                                  number }}</span>
+                              </div>
+                              <div class="fare-divider slim"></div>
+                              <div class="fare-line">
+                                <span class="fare-line-desc">Subtotal</span>
+                                <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) |
+                                  number }}</span>
+                              </div>
+                            </div>
+                            <div class="fare-total-box">
+                              <span class="fare-total-label">Total Fare</span>
+                              <span class="fare-total-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number
+                                }}</span>
+                            </div>
                           </div>
-                        </div>
-                        <div class="fare-divider"></div>
-                        <div class="fare-section">
-                          <p class="fare-section-label">Fare Details</p>
-                          <div class="fare-line">
-                            <span class="fare-line-desc">({{ selectedBaseFare | number }}) × {{ selectedSeats.length ||
-                              1 }}</span>
-                            <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) |
-                              number }}</span>
-                          </div>
-                          <div class="fare-divider slim"></div>
-                          <div class="fare-line">
-                            <span class="fare-line-desc">Subtotal</span>
-                            <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) |
-                              number }}</span>
-                          </div>
-                        </div>
-                        <div class="fare-total-box">
-                          <span class="fare-total-label">Total Fare</span>
-                          <span class="fare-total-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number
-                            }}</span>
                         </div>
                       </div>
                     </div>
                   </div>
+
+                  <div class="vehicle-empty-filtered" *ngIf="filteredVehicles.length === 0">
+                    <span class="vehicle-empty-filtered-icon">🚫</span>
+                    <p>No trains match the selected filters.</p>
+                    <button type="button" class="btn secondary small" (click)="clearAllFilters()">Clear Filters</button>
+                  </div>
                 </div>
               </div>
+
             </div>
           </div>
 
