@@ -1,84 +1,166 @@
 <div class="operator-container">
-  <h2>Add Operator</h2>
 
-  <form [formGroup]="operatorForm" (ngSubmit)="onSubmit()">
-    <div class="form-row">
-      <label>Name:</label>
-      <input formControlName="name" />
+  <!-- Toast notifications -->
+  <div class="toast-container" aria-live="polite">
+    <div class="toast" *ngFor="let t of toasts"
+         [class.toast-success]="t.type === 'success'"
+         [class.toast-error]="t.type === 'error'"
+         [class.toast-leaving]="t.leaving">
+      <div class="toast-body">
+        <span class="toast-dot"></span>
+        <span class="toast-message">{{ t.message }}</span>
+        <button class="toast-close" (click)="dismissToast(t.id)" aria-label="Dismiss notification">×</button>
+      </div>
+      <div class="toast-progress" [class.paused]="t.leaving"></div>
     </div>
-
-    <div class="form-row">
-      <label>Type:</label>
-      <select formControlName="type">
-        <option value="">-- Select Type --</option>
-        <option value="Bus">Bus</option>
-        <option value="Train">Train</option>
-      </select>
-    </div>
-
-    <button type="submit" [disabled]="operatorForm.invalid || loading">Create</button>
-  </form>
-
-  <div *ngIf="errorMessage" class="error-message">
-    {{ errorMessage }}
   </div>
-  <div *ngIf="successMessage" class="success">{{ successMessage }}</div>
 
-  <h2>Operator List</h2>
-  <div *ngIf="loading">Loading...</div>
+  <div class="page-header">
+    <span class="page-eyebrow">Operations · Operators</span>
+    <h2 class="page-title">Operator Directory</h2>
+    <p class="page-subtitle">Add, edit, and manage bus and train operators used across routes.</p>
+  </div>
 
-  <table *ngIf="!loading">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Code</th>
-        <th>Created At</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let op of operators">
-        <td>{{ op.name }}</td>
-        <td>{{ op.type }}</td>
-        <td>{{ op.operatorCode }}</td>
-        <td>{{ op.createdAt | date: 'short' }}</td>
-        <td>
-          <button (click)="openEditModal(op)">✏️ Edit</button>
-          <button (click)="delete(op.id)">🗑️ Delete</button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  <!-- Add Operator Form -->
+  <div class="operator-card">
+    <h3 class="card-title">Add New Operator</h3>
 
-  <!-- Edit Modal -->
-  <div class="modal-backdrop" *ngIf="showEditModal">
-    <div class="modal">
-      <h3>Edit Operator</h3>
-
-      <form [formGroup]="editForm" (ngSubmit)="onEditSubmit()">
-        <div class="form-row">
-          <label>Name:</label>
-          <input formControlName="name" />
+    <form [formGroup]="operatorForm" (ngSubmit)="onSubmit()" class="operator-form">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="name">Name</label>
+          <input formControlName="name" id="name"
+                 [class.invalid]="isInvalid(operatorForm, 'name')" placeholder="e.g. Green Line Paribahan" />
+          <span class="error-text" *ngIf="isInvalid(operatorForm, 'name')">Name is required.</span>
         </div>
 
-        <div class="form-row">
-          <label>Type:</label>
-          <select formControlName="type">
-            <option value="">-- Select Type --</option>
+        <div class="form-group">
+          <label for="type">Type</label>
+          <select formControlName="type" id="type" [class.invalid]="isInvalid(operatorForm, 'type')">
+            <option value="" disabled selected>Select type</option>
             <option value="Bus">Bus</option>
             <option value="Train">Train</option>
           </select>
+          <span class="error-text" *ngIf="isInvalid(operatorForm, 'type')">Please select a type.</span>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn primary" [disabled]="operatorForm.invalid || loading">
+          {{ loading ? 'Saving…' : 'Save Operator' }}
+        </button>
+        <button type="button" class="btn secondary" (click)="operatorForm.reset()" [disabled]="loading">Clear</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Operator List -->
+  <div class="list-section">
+    <h3 class="card-title">
+      <span>All Operators</span>
+      <span class="count-badge">{{ operators.length }} total</span>
+    </h3>
+
+    <div *ngIf="loading && !operators.length" class="empty-state">Loading…</div>
+
+    <table class="operator-table" *ngIf="operators.length">
+      <thead>
+        <tr>
+          <th>SL</th>
+          <th (click)="sortBy('name')">Name</th>
+          <th (click)="sortBy('type')">Type</th>
+          <th (click)="sortBy('operatorCode')">Code</th>
+          <th>Created At</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let op of paginatedOperators; let i = index">
+          <td>{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
+          <td>{{ op.name }}</td>
+          <td>{{ op.type }}</td>
+          <td>{{ op.operatorCode ?? '—' }}</td>
+          <td>{{ op.createdAt ? (op.createdAt | date: 'short') : '—' }}</td>
+          <td>
+            <button class="btn small edit" (click)="openEditModal(op)">
+              <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M13.5 3.5L16.5 6.5L7 16H4V13L13.5 3.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+              </svg>
+              Edit
+            </button>
+            <button class="btn small delete" (click)="confirmDelete(op)">
+              <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 6H16M8 6V4.5H12V6M6 6L6.6 15.4C6.65 16.05 7.2 16.5 7.85 16.5H12.15C12.8 16.5 13.35 16.05 13.4 15.4L14 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Delete
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" *ngIf="totalPages > 1">
+    <button class="btn small page-btn" [disabled]="currentPage === 1" (click)="goToPreviousPage()">Prev</button>
+    <ng-container *ngFor="let page of pages">
+      <button class="btn small page-btn" [class.active]="page === currentPage" (click)="goToPage(page)">
+        {{ page }}
+      </button>
+    </ng-container>
+    <button class="btn small page-btn" [disabled]="currentPage === totalPages" (click)="goToNextPage()">Next</button>
+  </div>
+
+  <!-- Edit Modal — styled as a ticket stub -->
+  <div class="modal-backdrop" *ngIf="showEditModal">
+    <div class="modal">
+      <button class="modal-close" (click)="closeModal()" aria-label="Close">×</button>
+
+      <span class="modal-serial">Operator · #{{ selectedOperatorId }}</span>
+      <h3 class="modal-title">Edit Operator</h3>
+
+      <form [formGroup]="editForm" (ngSubmit)="onEditSubmit()" class="operator-form">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="edit-name">Name</label>
+            <input formControlName="name" id="edit-name" [class.invalid]="isInvalid(editForm, 'name')" />
+            <span class="error-text" *ngIf="isInvalid(editForm, 'name')">Name is required.</span>
+          </div>
+
+          <div class="form-group">
+            <label for="edit-type">Type</label>
+            <select formControlName="type" id="edit-type" [class.invalid]="isInvalid(editForm, 'type')">
+              <option value="" disabled selected>Select type</option>
+              <option value="Bus">Bus</option>
+              <option value="Train">Train</option>
+            </select>
+            <span class="error-text" *ngIf="isInvalid(editForm, 'type')">Please select a type.</span>
+          </div>
         </div>
 
-        <div class="modal-actions">
-          <button type="submit" [disabled]="editForm.invalid || loading">Update</button>
-          <button type="button" (click)="closeModal()">Cancel</button>
+        <div class="form-actions">
+          <button type="submit" class="btn primary" [disabled]="editForm.invalid || loading">
+            {{ loading ? 'Saving…' : 'Update Operator' }}
+          </button>
+          <button type="button" class="btn secondary" (click)="closeModal()" [disabled]="loading">Cancel</button>
         </div>
       </form>
+    </div>
+  </div>
 
-      <div *ngIf="successMessage" class="success">{{ successMessage }}</div>
-      <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-backdrop" *ngIf="showDeleteConfirmModal">
+    <div class="modal delete-modal">
+      <h3 class="modal-title">Delete this operator?</h3>
+      <p class="delete-message">
+        <strong>{{ operatorToDelete?.name }}</strong>
+        ({{ operatorToDelete?.type }}) will be permanently removed. This can't be undone.
+      </p>
+
+      <div class="form-actions">
+        <button class="btn delete" (click)="deleteConfirmed()">Yes, Delete</button>
+        <button class="btn secondary" (click)="cancelDelete()">Cancel</button>
+      </div>
     </div>
   </div>
 </div>
