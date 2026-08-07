@@ -1,7 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { OperatorDto, CreateOperatorDto, UpdateOperatorDto } from '../models/common';
+import {
+  OperatorDto,
+  CreateOperatorDto,
+  UpdateOperatorDto,
+} from '../models/common';
 import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -14,8 +18,8 @@ export class OperatorService {
     return this.http.get<OperatorDto[]>(this.baseUrl);
   }
 
-  create(operator: CreateOperatorDto): Observable<OperatorDto> {
-    return this.http.post<OperatorDto>(this.baseUrl, operator);
+  create(dto: CreateOperatorDto): Observable<OperatorDto> {
+    return this.http.post<OperatorDto>(`${this.baseUrl}/create`, dto);
   }
 
   update(id: number, operator: UpdateOperatorDto): Observable<void> {
