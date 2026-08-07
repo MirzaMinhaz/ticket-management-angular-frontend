@@ -2,7 +2,7 @@
 
 export interface LocationDto {
   id: number;
-  locationCode: string;
+  locationCode: string | null;   // ✅ was: string
   name: string;
   type: string;
   address: string;
@@ -182,12 +182,13 @@ export interface OperatorDto {
   id: number;
   name: string;
   type: string;
-  operatorCode: string;
+  operatorCode: string | null;   // ✅ was: string
   createdAt: string;
   lastModifiedAt?: string;
   createdBy: string;
   lastModifiedBy?: string;
 }
+
 
 export interface CreateOperatorDto {
   name: string;

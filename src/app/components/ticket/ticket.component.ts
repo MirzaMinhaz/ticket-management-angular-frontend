@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
+import { isNonNull } from '../../utils/type-guards'; // adjust relative path per file
 import {
   TicketDto,
   CreateTicketDto,
@@ -755,7 +756,7 @@ export class TicketComponent implements OnInit {
   get fromLocations(): LocationDto[] {
     const codes = new Set(this.routes.map((r) => r.departureLocationCode));
     return this.locations
-      .filter((l) => codes.has(l.locationCode))
+      .filter((l) => isNonNull(l.locationCode) && codes.has(l.locationCode))
       .sort((a, b) => a.name.localeCompare(b.name));
   }
 
@@ -768,7 +769,7 @@ export class TicketComponent implements OnInit {
         .map((r) => r.destinationLocationCode),
     );
     return this.locations
-      .filter((l) => codes.has(l.locationCode))
+      .filter((l) => isNonNull(l.locationCode) && codes.has(l.locationCode))
       .sort((a, b) => a.name.localeCompare(b.name));
   }
 

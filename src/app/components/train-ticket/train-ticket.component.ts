@@ -463,7 +463,7 @@ export class TrainTicketComponent implements OnInit, OnDestroy {
   get fromLocations(): LocationDto[] {
     const codes = new Set(this.routes.map((r) => r.departureLocationCode));
     return this.locations
-      .filter((l) => codes.has(l.locationCode))
+      .filter((l) => codes.has(l.locationCode ?? ''))
       .sort((a, b) => a.name.localeCompare(b.name));
   }
 
@@ -476,7 +476,7 @@ export class TrainTicketComponent implements OnInit, OnDestroy {
         .map((r) => r.destinationLocationCode),
     );
     return this.locations
-      .filter((l) => codes.has(l.locationCode))
+      .filter((l) => codes.has(l.locationCode ?? ''))
       .sort((a, b) => a.name.localeCompare(b.name));
   }
 

@@ -66,7 +66,7 @@ export class VehicleComponent implements OnInit {
   sortAsc: boolean = true;
 
   operators: OperatorDto[] = [];
-  selectedOperatorCode: string = '';
+  selectedOperatorCode: string | null = null;
 
   constructor(
     private vehicleService: VehicleService,
@@ -238,57 +238,71 @@ export class VehicleComponent implements OnInit {
     });
   }
 
-  // ─── Save (create or update) ──────────────────────────────────────────────
-  save(): void {
-    const isBus = this.selectedVehicle.type === 'Bus';
+  
 
-    if (this.selectedVehicle.id > 0) {
-      const updateDto: UpdateVehicleDto = {
-        operatorCode: this.selectedOperatorCode,
-        type: this.selectedVehicle.type,
-        model: this.selectedVehicle.model,
-        licensePlate: this.selectedVehicle.licensePlate,
-        capacity: this.selectedVehicle.capacity,
-        isActive: this.selectedVehicle.isActive ?? true,
-        acType: isBus ? this.selectedVehicle.acType : null,
-        busCategory: isBus ? this.selectedVehicle.busCategory : null,
-        deckLevel: isBus ? this.selectedVehicle.deckLevel : null,
-      };
-      this.vehicleService.update(this.selectedVehicle.id, updateDto).subscribe({
-        next: () => {
-          this.modalSuccessMessage = '✅ Vehicle updated successfully!';
-          this.loadVehicles();
-          setTimeout(() => {
-            this.ngZone.run(() => {
-              this.closeModal();
-              this.modalSuccessMessage = '';
-            });
-          }, 2000);
-        },
-        error: (err) => console.error('Failed to update vehicle', err),
-      });
-    } else {
-      const createDto: CreateVehicleDto = {
-        operatorCode: this.selectedOperatorCode,
-        type: this.selectedVehicle.type,
-        model: this.selectedVehicle.model,
-        licensePlate: this.selectedVehicle.licensePlate,
-        capacity: this.selectedVehicle.capacity,
-        acType: isBus ? this.selectedVehicle.acType : null,
-        busCategory: isBus ? this.selectedVehicle.busCategory : null,
-        deckLevel: isBus ? this.selectedVehicle.deckLevel : null,
-      };
-      this.vehicleService.create(createDto).subscribe({
-        next: () => {
-          this.successMessage = '✅ Vehicle created successfully!';
-          this.loadVehicles();
-          this.reset();
-          this.autoClearMessage();
-        },
-        error: (err) => console.error('Failed to create vehicle', err),
-      });
-    }
+  // ─── Save (create or update) ──────────────────────────────────────────────
+  // ─── Save (create or update) ──────────────────────────────────────────────
+save(): void {
+  const isBus = this.selectedVehicle.type === 'Bus';
+
+  if (!this.selectedOperatorCode) {
+    this.modalSuccessMessage = '';
+    console.error('Cannot save vehicle: no operator selected.');
+    // If you have a toast/error-message pattern elsewhere (like OperatorComponent),
+    // swap this for that instead of console.error — e.g.:
+    // this.errorMessage = '⚠️ Please select an operator before saving.';
+    return;
   }
+
+  const operatorCode = this.selectedOperatorCode; // now narrowed to `string`
+
+  if (this.selectedVehicle.id > 0) {
+    const updateDto: UpdateVehicleDto = {
+      operatorCode,
+      type: this.selectedVehicle.type,
+      model: this.selectedVehicle.model,
+      licensePlate: this.selectedVehicle.licensePlate,
+      capacity: this.selectedVehicle.capacity,
+      isActive: this.selectedVehicle.isActive ?? true,
+      acType: isBus ? this.selectedVehicle.acType : null,
+      busCategory: isBus ? this.selectedVehicle.busCategory : null,
+      deckLevel: isBus ? this.selectedVehicle.deckLevel : null,
+    };
+    this.vehicleService.update(this.selectedVehicle.id, updateDto).subscribe({
+      next: () => {
+        this.modalSuccessMessage = '✅ Vehicle updated successfully!';
+        this.loadVehicles();
+        setTimeout(() => {
+          this.ngZone.run(() => {
+            this.closeModal();
+            this.modalSuccessMessage = '';
+          });
+        }, 2000);
+      },
+      error: (err) => console.error('Failed to update vehicle', err),
+    });
+  } else {
+    const createDto: CreateVehicleDto = {
+      operatorCode,
+      type: this.selectedVehicle.type,
+      model: this.selectedVehicle.model,
+      licensePlate: this.selectedVehicle.licensePlate,
+      capacity: this.selectedVehicle.capacity,
+      acType: isBus ? this.selectedVehicle.acType : null,
+      busCategory: isBus ? this.selectedVehicle.busCategory : null,
+      deckLevel: isBus ? this.selectedVehicle.deckLevel : null,
+    };
+    this.vehicleService.create(createDto).subscribe({
+      next: () => {
+        this.successMessage = '✅ Vehicle created successfully!';
+        this.loadVehicles();
+        this.reset();
+        this.autoClearMessage();
+      },
+      error: (err) => console.error('Failed to create vehicle', err),
+    });
+  }
+}
 
   // ─── Helpers ─────────────────────────────────────────────────────────────
   reset(): void {

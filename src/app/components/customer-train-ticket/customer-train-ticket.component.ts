@@ -3,6 +3,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { forkJoin, Subscription } from 'rxjs';
+import { isNonNull } from '../../utils/type-guards'; // adjust relative path per file
 import {
   TicketDto,
   CreateTicketDto,
@@ -335,7 +336,7 @@ export class CustomerTrainTicketComponent implements OnInit, OnDestroy {
   /** All unique locations that are a valid departure ("From") point on some route. */
   get fromLocations(): LocationDto[] {
     const codes = new Set(this.routes.map((r) => r.departureLocationCode));
-    return this.locations.filter((l) => codes.has(l.locationCode));
+    return this.locations.filter((l) => isNonNull(l.locationCode) && codes.has(l.locationCode));
   }
 
   /** Locations reachable ("To") from the currently selected From location. */
@@ -346,7 +347,7 @@ export class CustomerTrainTicketComponent implements OnInit, OnDestroy {
         .filter((r) => r.departureLocationCode === this.selectedFromLocation)
         .map((r) => r.destinationLocationCode),
     );
-    return this.locations.filter((l) => codes.has(l.locationCode));
+    return this.locations.filter((l) => isNonNull(l.locationCode) && codes.has(l.locationCode));
   }
 
   onFromLocationChange(): void {
