@@ -1,32 +1,41 @@
 <div class="schedule-container">
-  <h2 class="page-title">📅 Schedule Management</h2>
 
-  <!-- Success Message -->
-  <div *ngIf="successMessage" class="alert success-alert">
-    {{ successMessage }}
+  <div class="page-header">
+    <span class="page-eyebrow">Operations · Schedule</span>
+    <h2 class="page-title">Schedule Management</h2>
+    <p class="page-subtitle">Plan and manage route departures, arrivals and fares.</p>
   </div>
 
-  <!-- Add New Schedule Form -->
+  <!-- ─── TOAST ────────────────────────────────────────────────────── -->
+  <div class="toast-container" aria-live="polite" *ngIf="successMessage">
+    <div class="toast toast-success">
+      <div class="toast-body">
+        <span class="toast-dot"></span>
+        <span class="toast-message">{{ successMessage }}</span>
+      </div>
+      <div class="toast-progress"></div>
+    </div>
+  </div>
+
+  <!-- ─── ADD SCHEDULE CARD ────────────────────────────────────────── -->
   <div class="schedule-card">
     <h3 class="card-title">Add New Schedule</h3>
 
     <form (ngSubmit)="save()" #scheduleForm="ngForm" class="schedule-form">
       <div class="form-grid">
-        <!-- Route -->
+
         <div class="form-group">
           <label for="route">Route</label>
-          <select [(ngModel)]="selectedRouteCode" name="route" id="route" required (change)="calculateArrivalTime()">
+          <select id="route" [(ngModel)]="selectedRouteCode" name="route" required
+            (change)="calculateArrivalTime()">
             <option value="" disabled selected>Select Route</option>
-            <option *ngFor="let r of routes" [value]="r.id">
-              {{ r.routeName }}
-            </option>
+            <option *ngFor="let r of routes" [value]="r.id">{{ r.routeName }}</option>
           </select>
         </div>
 
-        <!-- Vehicle -->
         <div class="form-group">
           <label for="vehicle">Vehicle</label>
-          <select [(ngModel)]="selectedVehicleCode" name="vehicle" id="vehicle" required>
+          <select id="vehicle" [(ngModel)]="selectedVehicleCode" name="vehicle" required>
             <option value="" disabled selected>Select Vehicle</option>
             <option *ngFor="let v of vehicles" [value]="v.id">
               {{ getOperatorName(v.operatorCode) }} - {{ v.model }}
@@ -34,108 +43,131 @@
           </select>
         </div>
 
-        <!-- Departure Time -->
         <div class="form-group">
           <label for="departureTime">Departure Time</label>
-          <input [(ngModel)]="selectedSchedule.departureDateTime" name="departureTime" id="departureTime" type="time"
-            required (change)="calculateArrivalTime()" />
+          <input id="departureTime" type="time" [(ngModel)]="selectedSchedule.departureDateTime"
+            name="departureTime" required (change)="calculateArrivalTime()" />
         </div>
 
-        <!-- Arrival Time -->
         <div class="form-group">
           <label for="arrivalTime">Arrival Time</label>
-          <input [(ngModel)]="selectedSchedule.arrivalDateTime" name="arrivalTime" id="arrivalTime" type="time" required
-            readonly />
+          <input id="arrivalTime" type="time" class="readonly-field"
+            [(ngModel)]="selectedSchedule.arrivalDateTime" name="arrivalTime" required readonly />
         </div>
 
-        <!-- Base Fare -->
         <div class="form-group">
           <label for="baseFare">Base Fare</label>
-          <input [(ngModel)]="selectedSchedule.baseFare" name="baseFare" id="baseFare" type="number" required />
+          <input id="baseFare" type="number" [(ngModel)]="selectedSchedule.baseFare" name="baseFare" required />
         </div>
+
       </div>
 
       <div class="form-actions">
-        <button type="submit" class="btn primary">Save</button>
+        <button type="submit" class="btn primary">Save Schedule</button>
         <button type="button" class="btn secondary" (click)="reset()">Clear</button>
       </div>
     </form>
   </div>
 
-  <!-- Schedule List Table -->
+  <!-- ─── SCHEDULE TABLE ───────────────────────────────────────────── -->
   <div class="list-section">
-    <h3 class="card-title">Schedule List</h3>
+    <h3 class="card-title">
+      <span>Schedule List</span>
+      <span class="count-badge">{{ schedules.length }} schedules</span>
+    </h3>
+
     <table class="schedule-table">
       <thead>
         <tr>
-          <th>SL</th>
+          <th class="col-sl">#</th>
           <th (click)="sortBy('routeName')">Route Name</th>
           <th (click)="sortBy('vehicleName')">Vehicle</th>
           <th (click)="sortBy('departureDateTime')">Departure</th>
           <th (click)="sortBy('arrivalDateTime')">Arrival</th>
           <th (click)="sortBy('baseFare')">Base Fare</th>
-          <th>Actions</th>
+          <th class="col-actions">Actions</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let s of paginatedSchedules; let i = index">
-          <td>{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
-          <td>{{ s.routeName ? s.routeName : getRouteName(s.routeId) }}</td>
+          <td class="col-sl">{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
+          <td class="col-route">{{ s.routeName ? s.routeName : getRouteName(s.routeId) }}</td>
           <td>{{ s.vehicleName ? s.vehicleName : getVehicleModel(s.vehicleId) }}</td>
-          <!-- Show only time -->
-          <td>{{ s.departureDateTime | date:'shortTime' }}</td>
-          <td>{{ s.arrivalDateTime | date:'shortTime' }}</td>
-          <td>{{ s.baseFare }} BDT</td>
-          <td>
-            <button class="btn small edit" (click)="openModal(s)">✏️ Edit</button>
-            <button class="btn small delete" (click)="confirmDelete(s)">🗑️ Delete</button>
+          <td class="col-time">{{ s.departureDateTime | date:'shortTime' }}</td>
+          <td class="col-time">{{ s.arrivalDateTime | date:'shortTime' }}</td>
+          <td class="col-fare">{{ s.baseFare }} BDT</td>
+          <td class="col-actions">
+            <button class="btn small edit" (click)="openModal(s)">
+              <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M13.5 3.5L16.5 6.5L7 16H4V13L13.5 3.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+              </svg>
+              Edit
+            </button>
+            <button class="btn small delete" (click)="confirmDelete(s)">
+              <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 6H16M8 6V4.5H12V6M6 6L6.6 15.4C6.65 16.05 7.2 16.5 7.85 16.5H12.15C12.8 16.5 13.35 16.05 13.4 15.4L14 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Delete
+            </button>
           </td>
+        </tr>
+        <tr *ngIf="paginatedSchedules.length === 0">
+          <td colspan="7" class="empty-row">No schedules found.</td>
         </tr>
       </tbody>
     </table>
   </div>
 
-  <!-- Pagination Controls -->
+  <!-- ─── PAGINATION ───────────────────────────────────────────────── -->
   <div class="pagination">
-    <button class="btn small" [disabled]="currentPage === 1" (click)="goToPreviousPage()">⬅ Prev</button>
-    <ng-container *ngFor="let page of pages">
-      <button class="btn small page-btn" [class.active]="page === currentPage" (click)="goToPage(page)">
-        {{ page }}
-      </button>
-    </ng-container>
-    <button class="btn small" [disabled]="currentPage === totalPages" (click)="goToNextPage()">Next ➡</button>
+    <span class="pager-info">
+      Showing {{ (currentPage - 1) * itemsPerPage + 1 }}–{{ currentPage * itemsPerPage > schedules.length ? schedules.length : currentPage * itemsPerPage }} of {{ schedules.length }}
+    </span>
+    <div class="pager-nav">
+      <button class="btn small page-btn" [disabled]="currentPage === 1" (click)="goToPreviousPage()">Prev</button>
+      <ng-container *ngFor="let page of pages">
+        <button class="btn small page-btn" [class.active]="page === currentPage" (click)="goToPage(page)">
+          {{ page }}
+        </button>
+      </ng-container>
+      <button class="btn small page-btn" [disabled]="currentPage === totalPages" (click)="goToNextPage()">Next</button>
+    </div>
   </div>
 
-  <!-- Edit Modal -->
+  <!-- ─── EDIT MODAL — ticket stub ─────────────────────────────────── -->
   <div class="modal-backdrop" *ngIf="showModal">
     <div class="modal">
-      <button class="modal-close" (click)="closeModal()">×</button>
+      <button class="modal-close" (click)="closeModal()" aria-label="Close">×</button>
+
+      <span class="modal-serial">Schedule · #{{ selectedSchedule.id }}</span>
       <h3 class="modal-title">Edit Schedule</h3>
 
-      <div *ngIf="modalSuccessMessage" class="alert success-alert modal-alert">
-        {{ modalSuccessMessage }}
+      <div class="toast-container inline" *ngIf="modalSuccessMessage">
+        <div class="toast toast-success">
+          <div class="toast-body">
+            <span class="toast-dot"></span>
+            <span class="toast-message">{{ modalSuccessMessage }}</span>
+          </div>
+        </div>
       </div>
 
       <form (ngSubmit)="save()" #editForm="ngForm" class="schedule-form">
         <input type="hidden" [(ngModel)]="selectedSchedule.id" name="editScheduleId" />
 
         <div class="form-grid">
-          <!-- Route -->
+
           <div class="form-group">
             <label for="edit-route">Route</label>
-            <select [(ngModel)]="selectedRouteCode" name="editRoute" id="edit-route" required
+            <select id="edit-route" [(ngModel)]="selectedRouteCode" name="editRoute" required
               (change)="calculateArrivalTime()">
               <option value="" disabled selected>Select Route</option>
-              <option *ngFor="let r of routes" [value]="r.id">
-                {{ r.routeName }}
-              </option>
+              <option *ngFor="let r of routes" [value]="r.id">{{ r.routeName }}</option>
             </select>
           </div>
 
-          <!-- Vehicle -->
           <div class="form-group">
             <label for="edit-vehicle">Vehicle</label>
-            <select [(ngModel)]="selectedVehicleCode" name="editVehicle" id="edit-vehicle" required>
+            <select id="edit-vehicle" [(ngModel)]="selectedVehicleCode" name="editVehicle" required>
               <option value="" disabled selected>Select Vehicle</option>
               <option *ngFor="let v of vehicles" [value]="v.id">
                 {{ getOperatorName(v.operatorCode) }} - {{ v.model }}
@@ -143,53 +175,49 @@
             </select>
           </div>
 
-          <!-- Departure Time -->
           <div class="form-group">
             <label for="edit-departureTime">Departure Time</label>
-            <input [(ngModel)]="selectedSchedule.departureDateTime" name="editDepartureTime" id="edit-departureTime"
-              type="time" required (change)="calculateArrivalTime()" />
+            <input id="edit-departureTime" type="time" [(ngModel)]="selectedSchedule.departureDateTime"
+              name="editDepartureTime" required (change)="calculateArrivalTime()" />
           </div>
 
-          <!-- Arrival Time -->
           <div class="form-group">
             <label for="edit-arrivalTime">Arrival Time</label>
-            <input [(ngModel)]="selectedSchedule.arrivalDateTime" name="editArrivalTime" id="edit-arrivalTime"
-              type="time" required readonly />
+            <input id="edit-arrivalTime" type="time" class="readonly-field"
+              [(ngModel)]="selectedSchedule.arrivalDateTime" name="editArrivalTime" required readonly />
           </div>
 
-          <!-- Base Fare -->
           <div class="form-group">
             <label for="edit-baseFare">Base Fare</label>
-            <input [(ngModel)]="selectedSchedule.baseFare" name="editBaseFare" id="edit-baseFare" type="number"
+            <input id="edit-baseFare" type="number" [(ngModel)]="selectedSchedule.baseFare" name="editBaseFare"
               required />
           </div>
+
         </div>
 
         <div class="form-actions">
-          <button type="submit" class="btn primary" [disabled]="!!modalSuccessMessage">Update</button>
+          <button type="submit" class="btn primary" [disabled]="!!modalSuccessMessage">Update Schedule</button>
           <button type="button" class="btn secondary" (click)="closeModal()">Cancel</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Delete Confirmation Modal -->
+  <!-- ─── DELETE CONFIRM ───────────────────────────────────────────── -->
   <div class="modal-backdrop" *ngIf="showDeleteConfirmModal">
     <div class="modal delete-modal">
-      <h3 class="modal-title">Confirm Deletion</h3>
+      <h3 class="modal-title">Delete this schedule?</h3>
       <p class="delete-message">
-        Are you sure you want to delete
-        <strong>
-          {{ scheduleToDelete?.routeName ? scheduleToDelete?.routeName : getRouteName(scheduleToDelete?.routeId!) }}
-        </strong>
-        ({{ scheduleToDelete?.vehicleName ? scheduleToDelete?.vehicleName :
-        getVehicleModel(scheduleToDelete?.vehicleId!) }})
+        <strong>{{ scheduleToDelete?.routeName ? scheduleToDelete?.routeName : getRouteName(scheduleToDelete?.routeId!) }}</strong>
+        ({{ scheduleToDelete?.vehicleName ? scheduleToDelete?.vehicleName : getVehicleModel(scheduleToDelete?.vehicleId!) }})
+        will be permanently removed. This can't be undone.
       </p>
 
       <div class="form-actions">
         <button class="btn delete" (click)="deleteConfirmed()">Yes, Delete</button>
-        <button class="btn secondary" (click)="cancelDelete()">Cancel</button>
+        <button class="btn secondary" (click)="cancelDelete()">Keep it</button>
       </div>
     </div>
   </div>
+
 </div>

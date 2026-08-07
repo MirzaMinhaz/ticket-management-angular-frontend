@@ -1,170 +1,154 @@
 <!-- ── Toast Notifications ─────────────────────────────────── -->
-<div class="toast-container">
+<div class="toast-container" aria-live="polite">
   <div
     *ngFor="let toast of toasts"
     class="toast"
-    [ngClass]="toast.type"
+    [ngClass]="toast.type === 'success' ? 'toast-success' : 'toast-error'"
     [@toastAnim]
   >
-    <span class="toast-icon">{{ toast.type === 'success' ? '✅' : '❌' }}</span>
-    <span class="toast-msg">{{ toast.message }}</span>
-    <button class="toast-close" (click)="dismissToast(toast)">✕</button>
+    <div class="toast-body">
+      <span class="toast-dot"></span>
+      <span class="toast-message">{{ toast.message }}</span>
+      <button class="toast-close" (click)="dismissToast(toast)" aria-label="Dismiss">✕</button>
+    </div>
+    <div class="toast-progress"></div>
   </div>
 </div>
 
-<!-- ── Add Route Form ──────────────────────────────────────── -->
-<div class="page-wrapper">
+<div class="route-container">
 
-  <div class="form-card">
-    <div class="form-card__header">
-      <div class="form-card__icon">🛣️</div>
-      <h2 class="form-card__title">Add New Route</h2>
-    </div>
+  <div class="page-header">
+    <span class="page-eyebrow">Operations · Routes</span>
+    <h2 class="page-title">Route Management</h2>
+    <p class="page-subtitle">Define departure–destination pairs and estimated travel time.</p>
+  </div>
 
-    <form [formGroup]="routeForm" (ngSubmit)="save()" class="form-grid" autocomplete="off">
+  <!-- ─── ADD ROUTE CARD ───────────────────────────────────────────── -->
+  <div class="route-card">
+    <h3 class="card-title">Add New Route</h3>
 
-      <div class="field-group">
-        <label class="field-label" for="departureLocation">Departure Location</label>
-        <div class="select-wrapper">
-          <select formControlName="departureLocation" id="departureLocation" class="field-input">
+    <form [formGroup]="routeForm" (ngSubmit)="save()" class="route-form" autocomplete="off">
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label for="departureLocation">Departure Location</label>
+          <select formControlName="departureLocation" id="departureLocation">
             <option value="" disabled selected>Select departure…</option>
             <option *ngFor="let loc of locations" [value]="loc.locationCode">{{ loc.name }}</option>
           </select>
-          <span class="select-arrow">▾</span>
+          <span class="field-error"
+            *ngIf="routeForm.get('departureLocation')?.touched && routeForm.get('departureLocation')?.invalid">
+            Departure location is required.
+          </span>
         </div>
-        <span class="field-error"
-          *ngIf="routeForm.get('departureLocation')?.touched && routeForm.get('departureLocation')?.invalid">
-          Departure location is required.
-        </span>
-      </div>
 
-      <div class="field-group">
-        <label class="field-label" for="destinationLocation">Destination Location</label>
-        <div class="select-wrapper">
-          <select formControlName="destinationLocation" id="destinationLocation" class="field-input"
-            [class.field-input--error]="routeForm.hasError('sameLocation') && routeForm.get('destinationLocation')?.touched">
+        <div class="form-group">
+          <label for="destinationLocation">Destination Location</label>
+          <select formControlName="destinationLocation" id="destinationLocation"
+            [class.field-error-input]="routeForm.hasError('sameLocation') && routeForm.get('destinationLocation')?.touched">
             <option value="" disabled selected>Select destination…</option>
             <option *ngFor="let loc of locations" [value]="loc.locationCode">{{ loc.name }}</option>
           </select>
-          <span class="select-arrow">▾</span>
+          <span class="field-error"
+            *ngIf="routeForm.get('destinationLocation')?.touched && routeForm.get('destinationLocation')?.invalid && !routeForm.hasError('sameLocation')">
+            Destination location is required.
+          </span>
         </div>
-        <span class="field-error"
-          *ngIf="routeForm.get('destinationLocation')?.touched && routeForm.get('destinationLocation')?.invalid && !routeForm.hasError('sameLocation')">
-          Destination location is required.
-        </span>
-      </div>
 
-      <!-- Same-location alert banner -->
-      <div class="same-location-alert" *ngIf="routeForm.hasError('sameLocation') && routeForm.get('destinationLocation')?.dirty">
-        <span class="same-location-alert__icon">⚠️</span>
-        <span>Departure and destination <strong>cannot be the same</strong> location.</span>
-      </div>
+        <!-- Same-location alert banner -->
+        <div class="same-location-alert" *ngIf="routeForm.hasError('sameLocation') && routeForm.get('destinationLocation')?.dirty">
+          <span class="same-location-alert-icon">⚠</span>
+          <span>Departure and destination <strong>cannot be the same</strong> location.</span>
+        </div>
 
-      <div class="field-group">
-        <label class="field-label" for="routeName">Route Name <span class="field-tag">Auto-generated</span></label>
-        <input id="routeName" formControlName="routeName" class="field-input field-input--readonly"
-          placeholder="Select locations above…" readonly />
-      </div>
+        <div class="form-group">
+          <label for="routeName">Route Name <span class="field-tag">Auto-generated</span></label>
+          <input id="routeName" formControlName="routeName" class="readonly-field"
+            placeholder="Select locations above…" readonly />
+        </div>
 
-      <div class="field-group">
-        <label class="field-label" for="estimatedDurationHours">Estimated Duration (hrs)</label>
-        <input id="estimatedDurationHours" type="number" formControlName="estimatedDurationHours"
-          class="field-input" step="0.1" min="0" placeholder="e.g. 2.5" />
-        <span class="field-error"
-          *ngIf="routeForm.get('estimatedDurationHours')?.touched && routeForm.get('estimatedDurationHours')?.invalid">
-          Enter a valid duration (≥ 0).
-        </span>
+        <div class="form-group">
+          <label for="estimatedDurationHours">Estimated Duration (hrs)</label>
+          <input id="estimatedDurationHours" type="number" formControlName="estimatedDurationHours"
+            step="0.1" min="0" placeholder="e.g. 2.5" />
+          <span class="field-error"
+            *ngIf="routeForm.get('estimatedDurationHours')?.touched && routeForm.get('estimatedDurationHours')?.invalid">
+            Enter a valid duration (≥ 0).
+          </span>
+        </div>
+
       </div>
 
       <div class="form-actions">
-        <button type="button" class="btn btn--ghost" (click)="reset()">
-          <span>↺</span> Clear
-        </button>
-        <button type="submit" class="btn btn--primary" [disabled]="routeForm.invalid || routeForm.hasError('sameLocation') || isSaving">
-          <span *ngIf="!isSaving">＋ Save Route</span>
+        <button type="submit" class="btn primary"
+          [disabled]="routeForm.invalid || routeForm.hasError('sameLocation') || isSaving">
+          <span *ngIf="!isSaving">Save Route</span>
           <span *ngIf="isSaving" class="spinner"></span>
         </button>
+        <button type="button" class="btn secondary" (click)="reset()">Clear</button>
       </div>
-
     </form>
   </div>
 
-  <!-- ── Route List ────────────────────────────────────────── -->
-  <div class="list-card">
-    <div class="list-card__header">
-      <h3 class="list-card__title">Route List</h3>
-      <span class="route-count">{{ routes.length }} routes</span>
-    </div>
+  <!-- ─── ROUTE TABLE ──────────────────────────────────────────────── -->
+  <div class="list-section">
+    <h3 class="card-title">
+      <span>Route List</span>
+      <span class="count-badge">{{ routes.length }} routes</span>
+    </h3>
 
-    <div class="table-scroll">
-      <table class="routes-table">
-        <thead>
-          <tr>
-            <th class="col-sl">#</th>
-            <th (click)="sortBy('departureLocationCode')" class="sortable">
-              Departure
-              <span class="sort-icon" [class.active]="sortField === 'departureLocationCode'">
-                {{ sortField === 'departureLocationCode' ? (sortAsc ? '↑' : '↓') : '↕' }}
-              </span>
-            </th>
-            <th (click)="sortBy('destinationLocationCode')" class="sortable">
-              Destination
-              <span class="sort-icon" [class.active]="sortField === 'destinationLocationCode'">
-                {{ sortField === 'destinationLocationCode' ? (sortAsc ? '↑' : '↓') : '↕' }}
-              </span>
-            </th>
-            <th (click)="sortBy('routeName')" class="sortable">
-              Route Name
-              <span class="sort-icon" [class.active]="sortField === 'routeName'">
-                {{ sortField === 'routeName' ? (sortAsc ? '↑' : '↓') : '↕' }}
-              </span>
-            </th>
-            <th (click)="sortBy('estimatedDurationHours')" class="sortable col-dur">
-              Duration (hrs)
-              <span class="sort-icon" [class.active]="sortField === 'estimatedDurationHours'">
-                {{ sortField === 'estimatedDurationHours' ? (sortAsc ? '↑' : '↓') : '↕' }}
-              </span>
-            </th>
-            <th class="col-actions">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngIf="routes.length === 0">
-            <td colspan="6" class="empty-state">
-              <div class="empty-icon">🛣️</div>
-              <p>No routes added yet. Use the form above to create one.</p>
-            </td>
-          </tr>
-          <tr *ngFor="let r of paginatedCounters; let i = index" class="table-row">
-            <td class="col-sl">{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
-            <td>
-              <span class="location-chip location-chip--dep">{{ getLocationName(r.departureLocationCode) }}</span>
-            </td>
-            <td>
-              <span class="location-chip location-chip--dst">{{ getLocationName(r.destinationLocationCode) }}</span>
-            </td>
-            <td class="route-name-cell">{{ r.routeName }}</td>
-            <td class="col-dur">
-              <span class="duration-badge">⏱ {{ r.estimatedDurationHours }}h</span>
-            </td>
-            <td class="col-actions">
-              <button class="action-btn action-btn--edit" (click)="openModal(r)" title="Edit route">
-                ✏️ Edit
-              </button>
-              <button class="action-btn action-btn--delete" (click)="confirmDelete(r)" title="Delete route">
-                🗑️ Delete
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <table class="route-table">
+      <thead>
+        <tr>
+          <th class="col-sl">#</th>
+          <th (click)="sortBy('departureLocationCode')">Departure</th>
+          <th (click)="sortBy('destinationLocationCode')">Destination</th>
+          <th (click)="sortBy('routeName')">Route Name</th>
+          <th (click)="sortBy('estimatedDurationHours')" class="col-dur">Duration</th>
+          <th class="col-actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of paginatedCounters; let i = index">
+          <td class="col-sl">{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
+          <td>
+            <span class="tag tag-dep">{{ getLocationName(r.departureLocationCode) }}</span>
+          </td>
+          <td>
+            <span class="tag tag-dst">{{ getLocationName(r.destinationLocationCode) }}</span>
+          </td>
+          <td class="col-route-name">{{ r.routeName }}</td>
+          <td class="col-dur">
+            <span class="tag tag-dur">⏱ {{ r.estimatedDurationHours }}h</span>
+          </td>
+          <td class="col-actions">
+            <button class="btn small edit" (click)="openModal(r)">
+              <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M13.5 3.5L16.5 6.5L7 16H4V13L13.5 3.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+              </svg>
+              Edit
+            </button>
+            <button class="btn small delete" (click)="confirmDelete(r)">
+              <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 6H16M8 6V4.5H12V6M6 6L6.6 15.4C6.65 16.05 7.2 16.5 7.85 16.5H12.15C12.8 16.5 13.35 16.05 13.4 15.4L14 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Delete
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="routes.length === 0">
+          <td colspan="6" class="empty-row">No routes added yet. Use the form above to create one.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
-    <!-- Pagination -->
-    <div class="pagination" *ngIf="totalPages > 1">
-      <button class="page-btn" (click)="currentPage = currentPage - 1" [disabled]="currentPage === 1">‹</button>
-      <span class="page-info">Page {{ currentPage }} of {{ totalPages }}</span>
-      <button class="page-btn" (click)="currentPage = currentPage + 1" [disabled]="currentPage === totalPages">›</button>
+  <!-- ─── PAGINATION ───────────────────────────────────────────────── -->
+  <div class="pagination" *ngIf="totalPages > 1">
+    <span class="pager-info">Page {{ currentPage }} of {{ totalPages }}</span>
+    <div class="pager-nav">
+      <button class="btn small page-btn" [disabled]="currentPage === 1" (click)="currentPage = currentPage - 1">Prev</button>
+      <button class="btn small page-btn" [disabled]="currentPage === totalPages" (click)="currentPage = currentPage + 1">Next</button>
     </div>
   </div>
 
@@ -172,68 +156,61 @@
 
 
 <!-- ══════════════════════════════════════════════════════════ -->
-<!-- ── Edit Modal ─────────────────────────────────────────── -->
+<!-- ── Edit Modal — ticket stub ────────────────────────────── -->
 <!-- ══════════════════════════════════════════════════════════ -->
 <div class="modal-backdrop" *ngIf="showModal" (click)="closeModal()">
   <div class="modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+    <button class="modal-close" (click)="closeModal()" aria-label="Close">×</button>
 
-    <div class="modal__header">
-      <div class="modal__title-row">
-        <span class="modal__icon">✏️</span>
-        <h3 class="modal__title" id="editModalTitle">Edit Route</h3>
-      </div>
-      <button class="modal__close" (click)="closeModal()" aria-label="Close modal">✕</button>
-    </div>
+    <span class="modal-serial">Route · Edit</span>
+    <h3 class="modal-title" id="editModalTitle">Edit Route</h3>
 
-    <form [formGroup]="editForm" (ngSubmit)="saveEdit()" class="modal__body" autocomplete="off">
+    <form [formGroup]="editForm" (ngSubmit)="saveEdit()" class="route-form" autocomplete="off">
+      <div class="form-grid">
 
-      <div class="field-group">
-        <label class="field-label">Departure Location</label>
-        <div class="select-wrapper">
-          <select formControlName="departureLocation" class="field-input">
+        <div class="form-group">
+          <label>Departure Location</label>
+          <select formControlName="departureLocation">
             <option value="" disabled>Select departure…</option>
             <option *ngFor="let loc of locations" [value]="loc.locationCode">{{ loc.name }}</option>
           </select>
-          <span class="select-arrow">▾</span>
         </div>
-      </div>
 
-      <div class="field-group">
-        <label class="field-label">Destination Location</label>
-        <div class="select-wrapper">
-          <select formControlName="destinationLocation" class="field-input"
-            [class.field-input--error]="editForm.hasError('sameLocation') && editForm.get('destinationLocation')?.touched">
+        <div class="form-group">
+          <label>Destination Location</label>
+          <select formControlName="destinationLocation"
+            [class.field-error-input]="editForm.hasError('sameLocation') && editForm.get('destinationLocation')?.touched">
             <option value="" disabled>Select destination…</option>
             <option *ngFor="let loc of locations" [value]="loc.locationCode">{{ loc.name }}</option>
           </select>
-          <span class="select-arrow">▾</span>
         </div>
+
+        <!-- Same-location alert banner (modal) -->
+        <div class="same-location-alert" *ngIf="editForm.hasError('sameLocation') && editForm.get('destinationLocation')?.dirty">
+          <span class="same-location-alert-icon">⚠</span>
+          <span>Departure and destination <strong>cannot be the same</strong> location.</span>
+        </div>
+
+        <div class="form-group">
+          <label>Route Name <span class="field-tag">Auto-generated</span></label>
+          <input formControlName="routeName" class="readonly-field" readonly />
+        </div>
+
+        <div class="form-group">
+          <label>Estimated Duration (hrs)</label>
+          <input type="number" formControlName="estimatedDurationHours" step="0.1" min="0" />
+        </div>
+
       </div>
 
-      <!-- Same-location alert banner (modal) -->
-      <div class="same-location-alert" *ngIf="editForm.hasError('sameLocation') && editForm.get('destinationLocation')?.dirty">
-        <span class="same-location-alert__icon">⚠️</span>
-        <span>Departure and destination <strong>cannot be the same</strong> location.</span>
-      </div>
-
-      <div class="field-group">
-        <label class="field-label">Route Name <span class="field-tag">Auto-generated</span></label>
-        <input formControlName="routeName" class="field-input field-input--readonly" readonly />
-      </div>
-
-      <div class="field-group">
-        <label class="field-label">Estimated Duration (hrs)</label>
-        <input type="number" formControlName="estimatedDurationHours" class="field-input" step="0.1" min="0" />
-      </div>
-
-      <div class="modal__footer">
-        <button type="button" class="btn btn--ghost" (click)="closeModal()">Cancel</button>
-        <button type="submit" class="btn btn--primary" [disabled]="editForm.invalid || editForm.hasError('sameLocation') || isSaving">
-          <span *ngIf="!isSaving">💾 Save Changes</span>
+      <div class="form-actions">
+        <button type="submit" class="btn primary"
+          [disabled]="editForm.invalid || editForm.hasError('sameLocation') || isSaving">
+          <span *ngIf="!isSaving">Save Changes</span>
           <span *ngIf="isSaving" class="spinner"></span>
         </button>
+        <button type="button" class="btn secondary" (click)="closeModal()">Cancel</button>
       </div>
-
     </form>
   </div>
 </div>
@@ -243,30 +220,18 @@
 <!-- ── Delete Confirmation Modal ─────────────────────────── -->
 <!-- ══════════════════════════════════════════════════════════ -->
 <div class="modal-backdrop" *ngIf="showDeleteConfirmModal" (click)="cancelDelete()">
-  <div class="modal modal--sm" (click)="$event.stopPropagation()" role="alertdialog" aria-modal="true">
+  <div class="modal delete-modal" (click)="$event.stopPropagation()" role="alertdialog" aria-modal="true">
+    <h3 class="modal-title">Delete this route?</h3>
+    <p class="delete-message">
+      <strong>{{ routeToDelete?.routeName }}</strong> will be permanently removed. This can't be undone.
+    </p>
 
-    <div class="modal__header modal__header--danger">
-      <div class="modal__title-row">
-        <span class="modal__icon">🗑️</span>
-        <h3 class="modal__title">Delete Route</h3>
-      </div>
-      <button class="modal__close" (click)="cancelDelete()">✕</button>
-    </div>
-
-    <div class="modal__body delete-body">
-      <div class="delete-illustration">🛣️</div>
-      <p class="delete-question">Are you sure you want to delete this route?</p>
-      <div class="route-badge">{{ routeToDelete?.routeName }}</div>
-      <p class="delete-warning">⚠️ This action cannot be undone.</p>
-    </div>
-
-    <div class="modal__footer">
-      <button class="btn btn--ghost" (click)="cancelDelete()">Cancel</button>
-      <button class="btn btn--danger" (click)="deleteRoute()">
-        <span *ngIf="!isSaving">🗑️ Delete</span>
-        <span *ngIf="isSaving" class="spinner spinner--white"></span>
+    <div class="form-actions">
+      <button class="btn delete" (click)="deleteRoute()">
+        <span *ngIf="!isSaving">Yes, Delete</span>
+        <span *ngIf="isSaving" class="spinner spinner-white"></span>
       </button>
+      <button class="btn secondary" (click)="cancelDelete()">Keep it</button>
     </div>
-
   </div>
 </div>
