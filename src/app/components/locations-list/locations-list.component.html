@@ -1,150 +1,192 @@
-<div class="vehicle-container">
+<div class="location-container">
 
-  <!-- PAGE HEADER -->
-  <div class="header">
-    <h2>Location Management</h2>
+  <!-- Toast notifications -->
+  <div class="toast-container" aria-live="polite">
+    <div class="toast" *ngFor="let t of toasts"
+         [class.toast-success]="t.type === 'success'"
+         [class.toast-error]="t.type === 'error'"
+         [class.toast-leaving]="t.leaving">
+      <div class="toast-body">
+        <span class="toast-dot"></span>
+        <span class="toast-message">{{ t.message }}</span>
+        <button class="toast-close" (click)="dismissToast(t.id)" aria-label="Dismiss notification">×</button>
+      </div>
+      <div class="toast-progress" [class.paused]="t.leaving"></div>
+    </div>
   </div>
 
-  <!-- SUCCESS MESSAGE -->
-  <div *ngIf="successMessage" class="alert success-alert">
-    {{ successMessage }}
+  <div class="page-header">
+    <span class="page-eyebrow">Operations · Locations</span>
+    <h2 class="page-title">Location Directory</h2>
+    <p class="page-subtitle">Add, edit, and manage cities, terminals, and stations used across routes.</p>
   </div>
 
-  <!-- ADD VEHICLE CARD -->
-  <div class="card add-card">
-    <h3>Add New Location</h3>
+  <!-- Inline Form for Adding New Location -->
+  <div class="location-card">
+    <h3 class="card-title">Add New Location</h3>
 
-    <form (ngSubmit)="save()" #vehicleForm="ngForm">
-      <div class="grid">
-
-        <!-- Name -->
+    <form (ngSubmit)="save()" #locationForm="ngForm" class="location-form">
+      <div class="form-grid">
         <div class="form-group">
-          <label>Name</label>
-          <input [(ngModel)]="selectedLocation.name" name="name" required />
+          <label for="name">Name</label>
+          <input [(ngModel)]="selectedLocation.name" name="name" id="name"
+                 [class.invalid]="validationErrors['name']" placeholder="e.g. Dhaka" required />
+          <span class="error-text" *ngIf="validationErrors['name']">{{ validationErrors['name'] }}</span>
         </div>
 
-        <!-- TYPE -->
         <div class="form-group">
-          <label>Type</label>
-          <select [(ngModel)]="selectedLocation.type" name="type" required>
+          <label for="type">Type</label>
+          <select [(ngModel)]="selectedLocation.type" name="type" id="type"
+                  [class.invalid]="validationErrors['type']" required>
+            <option value="" disabled selected>Select type</option>
             <option value="City">City</option>
             <option value="Bus Terminal">Bus Terminal</option>
             <option value="Train Station">Train Station</option>
             <option value="Airport">Airport</option>
             <option value="Port">Port</option>
           </select>
+          <span class="error-text" *ngIf="validationErrors['type']">{{ validationErrors['type'] }}</span>
         </div>
 
-        <!-- Address -->
         <div class="form-group">
-          <label>Address</label>
-          <input [(ngModel)]="selectedLocation.address" placeholder="e.g., Sayedabad Bus Terminal" name="address" required />
+          <label for="address">Address</label>
+          <input [(ngModel)]="selectedLocation.address" name="address" id="address"
+                 [class.invalid]="validationErrors['address']" placeholder="e.g. Sayedabad Bus Terminal" required />
+          <span class="error-text" *ngIf="validationErrors['address']">{{ validationErrors['address'] }}</span>
         </div>
       </div>
 
-      <div class="actions">
-        <button class="btn primary">Save</button>
-        <button class="btn secondary" type="button" (click)="reset()">Clear</button>
+      <div class="form-actions">
+        <button type="submit" class="btn primary" [disabled]="isSaving">
+          {{ isSaving ? 'Saving…' : 'Save Location' }}
+        </button>
+        <button type="button" class="btn secondary" (click)="reset()" [disabled]="isSaving">Clear</button>
       </div>
     </form>
   </div>
 
-  <!-- VEHICLE LIST -->
-  <div class="card">
-    <h3>Vehicle List</h3>
+  <!-- Location List Table -->
+  <div class="list-section">
+    <h3 class="card-title">
+      <span>All Locations</span>
+      <span class="count-badge">{{ locations.length }} total</span>
+    </h3>
 
-    <table class="styled-table">
+    <table class="location-table">
       <thead>
         <tr>
           <th>SL</th>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Address</th>
+          <th (click)="sortBy('name')">Name</th>
+          <th (click)="sortBy('type')">Type</th>
+          <th (click)="sortBy('address')">Address</th>
+          <th (click)="sortBy('locationCode')">Code</th>
           <th>Actions</th>
         </tr>
       </thead>
-
       <tbody>
-        <tr *ngFor="let v of paginatedlocations; let i = index">
+        <tr *ngFor="let v of paginatedLocations; let i = index">
           <td>{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
           <td>{{ v.name }}</td>
           <td>{{ v.type }}</td>
-          <td>{{ v.address }}</td>
-
-          <td class="action-buttons">
-            <button class="btn small edit" (click)="openModal(v)">Edit</button>
-            <button class="btn small delete" (click)="confirmDelete(v)">Delete</button>
+          <td>{{ v.address ?? '—' }}</td>
+          <td>{{ v.locationCode ?? '—' }}</td>
+          <td>
+            <button class="btn small edit" (click)="openModal(v)">
+              <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M13.5 3.5L16.5 6.5L7 16H4V13L13.5 3.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+              </svg>
+              Edit
+            </button>
+            <button class="btn small delete" (click)="confirmDelete(v)">
+              <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 6H16M8 6V4.5H12V6M6 6L6.6 15.4C6.65 16.05 7.2 16.5 7.85 16.5H12.15C12.8 16.5 13.35 16.05 13.4 15.4L14 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Delete
+            </button>
           </td>
         </tr>
       </tbody>
     </table>
-
-    <!-- Pagination -->
-    <div class="pagination">
-      <button class="btn small" [disabled]="currentPage === 1" (click)="goToPreviousPage()">Prev</button>
-
-      <button class="btn small page"
-              *ngFor="let page of pages"
-              [class.active]="page === currentPage"
-              (click)="goToPage(page)">
-        {{ page }}
-      </button>
-
-      <button class="btn small" [disabled]="currentPage === totalPages" (click)="goToNextPage()">Next</button>
-    </div>
   </div>
 
-  <!-- EDIT MODAL -->
+  <!-- Pagination Controls -->
+  <div class="pagination">
+    <button class="btn small page-btn" [disabled]="currentPage === 1" (click)="goToPreviousPage()">Prev</button>
+
+    <ng-container *ngFor="let page of pages">
+      <button class="btn small page-btn" [class.active]="page === currentPage" (click)="goToPage(page)">
+        {{ page }}
+      </button>
+    </ng-container>
+
+    <button class="btn small page-btn" [disabled]="currentPage === totalPages" (click)="goToNextPage()">Next</button>
+  </div>
+
+  <!-- Modal for Editing Location — styled as a ticket stub -->
   <div class="modal-backdrop" *ngIf="showModal">
     <div class="modal">
-      <button class="modal-close" (click)="closeModal()">×</button>
+      <button class="modal-close" (click)="closeModal()" aria-label="Close">×</button>
 
-      <h3>Edit Vehicle</h3>
+      <span class="modal-serial">Location · #{{ selectedLocation.id }}</span>
+      <h3 class="modal-title">Edit Location</h3>
 
-      <div *ngIf="modalSuccessMessage" class="alert success-alert">
-        {{ modalSuccessMessage }}
-      </div>
+      <form (ngSubmit)="save()" #editForm="ngForm" class="location-form">
+        <input type="hidden" [(ngModel)]="selectedLocation.id" name="editLocationId" />
 
-      <form (ngSubmit)="save()" #editForm="ngForm">
-        <div class="grid">
-
+        <div class="form-grid">
           <div class="form-group">
-            <label>Name</label>
-            <input [(ngModel)]="selectedLocation.name" name="editName" />
+            <label for="edit-name">Name</label>
+            <input [(ngModel)]="selectedLocation.name" name="editName" id="edit-name"
+                   [class.invalid]="validationErrors['name']" required />
+            <span class="error-text" *ngIf="validationErrors['name']">{{ validationErrors['name'] }}</span>
           </div>
 
           <div class="form-group">
-            <label>Type</label>
-            <select [(ngModel)]="selectedLocation.type" name="editType">
+            <label for="edit-type">Type</label>
+            <select [(ngModel)]="selectedLocation.type" name="editType" id="edit-type"
+                    [class.invalid]="validationErrors['type']" required>
+              <option value="" disabled selected>Select type</option>
               <option value="City">City</option>
+              <option value="Bus Terminal">Bus Terminal</option>
+              <option value="Train Station">Train Station</option>
+              <option value="Airport">Airport</option>
+              <option value="Port">Port</option>
             </select>
+            <span class="error-text" *ngIf="validationErrors['type']">{{ validationErrors['type'] }}</span>
           </div>
 
           <div class="form-group">
-            <label>Address</label>
-            <input [(ngModel)]="selectedLocation.address" name="editAddress" />
+            <label for="edit-address">Address</label>
+            <input [(ngModel)]="selectedLocation.address" name="editAddress" id="edit-address"
+                   [class.invalid]="validationErrors['address']" required />
+            <span class="error-text" *ngIf="validationErrors['address']">{{ validationErrors['address'] }}</span>
           </div>
-
         </div>
 
-        <div class="actions">
-          <button class="btn primary">Update</button>
-          <button type="button" class="btn secondary" (click)="closeModal()">Cancel</button>
+        <div class="form-actions">
+          <button type="submit" class="btn primary" [disabled]="isSaving">
+            {{ isSaving ? 'Saving…' : 'Update Location' }}
+          </button>
+          <button type="button" class="btn secondary" (click)="closeModal()" [disabled]="isSaving">Cancel</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- DELETE MODAL -->
+  <!-- Delete Confirmation Modal -->
   <div class="modal-backdrop" *ngIf="showDeleteConfirmModal">
-    <div class="modal modal-delete">
-      <h3>Confirm Deletion</h3>
+    <div class="modal delete-modal">
+      <h3 class="modal-title">Delete this location?</h3>
+      <p class="delete-message">
+        <strong>{{ locationToDelete?.name }}</strong>
+        ({{ locationToDelete?.address }}) will be permanently removed. This can't be undone.
+      </p>
 
-
-      <div class="actions">
+      <div class="form-actions">
         <button class="btn delete" (click)="deleteConfirmed()">Yes, Delete</button>
         <button class="btn secondary" (click)="cancelDelete()">Cancel</button>
       </div>
     </div>
   </div>
+
 </div>
