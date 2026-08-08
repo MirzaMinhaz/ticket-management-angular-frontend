@@ -1,3 +1,5 @@
+// auth.utils.ts
+
 export function getTokenPayload(): any | null {
   const token = localStorage.getItem('jwtToken');
   if (!token) return null;
@@ -8,10 +10,32 @@ export function getTokenPayload(): any | null {
   }
 }
 
+export function getUserRole(): string | null {
+  const payload = getTokenPayload();
+  if (!payload) return null;
+  return (
+    payload['role'] ??
+    payload['roles'] ??
+    payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ??
+    null
+  );
+}
+
+/**
+ * Returns true if the logged-in user's role matches the given role
+ * (case-insensitive). Pass an array to check against multiple allowed roles.
+ */
+export function hasRole(role: string | string[]): boolean {
+  const userRole = getUserRole();
+  if (!userRole) return false;
+
+  const roles = Array.isArray(role) ? role : [role];
+  return roles.some((r) => r.toLowerCase() === userRole.toLowerCase());
+}
+
 export function getUserName(): string | null {
   const payload = getTokenPayload();
   if (!payload) return null;
-  // Handles short 'name' key, ASP.NET's ClaimTypes.Name URI, and common fallbacks
   return (
     payload['name'] ??
     payload['unique_name'] ??
@@ -21,34 +45,54 @@ export function getUserName(): string | null {
   );
 }
 
-export function getUserRoles(): string[] {
-  const payload = getTokenPayload();
-  if (!payload) return [];
-  // Handles short 'role'/'roles' keys and .NET's full claim URI.
-  // ASP.NET emits a single string for one role, or a string[] for multiple —
-  // normalize both into an array so callers never have to branch on shape.
-  const raw =
-    payload['role'] ??
-    payload['roles'] ??
-    payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ??
-    null;
-
-  if (!raw) return [];
-  return Array.isArray(raw) ? raw : [raw];
-}
-
-// Back-compat single-role accessor — several components/guards still import
-// this by name. Returns the first role on the token, or null if none.
-export function getUserRole(): string | null {
-  const roles = getUserRoles();
-  return roles.length > 0 ? roles[0] : null;
-}
-
-export function hasRole(role: string): boolean {
-  const target = role.toLowerCase();
-  return getUserRoles().some(r => r.toLowerCase() === target);
-}
-
 export function isLoggedIn(): boolean {
   return !!localStorage.getItem('jwtToken');
+}
+
+// ── Centralized logout + cross-tab sync ─────────────────────────────────────
+
+/**
+ * The single source of truth for logging out. Every "Logout" button in the
+ * app should call this instead of localStorage.clear() directly, so the
+ * behavior (and any future cleanup) stays consistent everywhere.
+ */
+export function performLogout(): void {
+  localStorage.clear();
+  // Storage events don't fire in the tab that made the change — only in
+  // OTHER tabs. That's exactly what we want here (this tab is about to
+  // navigate away on its own), but it means we can't rely on the storage
+  // event for this tab's own redirect; the caller still does that.
+}
+
+/**
+ * Call once, near app bootstrap (e.g. in the root AppComponent). Listens for
+ * localStorage changes made in OTHER browser tabs of the same origin.
+ * When jwtToken disappears (i.e. another tab logged out), force this tab
+ * back to the login screen too — instantly, no manual refresh needed.
+ */
+export function listenForCrossTabLogout(onForcedLogout: () => void): void {
+  window.addEventListener('storage', (event: StorageEvent) => {
+    // event.key === 'jwtToken' and event.newValue === null means the token
+    // was removed (localStorage.clear() or removeItem both fire this way —
+    // clear() actually fires with key === null, so we check both cases).
+    const tokenWasCleared =
+      (event.key === 'jwtToken' && !event.newValue) ||
+      (event.key === null && !localStorage.getItem('jwtToken'));
+
+    if (tokenWasCleared) {
+      onForcedLogout();
+    }
+  });
+}
+
+
+export function listenForCrossTabLogin(onForcedLogin: (role: string | null) => void): void {
+  window.addEventListener('storage', (event: StorageEvent) => {
+    const tokenWasJustSet =
+      event.key === 'jwtToken' && !event.oldValue && !!event.newValue;
+
+    if (tokenWasJustSet) {
+      onForcedLogin(getUserRole());
+    }
+  });
 }

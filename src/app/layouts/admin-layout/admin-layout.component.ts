@@ -1,21 +1,28 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
-import { hasRole, getUserName } from '../../utils/auth.utils'; // adjust path to your actual file
+import {
+  RouterOutlet,
+  RouterLink,
+  RouterLinkActive,
+  Router,
+} from '@angular/router';
+import { hasRole, getUserName, performLogout } from '../../utils/auth.utils'; // adjust path to your actual file
 
 @Component({
   selector: 'app-admin-layout',
   standalone: true,
   imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
   templateUrl: './admin-layout.component.html',
-  styleUrls: ['./admin-layout.component.css']
+  styleUrls: ['./admin-layout.component.css'],
 })
 export class AdminLayoutComponent {
   mobileMenuOpen = false;
 
   constructor(private router: Router) {}
 
-  toggleMobileMenu() { this.mobileMenuOpen = !this.mobileMenuOpen; }
+  toggleMobileMenu() {
+    this.mobileMenuOpen = !this.mobileMenuOpen;
+  }
 
   getLoggedInUser(): string | null {
     return getUserName();
@@ -39,7 +46,7 @@ export class AdminLayoutComponent {
   }
 
   logout() {
-    localStorage.clear();
+    performLogout();
     this.router.navigate(['/']);
   }
 }

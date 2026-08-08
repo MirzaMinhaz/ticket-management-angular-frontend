@@ -1,8 +1,15 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, Router } from '@angular/router';
 import { NotificationService } from './services/notification.service';
-import { getUserRole } from './utils/auth.utils';
+import {
+  getUserRole,
+  hasRole,
+  listenForCrossTabLogout,
+  listenForCrossTabLogin
+} from './utils/auth.utils';
+
+const STAFF_ROLES = ['Admin', 'Manager', 'StationAgent', 'CounterAgent'];
 
 @Component({
   selector: 'app-root',
@@ -11,7 +18,7 @@ import { getUserRole } from './utils/auth.utils';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   notification: string | null = null;
   notificationType: 'success' | 'error' | null = null;
 
@@ -20,6 +27,45 @@ export class AppComponent {
     this.notify.type$.subscribe(type => this.notificationType = type);
     this.setupActivityListener();
     this.checkSessionInterval();
+  }
+
+  ngOnInit(): void {
+    listenForCrossTabLogout(() => {
+      // Another tab logged out. Force this tab to the login page immediately,
+      // regardless of what page it's currently sitting on.
+      this.router.navigate(['/']).then(() => {
+        // Optional: surface a message so the user understands why they were
+        // bumped, rather than it looking like a random redirect.
+        window.location.reload(); // ensures any in-memory component state
+                                   // (like an open form) is fully torn down
+      });
+    });
+
+    listenForCrossTabLogin((role: string | null) => {
+      // Only redirect this tab if it's idle on a login/auth page.
+      // An already-logged-in tab must not be touched.
+      const currentUrl = this.router.url;
+      const isOnAuthPage = currentUrl === '/' || currentUrl.startsWith('/customer/login');
+
+      if (!isOnAuthPage) {
+        return;
+      }
+
+      // Mirror the guards' own role logic exactly, rather than inferring
+      // "not customer therefore staff."
+      let landingRoute: string;
+      if (STAFF_ROLES.some((r) => hasRole(r))) {
+        landingRoute = '/home';
+      } else if (role === 'Customer') {
+        landingRoute = '/customer/home';
+      } else {
+        // Unrecognized role — don't guess a destination, let the guards
+        // decide where this user belongs.
+        landingRoute = '/';
+      }
+
+      this.router.navigate([landingRoute]);
+    });
   }
 
   setupActivityListener() {
