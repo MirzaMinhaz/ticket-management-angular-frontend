@@ -1144,20 +1144,23 @@ export class TrainTicketComponent implements OnInit, OnDestroy {
     this._refreshBogieAvailCounts();
   }
 
-
-async clearSelection(releaseLocks: boolean = true): Promise<void> {
-  for (const s of this.selectedSeats) {
-    if (s.status !== 'reserved') s.status = 'available';
-    if (releaseLocks && this.activeTripId !== null && this.seatLockService.isConnected) {
-      await this.seatLockService.releaseSeat(this.activeTripId, s.seatNumber);
+  async clearSelection(releaseLocks: boolean = true): Promise<void> {
+    for (const s of this.selectedSeats) {
+      if (s.status !== 'reserved') s.status = 'available';
+      if (
+        releaseLocks &&
+        this.activeTripId !== null &&
+        this.seatLockService.isConnected
+      ) {
+        await this.seatLockService.releaseSeat(this.activeTripId, s.seatNumber);
+      }
     }
+    this.selectedSeats = [];
+    this.selectedTicket.seatNumber = '';
+    this.selectedTicket.trainClass = '';
+    this.selectedTicket.farePaid = 0;
+    this._refreshBogieAvailCounts();
   }
-  this.selectedSeats = [];
-  this.selectedTicket.seatNumber = '';
-  this.selectedTicket.trainClass = '';
-  this.selectedTicket.farePaid = 0;
-  this._refreshBogieAvailCounts();
-}
 
   private updateSeatNumberField(): void {
     this.selectedTicket.seatNumber = this.selectedSeats
@@ -1452,7 +1455,30 @@ async clearSelection(releaseLocks: boolean = true): Promise<void> {
               },
               error: (e) => {
                 console.error(e);
-                this.showToast('error', 'Failed to update ticket.');
+                if (e.status === 409) {
+                  const conflictSeats: string[] =
+                    e.error?.conflictingSeats ?? [];
+                  this.showToast(
+                    'error',
+                    conflictSeats.length
+                      ? `Seat(s) ${conflictSeats.join(', ')} were just booked by someone else. Refreshing availability…`
+                      : 'One or more selected seats were just booked by someone else.',
+                  );
+                  // Re-open the seat panel fresh so the agent sees accurate, current
+                  // availability instead of stale locally-cached seat state.
+                  if (this.seatBookingBusId !== null) {
+                    const vId = this.seatBookingBusId;
+                    const vCode = this.selectedVehicleCode;
+                    this.closeSeatPanel(false).then(() =>
+                      this.openSeatPanel(vCode, vId),
+                    );
+                  }
+                } else {
+                  this.showToast(
+                    'error',
+                    'Failed to update ticket. Please try again.',
+                  );
+                }
               },
             });
           } else {
@@ -1498,7 +1524,30 @@ async clearSelection(releaseLocks: boolean = true): Promise<void> {
               },
               error: (e) => {
                 console.error(e);
-                this.showToast('error', 'Failed to save ticket.');
+                if (e.status === 409) {
+                  const conflictSeats: string[] =
+                    e.error?.conflictingSeats ?? [];
+                  this.showToast(
+                    'error',
+                    conflictSeats.length
+                      ? `Seat(s) ${conflictSeats.join(', ')} were just booked by someone else. Refreshing availability…`
+                      : 'One or more selected seats were just booked by someone else.',
+                  );
+                  // Re-open the seat panel fresh so the agent sees accurate, current
+                  // availability instead of stale locally-cached seat state.
+                  if (this.seatBookingBusId !== null) {
+                    const vId = this.seatBookingBusId;
+                    const vCode = this.selectedVehicleCode;
+                    this.closeSeatPanel(false).then(() =>
+                      this.openSeatPanel(vCode, vId),
+                    );
+                  }
+                } else {
+                  this.showToast(
+                    'error',
+                    'Failed to save ticket. Please try again.',
+                  );
+                }
               },
             });
           }
@@ -1570,23 +1619,23 @@ async clearSelection(releaseLocks: boolean = true): Promise<void> {
   }
 
   /** @param releaseLocks Pass `false` right after a successful booking (see clearSelection). */
-async reset(releaseLocks: boolean = true): Promise<void> {
-  await this.clearSelection(releaseLocks);
-  this.selectedTicket = this.emptyTicket();
-  const name = getUserName();
-  if (name) this.selectedTicket.passengerName = name;
-  this.selectedRouteCode = '';
-  this.selectedFromLocation = '';
-  this.selectedToLocation = '';
-  this.selectedVehicleCode = '';
-  this.selectedDepartureDate = '';
-  this.selectedArrivalDate = '';
-  this.selectedBaseFare = 0;
-  this.availableVehicles = [];
-  this.availableSeatCounts = {};
-  this.vehicleClassConfigs = {};
-  await this.closeSeatPanel(releaseLocks);
-}
+  async reset(releaseLocks: boolean = true): Promise<void> {
+    await this.clearSelection(releaseLocks);
+    this.selectedTicket = this.emptyTicket();
+    const name = getUserName();
+    if (name) this.selectedTicket.passengerName = name;
+    this.selectedRouteCode = '';
+    this.selectedFromLocation = '';
+    this.selectedToLocation = '';
+    this.selectedVehicleCode = '';
+    this.selectedDepartureDate = '';
+    this.selectedArrivalDate = '';
+    this.selectedBaseFare = 0;
+    this.availableVehicles = [];
+    this.availableSeatCounts = {};
+    this.vehicleClassConfigs = {};
+    await this.closeSeatPanel(releaseLocks);
+  }
 
   openModal(ticket: TrainTicketDto): void {
     this.selectedTicket = { ...ticket };
