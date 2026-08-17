@@ -436,26 +436,41 @@ export class TrainTicketComponent implements OnInit, OnDestroy {
   }
 
   loadTickets(): void {
-    this.ticketService.getTickets().subscribe({
-      next: (d) => {
-        const allTickets = d as TrainTicketDto[];
+  this.ticketService.getTickets().subscribe({
+    next: (d) => {
+      const allTickets = d as TrainTicketDto[];
 
-        this.tickets = allTickets.filter((ticket) => {
+      this.tickets = allTickets
+        .filter((ticket) => {
           const trip = this.trips.find((t) => t.id === ticket.tripId);
           if (!trip) return false;
-          const schedule = this.schedules.find((s) => s.id === trip.scheduleId);
-          if (!schedule) return false;
-          const vehicle = this.vehicles.find(
-            (v) => v.id === schedule.vehicleId,
-          );
-          return vehicle?.type === 'Train';
-        });
 
-        this.updatePagination();
-      },
-      error: (e) => console.error(e),
-    });
-  }
+          const schedule = this.schedules.find(
+            (s) => s.id === trip.scheduleId
+          );
+          if (!schedule) return false;
+
+          const vehicle = this.vehicles.find(
+            (v) => v.id === schedule.vehicleId
+          );
+
+          return vehicle?.type === 'Train';
+        })
+        .sort(
+          (a, b) =>
+            new Date(b.bookingDateTime).getTime() -
+            new Date(a.bookingDateTime).getTime()
+        );
+
+      // Set default sorting state
+      this.sortField = 'bookingDateTime';
+      this.sortAsc = false;
+
+      this.updatePagination();
+    },
+    error: (e) => console.error(e),
+  });
+}
 
   // ── From / To (route picker) ─────────────────────────────────────────────────
 
