@@ -5,10 +5,6 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { NotificationService } from '../../services/notification.service';
 
-// Roles allowed into this portal. Customers are rejected here — they use
-// the separate customer login flow.
-const STAFF_PORTAL_ROLES = ['Admin', 'Manager', 'StationAgent', 'CounterAgent'];
-
 @Component({
   selector: 'app-auth',
   standalone: true,
@@ -22,6 +18,8 @@ export class AuthComponent {
 
   loginData = { username: '', password: '' };
 
+  loading = false;
+
   constructor(
     private http: HttpClient,
     private router: Router,
@@ -32,25 +30,24 @@ export class AuthComponent {
     this.showPassword = !this.showPassword;
   }
 
-  loading = false;
-
   onLogin() {
+    // Stop blank/whitespace-only submissions before they ever hit the API —
+    // this is what was producing the empty "Login attempt for Username: " log lines.
+    const username = this.loginData.username?.trim();
+    const password = this.loginData.password?.trim();
+
+    if (!username || !password) {
+      this.notify.show('Please enter both username and password.', 'error');
+      return;
+    }
+
     this.loading = true;
     this.http
-      .post('https://localhost:7139/api/Auth/login', this.loginData)
+      .post('https://localhost:7139/api/Auth/login', { username, password })
       .subscribe({
         next: (res: any) => {
-          const tempToken = res.token;
-          const payload = JSON.parse(atob(tempToken.split('.')[1]));
-          const role = payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
-
-          if (!STAFF_PORTAL_ROLES.includes(role)) {
-            this.notify.show('This portal is for staff accounts only.', 'error');
-            this.loading = false;
-            return; // ❌ do NOT store token, do NOT navigate
-          }
-
-          // ✅ Only staff roles reach here
+          // Server has already verified this user is allowed into the
+          // staff portal (LoginStaffAsync). No client-side role check needed.
           localStorage.setItem('jwtToken', res.token);
           localStorage.setItem('username', res.username);
           localStorage.setItem('lastActivity', Date.now().toString());
@@ -60,9 +57,19 @@ export class AuthComponent {
         },
         error: (err) => {
           let msg = 'Incorrect username or password';
+
           if (err.status === 0) {
             msg = 'Server unreachable. Please try again later.';
+          } else if (err.status === 403) {
+            msg = err.error || 'This portal is for staff accounts only.';
+          } else if (err.status === 401) {
+            msg = 'Incorrect username or password';
+          } else if (err.status === 429) {
+            msg ='Too many login attempts. Please wait a few minutes and try again.';
+          } else if (err.status === 400) {
+            msg = 'Please enter both username and password.';
           }
+
           this.notify.show(msg, 'error');
           this.loading = false;
         },
