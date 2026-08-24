@@ -1,6 +1,6 @@
 html, body { height: 100%; margin: 0; padding: 0; width: 100%; }
 
-.auth-page {
+/* .auth-page {
   position: relative;
   height: 100vh;
   width: 100%;
@@ -13,13 +13,36 @@ html, body { height: 100%; margin: 0; padding: 0; width: 100%; }
   content: '';
   position: absolute;
   inset: 0;
-  background: url('/assets/img/admin_login_3.jpeg') center/cover no-repeat;
+  background: url('/assets/img/customer_login_3.jpeg') center/cover no-repeat;
+  filter: blur(0.5px);
+  transform: scale(1.05);
+  z-index: 0;
+} */
+
+.auth-page {
+  position: relative;
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  justify-content: flex-end; /* ফর্ম ডান পাশে সরিয়ে নেওয়ার জন্য */
+  align-items: center;
+  overflow: hidden;
+  padding-right: 8%; /* ডান দিকে সামান্য ফাকা রাখতে */
+  box-sizing: border-box;
+}
+
+/* background position ঠিক করা */
+.auth-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/assets/img/customer_login_6.jpeg') left center/cover no-repeat; /* center-এর বদলে left center */
   filter: blur(0.5px);
   transform: scale(1.05);
   z-index: 0;
 }
 
-.column-layout {
+/* .column-layout {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -27,10 +50,22 @@ html, body { height: 100%; margin: 0; padding: 0; width: 100%; }
   width: 100%;
   position: relative;
   z-index: 1;
+} */
+
+/* column-layout বদলে row-layout ট্রাই করতে পারেন */
+.column-layout {
+  display: flex;
+  flex-direction: row; /* পাশাপাশি দেখানোর জন্য */
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  width: auto;
+  position: relative;
+  z-index: 1;
 }
 
 /* Welcome card — navy theme */
-.welcome-card {
+/* .welcome-card {
   width: 400px;
   background: linear-gradient(135deg, #1a1a2e, #0f3460);
   color: #fff;
@@ -39,7 +74,21 @@ html, body { height: 100%; margin: 0; padding: 0; width: 100%; }
   text-align: center;
   box-shadow: 0 12px 35px rgba(0,0,0,0.35);
   border: 2px solid #f0a500;
+} */
+
+.welcome-card {
+  width: 400px;
+  background: rgba(26, 26, 46, 0.75); /* ওপারসিটি কমানো হয়েছে */
+  backdrop-filter: blur(10px); /* ব্যাকগ্রাউন্ড ব্লার এফেক্ট */
+  color: #fff;
+  border-radius: 14px;
+  padding: 25px 25px; /* প্যাডিং কিছুটা কমানো হলো */
+  text-align: center;
+  box-shadow: 0 12px 35px rgba(0,0,0,0.35);
+  border: 2px solid #f0a500;
 }
+
+
 .welcome-title {
   font-size: 34px;
   font-weight: 700;
@@ -58,11 +107,20 @@ html, body { height: 100%; margin: 0; padding: 0; width: 100%; }
 }
 
 /* Auth card */
-.auth-container {
+/* .auth-container {
   width: 350px;
   background: rgba(255,255,255,0.95);
   border-radius: 12px;
   padding: 30px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+} */
+
+.auth-container {
+  width: 350px;
+  background: rgba(255, 255, 255, 0.82); /* ওপারসিটি কমানো হয়েছে */
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 25px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
 
