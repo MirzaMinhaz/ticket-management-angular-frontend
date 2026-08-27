@@ -577,6 +577,75 @@ body {
 }
 
 /* ─────────────────────────────────────────────── */
+/*  CONTINUE CONFIRMATION BUTTON                    */
+/* ─────────────────────────────────────────────── */
+
+.btn-continue {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 13px 16px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--success), #167A56);
+  color: #ffffff;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(30, 158, 108, 0.32);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  appearance: none;
+}
+
+.btn-continue:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(30, 158, 108, 0.4);
+}
+
+.btn-continue-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.btn-continue--disabled {
+  background: #E4E9F2;
+  color: #9AA4B5;
+  box-shadow: none;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn-continue--disabled .btn-continue-check {
+  background: rgba(0, 0, 0, 0.06);
+  color: #9AA4B5;
+}
+
+.btn-continue-hint {
+  margin: 8px 0 0;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: center;
+}
+
+.btn-continue-hint--warn {
+  color: var(--warn);
+}
+
+
+/* ─────────────────────────────────────────────── */
 /*  VEHICLE CARDS — boarding-pass stub              */
 /* ─────────────────────────────────────────────── */
 
@@ -749,7 +818,7 @@ body {
   right: 0;
   bottom: 0;
   height: 100dvh;
-  width: min(460px, 100vw);
+  width: min(500px, 100vw);
   background: #ffffff;
   z-index: 1201;
   display: flex;
@@ -766,39 +835,100 @@ body {
   to   { transform: translateX(0); }
 }
 
+/* ─────────────────────────────────────────────── */
+/*  SEAT DRAWER HEADER — compact, badge-driven      */
+/*  (name + model on one line, AC / seats-left /    */
+/*  driver-wheel badges on the next — bdtickets-style) */
+/* ─────────────────────────────────────────────── */
+
 .seat-panel-vehicle-header {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 10px;
-  padding: 18px 20px 14px;
+  padding: 16px 20px 14px;
   background: var(--navy);
-  flex-wrap: wrap;
   flex-shrink: 0;
 }
 
-.seat-panel-vehicle-icon { font-size: 18px; flex-shrink: 0; }
+.seat-panel-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.seat-panel-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
 
 .seat-panel-vehicle-name {
-  font-size: 14.5px;
+  font-size: 15.5px;
   font-weight: 700;
   color: #ffffff;
   letter-spacing: -0.2px;
-  white-space: nowrap;
+  line-height: 1.2;
 }
 
 .seat-panel-vehicle-model {
   font-size: 11.5px;
   font-weight: 500;
-  color: #C9D6EC;
+  color: #9FB3D6;
   font-family: var(--font-mono);
-  background: rgba(255, 255, 255, 0.1);
-  padding: 2px 8px;
-  border-radius: 6px;
-  white-space: nowrap;
+}
+
+.seat-panel-badges-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ac-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 11px;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  background: #2E6FD9;
+  color: #ffffff;
+}
+
+.ac-pill--non { background: #6B7688; }
+
+.seats-left-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 11px;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(255,255,255,0.12);
+  color: #EAF0FB;
+  border: 1px solid rgba(255,255,255,0.16);
+}
+
+.seats-left-pill.low  { background: rgba(219, 143, 31, 0.22); color: #FFD98F; border-color: rgba(219, 143, 31, 0.4); }
+.seats-left-pill.full { background: rgba(225, 75, 67, 0.22); color: #FFB3AE; border-color: rgba(225, 75, 67, 0.4); }
+
+.wheel-pill {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.18);
+  font-size: 14px;
 }
 
 .seat-drawer-close {
-  margin-left: auto;
   width: 32px;
   height: 32px;
   border-radius: 9px;
@@ -817,12 +947,16 @@ body {
 
 .seat-drawer-close:hover { background: rgba(255,255,255,0.22); }
 
+/* ─────────────────────────────────────────────── */
+/*  LEGEND STRIP                                    */
+/* ─────────────────────────────────────────────── */
+
 .seat-drawer-legend {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 12px 20px;
+  padding: 10px 20px;
   background: #F8FAFD;
   border-bottom: 1.5px solid var(--line);
   flex-shrink: 0;
@@ -838,7 +972,7 @@ body {
 }
 
 .seat-panel {
-  padding: 18px 20px 24px;
+  padding: 18px 16px 24px;
   background: #F8FAFD;
   width: 100%;
   animation: panelSlideDown 0.18s ease;
@@ -883,8 +1017,8 @@ body {
 .bus-body {
   background: #ffffff;
   border: 1.5px solid var(--line);
-  border-radius: 12px;
-  padding: 10px 12px 12px;
+  border-radius: 14px;
+  padding: 14px 16px 16px;
   display: block;
   width: fit-content;
   max-width: 100%;
@@ -893,35 +1027,38 @@ body {
 
 /* ─────────────────────────────────────────────── */
 /*  SEAT GRID — layout variants                     */
+/*  Seats are enlarged (44px) and shaped like a      */
+/*  bus seat (rounded shoulders, flat base) via      */
+/*  clip-path, matching the bdtickets reference.     */
 /* ─────────────────────────────────────────────── */
 
 .seat-grid {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 9px;
 }
 
 .seat-grid.layout-one-two .aisle-gap {
-  width: 32px;
+  width: 34px;
 }
 
 .driver-integrated-row {
-  margin-bottom: 4px;
-  padding-bottom: 6px;
+  margin-bottom: 6px;
+  padding-bottom: 10px;
   border-bottom: 1.5px dashed var(--line);
 }
 
 .seat-btn-placeholder {
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
   flex-shrink: 0;
   background: transparent;
   border: none;
 }
 
 .driver-cell-inline {
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -931,36 +1068,36 @@ body {
 }
 
 .driver-circle {
-  width: 26px;
-  height: 26px;
+  width: 30px;
+  height: 30px;
   border: 2px solid var(--ink-soft);
   border-radius: 50%;
   background: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: 14px;
 }
 
-.driver-text { font-size: 7.5px; color: var(--ink-soft); font-weight: 700; white-space: nowrap; }
+.driver-text { font-size: 8px; color: var(--ink-soft); font-weight: 700; white-space: nowrap; }
 
 .seat-row { display: flex; align-items: center; }
 
 .row-label {
-  width: 18px;
-  font-size: 10.5px;
+  width: 20px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--muted);
   font-family: var(--font-mono);
   text-align: center;
   flex-shrink: 0;
-  margin-right: 5px;
+  margin-right: 6px;
 }
 
-.seat-group { display: flex; gap: 5px; }
+.seat-group { display: flex; gap: 9px; }
 
 .aisle-gap {
-  width: 24px;
+  width: 26px;
   flex-shrink: 0;
   position: relative;
 }
@@ -978,9 +1115,8 @@ body {
 }
 
 .seat-btn {
-  width: 38px;
-  height: 38px;
-  border-radius: 8px;
+  width: 44px;
+  height: 44px;
   border: none;
   cursor: pointer;
   transition: all 0.13s ease;
@@ -988,10 +1124,13 @@ body {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  /* chair silhouette: rounded shoulders, flat seat base */
+  clip-path: polygon(16% 0%, 84% 0%, 100% 24%, 100% 100%, 0% 100%, 0% 24%);
+  box-shadow: inset 0 -14px 0 -8px rgba(0, 0, 0, 0.06);
 }
 
 .seat-label-num {
-  font-size: 9.5px;
+  font-size: 10.5px;
   font-weight: 700;
   font-family: var(--font-mono);
   line-height: 1;
@@ -999,11 +1138,53 @@ body {
 }
 
 .seat-btn.available { background: var(--success-bg); color: #106643; border: 1.5px solid #A7E1C4; }
-.seat-btn.available:hover { background: var(--success); color: #fff; transform: scale(1.12); box-shadow: 0 4px 10px rgba(30, 158, 108, 0.35); }
+.seat-btn.available:hover { background: var(--success); color: #fff; transform: scale(1.1); box-shadow: 0 4px 10px rgba(30, 158, 108, 0.35); }
 .seat-btn.selected { background: var(--navy); color: #fff; border: 1.5px solid var(--navy-deep); box-shadow: 0 3px 10px rgba(11, 31, 58, 0.4); }
 .seat-btn.selected:hover { background: var(--navy-deep); transform: scale(1.05); }
-.seat-btn.booked, .seat-btn[disabled] { background: var(--danger-bg); color: #A32A24; border: 1.5px solid #F3B6B2; cursor: not-allowed; opacity: 0.8; }
+.seat-btn.booked, .seat-btn[disabled] { background: var(--danger-bg); color: #A32A24; border: 1.5px solid #F3B6B2; cursor: not-allowed; opacity: 0.85; }
 .seat-btn.booked:hover { transform: none; box-shadow: none; }
+
+/* ─────────────────────────────────────────────── */
+/*  DECK SECTIONS / DIVIDER                         */
+/* ─────────────────────────────────────────────── */
+
+.deck-section { display: flex; flex-direction: column; gap: 6px; }
+
+.deck-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 4px;
+}
+
+.deck-icon { font-size: 12px; }
+
+.deck-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0;
+}
+
+.deck-divider-line {
+  flex: 1;
+  height: 1.5px;
+  background: repeating-linear-gradient(90deg, #D6DBE5 0 5px, transparent 5px 9px);
+}
+
+.deck-divider-text {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
 
 /* ─────────────────────────────────────────────── */
 /*  LEGEND & DOT                                    */
@@ -1031,71 +1212,87 @@ body {
   font-family: var(--font-mono);
 }
 
-/* ─────────────────────────────────────────────── */
-/*  FARE SUMMARY PANEL — sticky footer of drawer    */
-/* ─────────────────────────────────────────────── */
+.chip--sm {
+  padding: 2px 7px;
+  font-size: 10.5px;
+}
 
-.fare-summary-panel {
+/* ─────────────────────────────────────────────────────────── */
+/*  FARE BAR — compact single-row sticky footer (bdtickets-style) */
+/*  Replaces the old multi-row fare-summary-panel so the seat     */
+/*  grid above keeps almost all of the drawer's vertical space.   */
+/* ─────────────────────────────────────────────────────────── */
+
+.fare-bar {
   flex: 0 0 auto;
-  border-left: none;
-  border-top: 2px dashed var(--line);
-  background: #ffffff;
-  padding: 16px 20px 20px;
-  align-self: stretch;
+  border-top: 2px solid var(--line);
+  background: var(--navy);
+  padding: 12px 20px;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
   flex-shrink: 0;
 }
 
-.fare-summary-inner { display: flex; flex-direction: column; gap: 10px; flex: 1; }
-.fare-section { display: flex; flex-direction: column; gap: 6px; }
-.fare-section-label { font-size: 9.5px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 1.1px; margin: 0; }
-.fare-seats-list { display: flex; flex-wrap: wrap; gap: 5px; min-height: 22px; }
-.fare-none { font-size: 12px; color: #9ca3af; font-style: italic; font-weight: 400; }
-.fare-divider { height: 1.5px; background: var(--line); border-radius: 99px; }
-.fare-divider.slim { height: 1px; background: #F1F3F8; margin: 2px 0; }
-.fare-line { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
-.fare-line-desc { font-size: 11px; font-weight: 500; color: var(--muted); font-family: var(--font-mono); }
-.fare-line-amount { font-size: 12px; font-weight: 700; color: var(--ink); font-family: var(--font-mono); white-space: nowrap; }
+.fare-bar-seats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+  flex-wrap: wrap;
+}
 
-.fare-total-box {
-  position: relative;
-  background: var(--navy);
-  border-radius: 12px;
-  padding: 12px 14px 14px;
+.fare-bar-count {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #9FB3D6;
+  white-space: nowrap;
+}
+
+.fare-bar-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-width: 0;
+}
+
+.fare-bar-chips .chip--sm {
+  background: rgba(255,255,255,0.14);
+  color: #ffffff;
+}
+
+.fare-none {
+  font-size: 11.5px;
+  color: #7488AC;
+  font-style: italic;
+  font-weight: 400;
+}
+
+.fare-bar-total {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin-top: 4px;
-  overflow: hidden;
+  align-items: flex-end;
+  gap: 1px;
+  flex-shrink: 0;
 }
 
-.fare-total-box .ticket-punch--stub {
-  position: absolute;
-  left: -9px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 16px;
-  height: 16px;
-  background: #ffffff;
-  border-radius: 50%;
+.fare-bar-total-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #7488AC;
+  font-family: var(--font-mono);
+  white-space: nowrap;
 }
 
-.fare-total-label { font-size: 9.5px; font-weight: 800; color: var(--amber); text-transform: uppercase; letter-spacing: 0.7px; }
-.fare-total-amount { font-family: var(--font-display); font-size: 19px; font-weight: 700; color: #ffffff; line-height: 1.2; letter-spacing: -0.3px; }
-
-.fare-total-barcode {
-  display: block;
-  height: 12px;
-  margin-top: 4px;
-  background: repeating-linear-gradient(
-    90deg,
-    rgba(255,255,255,0.55) 0 2px,
-    transparent 2px 4px,
-    rgba(255,255,255,0.3) 4px 5px,
-    transparent 5px 8px
-  );
-  opacity: 0.8;
+.fare-bar-total-amount {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--amber);
+  line-height: 1.15;
+  white-space: nowrap;
 }
 
 /* ─────────────────────────────────────────────── */
@@ -1607,9 +1804,23 @@ body {
   .vehicle-info-main { grid-template-columns: 1fr; }
   .vehicle-right { border-left: none; border-top: 2px dashed #D6DBE5; padding: 14px 4px 0; align-items: flex-start; min-width: 0; }
   .ticket-punch { right: 50%; transform: translateX(50%); }
-  .seat-panel-vehicle-header { gap: 7px; }
   .toast-stack { width: calc(100vw - 32px); right: 16px; top: 12px; }
   .bp-hero { padding: 26px 20px 24px; }
   .page-title { font-size: 24px; }
   .seat-panel-container.seat-drawer { width: 100vw; }
+  .seat-btn,
+  .seat-btn-placeholder,
+  .driver-cell-inline { width: 40px; height: 40px; }
+  .seat-group { gap: 7px; }
+  .fare-bar { flex-wrap: wrap; }
+  .fare-bar-total { align-items: flex-start; width: 100%; }
+}
+
+@media (max-width: 380px) {
+  .seat-btn,
+  .seat-btn-placeholder,
+  .driver-cell-inline { width: 36px; height: 36px; }
+  .row-label { width: 16px; margin-right: 4px; }
+  .seat-group { gap: 5px; }
+  .aisle-gap { width: 18px; }
 }

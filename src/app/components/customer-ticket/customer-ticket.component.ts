@@ -238,7 +238,9 @@ export class CustomerTicketComponent implements OnInit {
   /** All unique locations that are a valid departure ("From") point on some route. */
   get fromLocations(): LocationDto[] {
     const codes = new Set(this.routes.map((r) => r.departureLocationCode));
-    return this.locations.filter((l) => isNonNull(l.locationCode) && codes.has(l.locationCode));
+    return this.locations.filter(
+      (l) => isNonNull(l.locationCode) && codes.has(l.locationCode),
+    );
   }
 
   /**
@@ -252,7 +254,9 @@ export class CustomerTicketComponent implements OnInit {
         .filter((r) => r.departureLocationCode === this.selectedFromLocation)
         .map((r) => r.destinationLocationCode),
     );
-    return this.locations.filter((l) => isNonNull(l.locationCode) && codes.has(l.locationCode));
+    return this.locations.filter(
+      (l) => isNonNull(l.locationCode) && codes.has(l.locationCode),
+    );
   }
 
   onFromLocationChange(): void {
@@ -293,7 +297,10 @@ export class CustomerTicketComponent implements OnInit {
       (r) => r.departureLocationCode === newFrom,
     );
     if (!hasReverseRoute) {
-      this.showToast('warn', 'No return route available from this destination.');
+      this.showToast(
+        'warn',
+        'No return route available from this destination.',
+      );
       return;
     }
 
@@ -489,13 +496,14 @@ export class CustomerTicketComponent implements OnInit {
     this.selectedTicket.bookingDateTime = this.selectedDepartureDate;
 
     this.availableVehicles = this.vehicles
-      .filter((v) =>
-        v.type === 'Bus' &&
-        this.schedules.some(
-          (s) =>
-            s.routeId === Number(this.selectedRouteCode) &&
-            s.vehicleId === v.id,
-        ),
+      .filter(
+        (v) =>
+          v.type === 'Bus' &&
+          this.schedules.some(
+            (s) =>
+              s.routeId === Number(this.selectedRouteCode) &&
+              s.vehicleId === v.id,
+          ),
       )
       .sort((a, b) => {
         const schedA = this.schedules.find(
@@ -683,7 +691,10 @@ export class CustomerTicketComponent implements OnInit {
     }
 
     if (!this.selectedRouteCode) {
-      this.showToast('error', 'Please select From and To before booking seats.');
+      this.showToast(
+        'error',
+        'Please select From and To before booking seats.',
+      );
       return;
     }
     if (!this.selectedDepartureDate) {
@@ -1048,6 +1059,27 @@ export class CustomerTicketComponent implements OnInit {
     }
   }
 
+  continueToTicketDetails(vehicleCode: string, vehicleId: number): void {
+    if (!this.selectedSeats.length) {
+      return;
+    }
+
+    // Close the seat drawer first
+    this.openSeatPanel(vehicleCode, vehicleId);
+
+    // Wait for Angular to remove the drawer, then scroll
+    setTimeout(() => {
+      const ticketDetails = document.getElementById('ticketDetailsSection');
+
+      if (ticketDetails) {
+        ticketDetails.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
+      }
+    }, 50);
+  }
+
   save(): void {
     const fail = (msg: string) => {
       this.showToast('error', msg);
@@ -1304,13 +1336,14 @@ export class CustomerTicketComponent implements OnInit {
     this.selectedArrivalDate = `${arr.getFullYear()}-${pad(arr.getMonth() + 1)}-${pad(arr.getDate())}`;
 
     this.availableVehicles = this.vehicles
-      .filter((v) =>
-        v.type === 'Bus' &&
-        this.schedules.some(
-          (s) =>
-            s.routeId === Number(this.selectedRouteCode) &&
-            s.vehicleId === v.id,
-        ),
+      .filter(
+        (v) =>
+          v.type === 'Bus' &&
+          this.schedules.some(
+            (s) =>
+              s.routeId === Number(this.selectedRouteCode) &&
+              s.vehicleId === v.id,
+          ),
       )
       .sort((a, b) => {
         const schedA = this.schedules.find(
