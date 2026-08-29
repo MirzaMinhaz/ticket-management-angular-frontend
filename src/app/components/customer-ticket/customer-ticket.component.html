@@ -57,31 +57,35 @@
           <span class="route-search-punch route-search-punch--r"></span>
           <div class="location-row">
 
-            <div class="location-field">
+            <div class="location-field location-field--autocomplete">
               <span class="location-field-icon"></span>
               <div class="location-field-body">
                 <label for="fromLocation">From</label>
-                <select [(ngModel)]="selectedFromLocation" name="fromLocation" id="fromLocation" required
-                  (change)="onFromLocationChange()">
-                  <option value="" disabled selected>Select from city</option>
-                  <option *ngFor="let l of fromLocations" [value]="l.locationCode">{{ l.name }}</option>
-                </select>
+                <input type="text" id="fromLocation" name="fromLocation" autocomplete="off"
+                  placeholder="Type a city…" [(ngModel)]="fromLocationSearch" required
+                  (ngModelChange)="onFromSearchChange()" (focus)="openFromSuggestions()"
+                  (blur)="closeFromSuggestions()" />
               </div>
+              <ul class="location-suggestions" *ngIf="showFromSuggestions && filteredFromLocations.length">
+                <li *ngFor="let l of filteredFromLocations" (mousedown)="selectFromLocation(l)">{{ l.name }}</li>
+              </ul>
             </div>
 
             <button type="button" class="swap-btn" (click)="swapLocations()"
               [disabled]="!selectedFromLocation || !selectedToLocation" title="Swap From / To">⇄</button>
 
-            <div class="location-field">
+            <div class="location-field location-field--autocomplete">
               <span class="location-field-icon"></span>
               <div class="location-field-body">
                 <label for="toLocation">To</label>
-                <select [(ngModel)]="selectedToLocation" name="toLocation" id="toLocation" required
-                  [disabled]="!selectedFromLocation" (change)="onToLocationChange()">
-                  <option value="" disabled selected>Select destination city</option>
-                  <option *ngFor="let l of toLocations" [value]="l.locationCode">{{ l.name }}</option>
-                </select>
+                <input type="text" id="toLocation" name="toLocation" autocomplete="off"
+                  placeholder="Type a destination…" [(ngModel)]="toLocationSearch" required
+                  [disabled]="!selectedFromLocation" (ngModelChange)="onToSearchChange()"
+                  (focus)="openToSuggestions()" (blur)="closeToSuggestions()" />
               </div>
+              <ul class="location-suggestions" *ngIf="showToSuggestions && filteredToLocations.length">
+                <li *ngFor="let l of filteredToLocations" (mousedown)="selectToLocation(l)">{{ l.name }}</li>
+              </ul>
             </div>
 
           </div>
@@ -776,31 +780,35 @@
               <span class="route-search-punch route-search-punch--r"></span>
               <div class="location-row">
 
-                <div class="location-field">
+                <div class="location-field location-field--autocomplete">
                   <span class="location-field-icon"></span>
                   <div class="location-field-body">
                     <label for="editFromLocation">From</label>
-                    <select [(ngModel)]="selectedFromLocation" name="editFromLocation" id="editFromLocation" required
-                      (change)="onFromLocationChange()">
-                      <option value="" disabled selected>Select from city</option>
-                      <option *ngFor="let l of fromLocations" [value]="l.locationCode">{{ l.name }}</option>
-                    </select>
+                    <input type="text" id="editFromLocation" name="editFromLocation" autocomplete="off"
+                      placeholder="Type a city…" [(ngModel)]="fromLocationSearch" required
+                      (ngModelChange)="onFromSearchChange()" (focus)="openFromSuggestions()"
+                      (blur)="closeFromSuggestions()" />
                   </div>
+                  <ul class="location-suggestions" *ngIf="showFromSuggestions && filteredFromLocations.length">
+                    <li *ngFor="let l of filteredFromLocations" (mousedown)="selectFromLocation(l)">{{ l.name }}</li>
+                  </ul>
                 </div>
 
                 <button type="button" class="swap-btn" (click)="swapLocations()"
                   [disabled]="!selectedFromLocation || !selectedToLocation" title="Swap From / To">⇄</button>
 
-                <div class="location-field">
+                <div class="location-field location-field--autocomplete">
                   <span class="location-field-icon"></span>
                   <div class="location-field-body">
                     <label for="editToLocation">To</label>
-                    <select [(ngModel)]="selectedToLocation" name="editToLocation" id="editToLocation" required
-                      [disabled]="!selectedFromLocation" (change)="onToLocationChange()">
-                      <option value="" disabled selected>Select destination city</option>
-                      <option *ngFor="let l of toLocations" [value]="l.locationCode">{{ l.name }}</option>
-                    </select>
+                    <input type="text" id="editToLocation" name="editToLocation" autocomplete="off"
+                      placeholder="Type a destination…" [(ngModel)]="toLocationSearch" required
+                      [disabled]="!selectedFromLocation" (ngModelChange)="onToSearchChange()"
+                      (focus)="openToSuggestions()" (blur)="closeToSuggestions()" />
                   </div>
+                  <ul class="location-suggestions" *ngIf="showToSuggestions && filteredToLocations.length">
+                    <li *ngFor="let l of filteredToLocations" (mousedown)="selectToLocation(l)">{{ l.name }}</li>
+                  </ul>
                 </div>
 
               </div>
@@ -942,7 +950,10 @@
                       <div class="seat-drawer-backdrop" (click)="openSeatPanel(v.vehicleCode, v.id)"></div>
                       <div class="seat-panel-container seat-drawer">
                         <div class="seat-panel-vehicle-header">
-                          <span class="seat-panel-vehicle-icon"></span>
+                          <img *ngIf="getBrandLogo(v.model)" [src]="getBrandLogo(v.model)" [alt]="getBrandName(v.model)"
+                            class="seat-panel-vehicle-logo" />
+                          <span *ngIf="!getBrandLogo(v.model)" class="seat-panel-vehicle-fallback">{{
+                            getBrandInitial(v.model) }}</span>
                           <span class="seat-panel-vehicle-name">{{ getOperatorName(v.operatorCode) }}</span>
                           <span class="seat-panel-vehicle-model">{{ v.model }}</span>
                           <span class="layout-badge" [class.layout-badge--onetwo]="seatLayoutMode === 'one-two'">

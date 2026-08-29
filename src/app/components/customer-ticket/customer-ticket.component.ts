@@ -118,6 +118,10 @@ export class CustomerTicketComponent implements OnInit {
   // From / To location filters that drive route selection.
   selectedFromLocation: string = '';
   selectedToLocation: string = '';
+  fromLocationSearch: string = '';
+  toLocationSearch: string = '';
+  showFromSuggestions = false;
+  showToSuggestions = false;
 
   selectedVehicleCode: string = '';
   selectedDepartureDate: string = '';
@@ -291,9 +295,81 @@ export class CustomerTicketComponent implements OnInit {
       (l) => isNonNull(l.locationCode) && codes.has(l.locationCode),
     );
   }
+    /** Locations matching what's currently typed in the From input. */
+  get filteredFromLocations(): LocationDto[] {
+    const q = this.fromLocationSearch.trim().toLowerCase();
+    if (!q) return this.fromLocations;
+    return this.fromLocations.filter((l) =>
+      (l.name || '').toLowerCase().includes(q),
+    );
+  }
+
+  /** Locations matching what's currently typed in the To input. */
+  get filteredToLocations(): LocationDto[] {
+    const q = this.toLocationSearch.trim().toLowerCase();
+    if (!q) return this.toLocations;
+    return this.toLocations.filter((l) =>
+      (l.name || '').toLowerCase().includes(q),
+    );
+  }
+
+  openFromSuggestions(): void {
+    this.showFromSuggestions = true;
+  }
+
+  closeFromSuggestions(): void {
+    this.showFromSuggestions = false;
+  }
+
+  openToSuggestions(): void {
+    if (!this.selectedFromLocation) return;
+    this.showToSuggestions = true;
+  }
+
+  closeToSuggestions(): void {
+    this.showToSuggestions = false;
+  }
+
+  /** Fires on every keystroke in the From input. */
+  onFromSearchChange(): void {
+    this.showFromSuggestions = true;
+    const current = this.locations.find(
+      (l) => l.locationCode === this.selectedFromLocation,
+    );
+    if (this.selectedFromLocation && current?.name !== this.fromLocationSearch) {
+      this.selectedFromLocation = '';
+      this.onFromLocationChange();
+    }
+  }
+
+  /** Fires on every keystroke in the To input. */
+  onToSearchChange(): void {
+    this.showToSuggestions = true;
+    const current = this.locations.find(
+      (l) => l.locationCode === this.selectedToLocation,
+    );
+    if (this.selectedToLocation && current?.name !== this.toLocationSearch) {
+      this.selectedToLocation = '';
+    }
+  }
+
+  selectFromLocation(loc: LocationDto): void {
+    this.selectedFromLocation = loc.locationCode ?? '';
+    this.fromLocationSearch = loc.name;
+    this.showFromSuggestions = false;
+    this.onFromLocationChange();
+  }
+
+  selectToLocation(loc: LocationDto): void {
+    this.selectedToLocation = loc.locationCode ?? '';
+    this.toLocationSearch = loc.name;
+    this.showToSuggestions = false;
+    this.onToLocationChange();
+  }
 
   onFromLocationChange(): void {
     this.selectedToLocation = '';
+    this.toLocationSearch = '';  
     this.selectedRouteCode = '';
     this.availableVehicles = [];
     this.availableSeatCounts = {};
@@ -323,7 +399,7 @@ export class CustomerTicketComponent implements OnInit {
   }
 
   /** Swaps From/To when a return route exists for the destination. */
-  swapLocations(): void {
+    swapLocations(): void {
     if (!this.selectedFromLocation || !this.selectedToLocation) return;
 
     const newFrom = this.selectedToLocation;
@@ -341,18 +417,24 @@ export class CustomerTicketComponent implements OnInit {
     const newTo = this.selectedFromLocation;
     this.selectedFromLocation = newFrom;
     this.selectedToLocation = newTo;
+    this.fromLocationSearch = this.getLocationName(newFrom);   // ← added
+    this.toLocationSearch = this.getLocationName(newTo);       // ← added
     this.onToLocationChange();
   }
 
   /** Sets From/To selects to match a route id (used when opening the edit modal). */
-  private syncFromToWithRoute(routeId: number | string | null): void {
+    private syncFromToWithRoute(routeId: number | string | null): void {
     const route = this.routes.find((r) => r.id === Number(routeId));
     if (route) {
       this.selectedFromLocation = route.departureLocationCode;
       this.selectedToLocation = route.destinationLocationCode;
+      this.fromLocationSearch = this.getLocationName(route.departureLocationCode);  // ← added
+      this.toLocationSearch = this.getLocationName(route.destinationLocationCode);  // ← added
     } else {
       this.selectedFromLocation = '';
       this.selectedToLocation = '';
+      this.fromLocationSearch = '';   // ← added
+      this.toLocationSearch = '';     // ← added
     }
   }
 
@@ -1439,6 +1521,8 @@ export class CustomerTicketComponent implements OnInit {
     this.selectedRouteCode = '';
     this.selectedFromLocation = '';
     this.selectedToLocation = '';
+    this.fromLocationSearch = '';   // ← added
+    this.toLocationSearch = '';     // ← added
     this.selectedVehicleCode = '';
     this.selectedTicket.departureCounterId = 0;
     this.selectedTicket.arrivalCounterId = 0;
@@ -1558,6 +1642,8 @@ export class CustomerTicketComponent implements OnInit {
     this.selectedRouteCode = '';
     this.selectedFromLocation = '';
     this.selectedToLocation = '';
+    this.fromLocationSearch = '';   // ← added
+    this.toLocationSearch = '';     // ← added
     this.selectedVehicleCode = '';
     this.selectedDepartureDate = '';
     this.selectedArrivalDate = '';

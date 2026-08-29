@@ -88,7 +88,7 @@
           <td>{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
           <td>{{ v.name }}</td>
           <td>{{ v.type }}</td>
-          <td>{{ v.address ?? '—' }}</td>
+          <td>{{ v.address || '—' }}</td>
           <td>{{ v.locationCode ?? '—' }}</td>
           <td>
             <button class="btn small edit" (click)="openModal(v)">
