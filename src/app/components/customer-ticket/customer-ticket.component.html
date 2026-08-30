@@ -44,7 +44,7 @@
       {{ isAdmin ? 'Add New Ticket' : 'Where would you like to go?' }}
     </h3>
 
-    <form (ngSubmit)="save()" #ticketForm="ngForm" class="ticket-form">
+    <form (ngSubmit)="requestSaveConfirmation()" #ticketForm="ngForm" class="ticket-form">
 
       <!-- SECTION 1: From / To Route Search + Dates -->
       <div class="section section-route-search">
@@ -766,7 +766,7 @@
       </div>
 
       <div class="modal-body">
-        <form (ngSubmit)="save()" #editForm="ngForm" class="ticket-form modal-form">
+        <form (ngSubmit)="requestSaveConfirmation()" #editForm="ngForm" class="ticket-form modal-form">
           <input type="hidden" [(ngModel)]="selectedTicket.id" name="editTicketId" />
 
           <!-- SECTION 1: From / To Route Search + Dates (modal) -->
@@ -1335,5 +1335,32 @@
 
     </div>
   </div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- SAVE CONFIRMATION MODAL                          -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="modal-overlay" *ngIf="showSaveConfirmModal" (click)="cancelSaveConfirmation()">
+  <div class="modal-panel cancel-modal-panel save-modal-panel" (click)="$event.stopPropagation()">
+
+    <button class="save-modal-close-btn" type="button" (click)="cancelSaveConfirmation()" title="Close">✕</button>
+
+    <div class="cancel-modal-icon save-confirm-icon">
+      <svg viewBox="0 0 24 24" width="26" height="26" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <h3 class="cancel-modal-title">Save Ticket?</h3>
+    <p class="cancel-modal-message">
+      Are you sure you want to save this information?
+    </p>
+
+    <div class="cancel-modal-actions">
+      <button class="btn secondary" (click)="cancelSaveConfirmation()">Cancel</button>
+      <button class="btn primary" (click)="confirmSave()">Confirm</button>
+    </div>
+
+  </div>
+</div>
 
 </div>

@@ -137,6 +137,9 @@ export class CustomerTicketComponent implements OnInit {
   ticketToCancel: TicketDto | null = null;
   cancelReason: string = 'Counter request';
 
+  // ── Save confirmation modal state ────────────────────────────────────────────
+  showSaveConfirmModal = false;
+
   /** True while the seat panel is loading from the backend */
   seatPanelLoading = false;
 
@@ -1338,6 +1341,26 @@ export class CustomerTicketComponent implements OnInit {
         });
       }
     }, 50);
+  }
+
+  /**
+   * Called on form submit (both the Add form and the Edit modal form).
+   * Opens the "Save Ticket?" confirmation modal instead of saving
+   * immediately. The actual save is triggered from confirmSave().
+   */
+  requestSaveConfirmation(): void {
+    this.showSaveConfirmModal = true;
+  }
+
+  /** Cancel button on the save-confirmation modal — closes it without saving. */
+  cancelSaveConfirmation(): void {
+    this.showSaveConfirmModal = false;
+  }
+
+  /** Confirm button on the save-confirmation modal — closes it and runs the existing save logic. */
+  confirmSave(): void {
+    this.showSaveConfirmModal = false;
+    this.save();
   }
 
   save(): void {

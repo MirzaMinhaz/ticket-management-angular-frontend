@@ -1670,6 +1670,61 @@ body {
 .cancel-modal-actions { display: flex; gap: 12px; justify-content: center; width: 100%; }
 .cancel-modal-actions .btn { flex: 1; max-width: 180px; padding: 12px 20px; font-size: 14px; }
 
+/* ─────────────────────────────────────────────── */
+/*  SAVE CONFIRMATION MODAL — reuses cancel-modal   */
+/*  styling; only the icon color differs.           */
+/* ─────────────────────────────────────────────── */
+
+.save-confirm-icon {
+  background: var(--success-bg);
+}
+
+/* ─────────────────────────────────────────────── */
+/*  SAVE CONFIRMATION MODAL — close btn + icon      */
+/* ─────────────────────────────────────────────── */
+
+.modal-overlay .cancel-modal-panel.save-modal-panel {
+  position: relative;
+}
+
+.modal-overlay .save-modal-close-btn {
+  position: absolute !important;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  border: 1.5px solid #D6DBE5;
+  background: #fff;
+  color: var(--ink-soft);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  z-index: 2;
+}
+
+.modal-overlay .save-modal-close-btn:hover {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #ffffff;
+  transform: scale(1.06);
+}
+
+.modal-overlay .save-modal-close-btn:active {
+  transform: scale(0.94);
+}
+
+.save-confirm-icon {
+  background: linear-gradient(135deg, var(--success-bg), #D3F0E1);
+  color: var(--success);
+  border: 1.5px solid #A7E1C4;
+  box-shadow: 0 6px 16px -6px rgba(30, 158, 108, 0.35);
+}
+
 /* ─────────────────────────────────────────────────────────
    Brand Logos — Vehicle Card (large)
 ───────────────────────────────────────────────────────── */
