@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { NotificationService } from '../../services/notification.service';
+import { environment } from '../../../environments/environment';
 
 interface RoleOption {
   value: string;
@@ -62,7 +63,7 @@ export class UserRegistrationComponent {
     // Auth interceptor is expected to attach the Admin's Bearer token —
     // this endpoint is [Authorize(Roles = "Admin")] on the backend.
     this.http
-      .post('https://localhost:7139/api/Auth/register-staff', this.formData)
+      .post(`${environment.apiUrl}/Auth/register-staff`, this.formData)
       .subscribe({
         next: () => {
           this.notify.show(`${this.selectedRoleLabel} account created for ${this.formData.username}.`, 'success');

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { NotificationService } from '../../services/notification.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-auth',
@@ -43,7 +44,7 @@ export class AuthComponent {
 
     this.loading = true;
     this.http
-      .post('https://localhost:7139/api/Auth/login', { username, password })
+      .post(`${environment.apiUrl}/Auth/login`, { username, password })
       .subscribe({
         next: (res: any) => {
           // Server has already verified this user is allowed into the

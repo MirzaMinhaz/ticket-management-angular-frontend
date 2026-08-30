@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { NotificationService } from '../../../services/notification.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-customer-login',
@@ -44,7 +45,7 @@ export class CustomerLoginComponent {
 
     this.loading = true;
     this.http
-      .post('https://localhost:7139/api/Auth/login-customer', {
+      .post(`${environment.apiUrl}/Auth/login-customer`, {
         username: this.loginData.username,
         password: this.loginData.password,
       })
@@ -99,7 +100,7 @@ export class CustomerLoginComponent {
 
     this.loading = true;
     this.http
-      .post('https://localhost:7139/api/Auth/register-customer', {
+      .post(`${environment.apiUrl}/Auth/register-customer`, {
         username: this.registerData.username,
         email: this.registerData.email,
         password: this.registerData.password,

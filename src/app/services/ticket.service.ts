@@ -8,10 +8,11 @@ import {
   UpdateTicketDto,
   CancelTicketDto,
 } from '../models/common';
+import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class TicketService {
-  private readonly base = 'https://localhost:7139/api/Ticket';
+  private readonly base = `${environment.apiUrl}/Ticket`;
 
   constructor(private http: HttpClient) {}
 

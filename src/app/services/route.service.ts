@@ -4,12 +4,13 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 // Adjusted path to common.ts based on your provided structure
 import { RouteDto, CreateRouteDto, UpdateRouteDto } from '../models/common';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class RouteService {
-  private apiUrl = 'https://localhost:7139/api/Routes'; // Adjust your API base URL
+  private apiUrl = `${environment.apiUrl}/Routes`; // Adjust your API base URL
 
   constructor(private http: HttpClient) { }
 

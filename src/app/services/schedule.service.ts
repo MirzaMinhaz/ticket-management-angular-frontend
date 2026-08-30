@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ScheduleDto, CreateScheduleDto, UpdateScheduleDto } from '../models/common';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ScheduleService {
-  private apiUrl = 'https://localhost:7139/api/Schedule'; // ✅ Adjust to your API base URL
+  private apiUrl = `${environment.apiUrl}/Schedule`; // ✅ Adjust to your API base URL
 
   constructor(private http: HttpClient) {}
 
