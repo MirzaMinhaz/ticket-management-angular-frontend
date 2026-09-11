@@ -1,10 +1,46 @@
 <div class="mt-wrap">
 
+  <!-- TOAST STACK -->
+  <div class="mt-toast-stack">
+    <div *ngFor="let toast of toasts; trackBy: trackToast" class="mt-toast"
+      [class.mt-toast--success]="toast.type === 'success'"
+      [class.mt-toast--error]="toast.type === 'error'"
+      [class.mt-toast--warn]="toast.type === 'warn'"
+      [class.mt-toast--info]="toast.type === 'info'">
+      <span class="mt-toast__icon">
+        <ng-container [ngSwitch]="toast.type">
+          <span *ngSwitchCase="'success'">✅</span>
+          <span *ngSwitchCase="'error'">❌</span>
+          <span *ngSwitchCase="'warn'">⚠️</span>
+          <span *ngSwitchDefault>ℹ️</span>
+        </ng-container>
+      </span>
+      <span class="mt-toast__msg">{{ toast.message }}</span>
+      <button class="mt-toast__close" (click)="dismissToast(toast.id)" type="button">✕</button>
+    </div>
+  </div>
+
   <header class="mt-header">
     <p class="mt-eyebrow">Booking History</p>
     <h2 class="mt-heading">My Tickets</h2>
-    <p class="mt-sub">Every trip you've booked, all in one place.</p>
+    <p class="mt-sub">Every trip you've booked, all in one place — cancel upcoming journeys anytime.</p>
   </header>
+
+  <!-- FILTER TABS -->
+  <div class="mt-tabs" *ngIf="!loading && !error && tickets.length > 0">
+    <button type="button" class="mt-tab" [class.mt-tab--active]="activeFilter === 'all'" (click)="setFilter('all')">
+      All <span class="mt-tab__count">{{ tickets.length }}</span>
+    </button>
+    <button type="button" class="mt-tab" [class.mt-tab--active]="activeFilter === 'upcoming'" (click)="setFilter('upcoming')">
+      Upcoming <span class="mt-tab__count">{{ upcomingCount }}</span>
+    </button>
+    <button type="button" class="mt-tab" [class.mt-tab--active]="activeFilter === 'past'" (click)="setFilter('past')">
+      Past <span class="mt-tab__count">{{ pastCount }}</span>
+    </button>
+    <button type="button" class="mt-tab" [class.mt-tab--active]="activeFilter === 'cancelled'" (click)="setFilter('cancelled')">
+      Cancelled <span class="mt-tab__count">{{ cancelledCount }}</span>
+    </button>
+  </div>
 
   <!-- Loading -->
   <div class="mt-loading" *ngIf="loading">
@@ -18,21 +54,28 @@
     <p>Couldn't load your tickets right now. Please try again shortly.</p>
   </div>
 
-  <!-- Empty -->
+  <!-- Empty (no tickets at all) -->
   <div class="mt-empty" *ngIf="!loading && !error && tickets.length === 0">
     <span class="mt-empty__icon">🎟️</span>
     <p>You haven't booked any tickets yet.</p>
     <a routerLink="/customer/bus-booking" class="mt-cta">Book a Ticket</a>
   </div>
 
+  <!-- Empty (filter has no matches) -->
+  <div class="mt-empty" *ngIf="!loading && !error && tickets.length > 0 && filteredTickets.length === 0">
+    <span class="mt-empty__icon">🔎</span>
+    <p>No tickets in this category yet.</p>
+  </div>
+
   <!-- Ticket list -->
-  <div class="mt-list" *ngIf="!loading && !error && tickets.length > 0">
+  <div class="mt-list" *ngIf="!loading && !error && filteredTickets.length > 0">
     <div class="mt-ticket"
-         *ngFor="let t of tickets"
+         *ngFor="let t of filteredTickets; trackBy: trackTicket"
          [class.mt-ticket--cancelled]="t.status === 'Cancelled'"
-         [class.mt-ticket--past]="!isUpcoming(t.bookingDateTime)">
+         [class.mt-ticket--past]="!isUpcoming(t.bookingDateTime) && t.status !== 'Cancelled'">
 
       <div class="mt-ticket__notch mt-ticket__notch--top"></div>
+      <div class="mt-ticket__side-strip"></div>
 
       <div class="mt-ticket__top">
         <div class="mt-ticket__vehicle">
@@ -43,6 +86,7 @@
           </div>
         </div>
         <span class="mt-status" [ngClass]="'mt-status--' + (t.status || 'booked').toLowerCase()">
+          <span class="mt-status__dot"></span>
           {{ t.status || 'Booked' }}
         </span>
       </div>
@@ -72,12 +116,66 @@
         </div>
       </div>
 
+      <div class="mt-ticket__divider">
+        <span *ngFor="let n of [1,2,3,4,5,6,7,8,9,10,11,12]"></span>
+      </div>
+
       <div class="mt-ticket__footer">
-        <span class="mt-ticket__code">{{ t.ticketCode }}</span>
-        <span class="mt-ticket__tag" *ngIf="isUpcoming(t.bookingDateTime) && t.status !== 'Cancelled'">Upcoming</span>
+        <div class="mt-ticket__footer-left">
+          <span class="mt-ticket__code">{{ t.ticketCode }}</span>
+          <span class="mt-ticket__tag" *ngIf="isUpcoming(t.bookingDateTime) && t.status !== 'Cancelled'">Upcoming</span>
+          <span class="mt-ticket__tag mt-ticket__tag--past" *ngIf="!isUpcoming(t.bookingDateTime) && t.status !== 'Cancelled'">Travelled</span>
+        </div>
+
+        <button type="button" class="mt-cancel-btn" *ngIf="isCancellable(t)" (click)="openCancelConfirm(t)">
+          🚫 Cancel Ticket
+        </button>
+        <span class="mt-cancel-disabled-note" *ngIf="!isCancellable(t) && t.status !== 'Cancelled'">
+          Not cancellable — journey completed
+        </span>
       </div>
 
       <div class="mt-ticket__notch mt-ticket__notch--bottom"></div>
+    </div>
+  </div>
+
+  <!-- CANCEL CONFIRMATION MODAL -->
+  <div class="mt-modal-overlay" *ngIf="showCancelConfirmModal" (click)="closeCancelConfirm()">
+    <div class="mt-modal-panel" (click)="$event.stopPropagation()">
+
+      <div class="mt-modal-icon">🚫</div>
+      <h3 class="mt-modal-title">Cancel this ticket?</h3>
+      <p class="mt-modal-message" *ngIf="ticketToCancel">
+        You're about to cancel your ticket for
+        <strong>{{ getRouteName(ticketToCancel.tripId) }}</strong>
+        on <strong>{{ ticketToCancel.bookingDateTime | date:'dd MMM yyyy' }}</strong>.
+      </p>
+      <p class="mt-modal-seats" *ngIf="ticketToCancel">
+        Seat(s): <strong>{{ ticketToCancel.seatNumber }}</strong>
+      </p>
+
+      <div class="mt-modal-reason">
+        <label for="cancelReason">Reason for cancellation</label>
+        <select id="cancelReason" [(ngModel)]="cancelReason" name="cancelReason" [disabled]="cancelling">
+          <option value="Passenger request">Change of plans</option>
+          <option value="Found alternative">Found another travel option</option>
+          <option value="Emergency">Emergency</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <p class="mt-modal-warning">⚠️ This action can't be undone. Your seat will be released immediately.</p>
+
+      <div class="mt-modal-actions">
+        <button type="button" class="mt-btn mt-btn--secondary" (click)="closeCancelConfirm()" [disabled]="cancelling">
+          Keep My Ticket
+        </button>
+        <button type="button" class="mt-btn mt-btn--danger" (click)="confirmCancel()" [disabled]="cancelling">
+          <span *ngIf="!cancelling">Yes, Cancel It</span>
+          <span *ngIf="cancelling">Cancelling…</span>
+        </button>
+      </div>
+
     </div>
   </div>
 
