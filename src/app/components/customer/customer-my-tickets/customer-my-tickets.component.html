@@ -3,10 +3,8 @@
   <!-- TOAST STACK -->
   <div class="mt-toast-stack">
     <div *ngFor="let toast of toasts; trackBy: trackToast" class="mt-toast"
-      [class.mt-toast--success]="toast.type === 'success'"
-      [class.mt-toast--error]="toast.type === 'error'"
-      [class.mt-toast--warn]="toast.type === 'warn'"
-      [class.mt-toast--info]="toast.type === 'info'">
+      [class.mt-toast--success]="toast.type === 'success'" [class.mt-toast--error]="toast.type === 'error'"
+      [class.mt-toast--warn]="toast.type === 'warn'" [class.mt-toast--info]="toast.type === 'info'">
       <span class="mt-toast__icon">
         <ng-container [ngSwitch]="toast.type">
           <span *ngSwitchCase="'success'">✅</span>
@@ -31,13 +29,15 @@
     <button type="button" class="mt-tab" [class.mt-tab--active]="activeFilter === 'all'" (click)="setFilter('all')">
       All <span class="mt-tab__count">{{ tickets.length }}</span>
     </button>
-    <button type="button" class="mt-tab" [class.mt-tab--active]="activeFilter === 'upcoming'" (click)="setFilter('upcoming')">
+    <button type="button" class="mt-tab" [class.mt-tab--active]="activeFilter === 'upcoming'"
+      (click)="setFilter('upcoming')">
       Upcoming <span class="mt-tab__count">{{ upcomingCount }}</span>
     </button>
     <button type="button" class="mt-tab" [class.mt-tab--active]="activeFilter === 'past'" (click)="setFilter('past')">
       Past <span class="mt-tab__count">{{ pastCount }}</span>
     </button>
-    <button type="button" class="mt-tab" [class.mt-tab--active]="activeFilter === 'cancelled'" (click)="setFilter('cancelled')">
+    <button type="button" class="mt-tab" [class.mt-tab--active]="activeFilter === 'cancelled'"
+      (click)="setFilter('cancelled')">
       Cancelled <span class="mt-tab__count">{{ cancelledCount }}</span>
     </button>
   </div>
@@ -69,17 +69,26 @@
 
   <!-- Ticket list -->
   <div class="mt-list" *ngIf="!loading && !error && filteredTickets.length > 0">
-    <div class="mt-ticket"
-         *ngFor="let t of filteredTickets; trackBy: trackTicket"
-         [class.mt-ticket--cancelled]="t.status === 'Cancelled'"
-         [class.mt-ticket--past]="!isUpcoming(t.bookingDateTime) && t.status !== 'Cancelled'">
+    <div class="mt-ticket" *ngFor="let t of filteredTickets; trackBy: trackTicket"
+      [class.mt-ticket--cancelled]="t.status === 'Cancelled'"
+      [class.mt-ticket--past]="!isUpcoming(t.bookingDateTime) && t.status !== 'Cancelled'">
 
       <div class="mt-ticket__notch mt-ticket__notch--top"></div>
       <div class="mt-ticket__side-strip"></div>
 
       <div class="mt-ticket__top">
         <div class="mt-ticket__vehicle">
-          <span class="mt-ticket__icon">{{ getVehicleType(t.tripId) === 'Train' ? '🚆' : '🚌' }}</span>
+          <span class="mt-ticket__icon">
+            <ng-container *ngIf="getBrandLogo(getVehicleModel(t.tripId)) as logo; else mtNoLogo">
+              <img [src]="logo" [alt]="getBrandName(getVehicleModel(t.tripId))" class="mt-ticket__brand-logo" />
+            </ng-container>
+            <ng-template #mtNoLogo>
+              <span *ngIf="getVehicleType(t.tripId) === 'Train'; else mtBusFallback">🚆</span>
+              <ng-template #mtBusFallback>
+                <span class="mt-ticket__brand-fallback">{{ getBrandInitial(getVehicleModel(t.tripId)) }}</span>
+              </ng-template>
+            </ng-template>
+          </span>
           <div>
             <span class="mt-ticket__route">{{ getRouteName(t.tripId) }}</span>
             <span class="mt-ticket__model">{{ getVehicleModel(t.tripId) }}</span>
@@ -124,7 +133,8 @@
         <div class="mt-ticket__footer-left">
           <span class="mt-ticket__code">{{ t.ticketCode }}</span>
           <span class="mt-ticket__tag" *ngIf="isUpcoming(t.bookingDateTime) && t.status !== 'Cancelled'">Upcoming</span>
-          <span class="mt-ticket__tag mt-ticket__tag--past" *ngIf="!isUpcoming(t.bookingDateTime) && t.status !== 'Cancelled'">Travelled</span>
+          <span class="mt-ticket__tag mt-ticket__tag--past"
+            *ngIf="!isUpcoming(t.bookingDateTime) && t.status !== 'Cancelled'">Travelled</span>
         </div>
 
         <button type="button" class="mt-cancel-btn" *ngIf="isCancellable(t)" (click)="openCancelConfirm(t)">

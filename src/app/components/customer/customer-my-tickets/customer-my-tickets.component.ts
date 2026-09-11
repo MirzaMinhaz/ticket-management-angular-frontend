@@ -12,6 +12,32 @@ import { VehicleService } from '../../../services/vehicle.service';
 
 type TicketFilter = 'all' | 'upcoming' | 'past' | 'cancelled';
 
+// Add near the top of the file, above the @Component decorator
+const BRAND_LOGOS: Record<string, string> = {
+  scania: 'assets/img/scania.jpeg',
+  volvo: 'assets/img/volvo.jpeg',
+  hino: 'assets/img/hino.jpeg',
+  mercedes: 'assets/img/mercedes.jpeg',
+  man: 'assets/img/man.jpeg',
+  isuzu: 'assets/img/isuzu.jpeg',
+  yutong: 'assets/img/yutong.jpeg',
+  king: 'assets/img/king.jpeg',
+  golden: 'assets/img/golden.jpeg',
+  zhongtong: 'assets/img/zhongtong.jpeg',
+  daf: 'assets/img/daf.jpeg',
+  tata: 'assets/img/tata.jpeg',
+  ashok: 'assets/img/ashok.jpeg',
+  leyland: 'assets/img/ashok.jpeg',
+  eicher: 'assets/img/eicher.jpeg',
+  byd: 'assets/img/byd.jpeg',
+  neoplan: 'assets/img/neoplan.jpeg',
+  setra: 'assets/img/setra.jpeg',
+  irizar: 'assets/img/irizar.jpeg',
+  hyundai: 'assets/img/hyundai.jpeg',
+  br: 'assets/img/br.jpeg',
+  caetano: 'assets/img/caetano.jpeg',
+};
+
 @Component({
   selector: 'app-customer-my-tickets',
   standalone: true,
@@ -101,6 +127,30 @@ export class CustomerMyTicketsComponent implements OnInit {
     const schedule = this.schedules.find(s => s.id === trip?.scheduleId);
     const type = this.vehicles.find(v => v.id === schedule?.vehicleId)?.type;
     return type === 'Train' ? 'Train' : 'Bus';
+  }
+
+    // ── Brand Logo Helpers ───────────────────────────────────────────────────────
+
+  getBrandLogo(model: string): string | null {
+    if (!model) return null;
+    const lower = model.toLowerCase();
+    for (const [key, path] of Object.entries(BRAND_LOGOS)) {
+      if (lower.includes(key)) return path;
+    }
+    return null;
+  }
+
+  getBrandName(model: string): string {
+    if (!model) return '';
+    const lower = model.toLowerCase();
+    for (const key of Object.keys(BRAND_LOGOS)) {
+      if (lower.includes(key)) return key.charAt(0).toUpperCase() + key.slice(1);
+    }
+    return '';
+  }
+
+  getBrandInitial(model: string): string {
+    return model ? model.charAt(0).toUpperCase() : '?';
   }
 
   getSeatList(seatNumber: string | null | undefined): string[] {
