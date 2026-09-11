@@ -1,21 +1,22 @@
 <div class="train-ticket-container">
- <div class="hero-section">
-  <div class="hero-content">
-    <div class="hero-stations">
-      <span>DHAKA</span>
-      <span class="hero-dot">•</span>
-      <span>CHATTOGRAM</span>
-      <span class="hero-dot">•</span>
-      <span>SYLHET</span>
-      <span class="hero-dot">•</span>
-      <span>RAJSHAHI</span>
+  <div class="hero-section">
+    <div class="hero-content">
+      <div class="hero-stations">
+        <span>DHAKA</span>
+        <span class="hero-dot">•</span>
+        <span>CHATTOGRAM</span>
+        <span class="hero-dot">•</span>
+        <span>SYLHET</span>
+        <span class="hero-dot">•</span>
+        <span>RAJSHAHI</span>
+      </div>
+      <h2 class="hero-title">
+        <span class="hero-title-icon"></span> Book Your Train Ticket
+      </h2>
+      <p class="hero-subtitle">Pick your platform, claim your berth, ride the rails. Your ticket, booked before the
+        whistle blows.</p>
     </div>
-    <h2 class="hero-title">
-      <span class="hero-title-icon"></span> Book Your Train Ticket
-    </h2>
-    <p class="hero-subtitle">Pick your platform, claim your berth, ride the rails. Your ticket, booked before the whistle blows.</p>
   </div>
-</div>
 
   <!-- ═══════════════════════════════════════════════ -->
   <!-- TOAST NOTIFICATION STACK                        -->
@@ -46,7 +47,7 @@
   <div class="ticket-card">
     <h3 class="card-title">🧭 Where would you like to travel?</h3>
 
-    <form (ngSubmit)="save()" #ticketForm="ngForm" class="ticket-form">
+    <form (ngSubmit)="requestSaveConfirmation()" #ticketForm="ngForm" class="ticket-form">
 
       <!-- SECTION 1: From / To Route Search + Dates -->
       <div class="section section-route-search">
@@ -444,6 +445,36 @@
     <p>Your ticket goes straight to your account once booked.</p>
     <a routerLink="/customer/my-tickets" class="customer-list-notice__link">View My Tickets →</a>
   </div>
-  
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- SAVE CONFIRMATION MODAL                          -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div class="train-modal-overlay" *ngIf="showSaveConfirmModal" (click)="cancelSaveConfirmation()">
+    <div class="train-modal-panel" (click)="$event.stopPropagation()">
+
+      <button class="train-modal-close-btn" type="button" (click)="cancelSaveConfirmation()" title="Close">✕</button>
+
+      <div class="train-modal-icon">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>
+      </div>
+
+      <h3 class="train-modal-title">Save Ticket?</h3>
+      <p class="train-modal-message">
+        Are you sure you want to save this booking?
+      </p>
+
+      <div class="train-modal-actions">
+        <button type="button" class="btn secondary" (click)="cancelSaveConfirmation()">Cancel</button>
+        <button type="button" class="btn primary" (click)="confirmSave()">Confirm</button>
+      </div>
+
+    </div>
+
+
+  </div>
+
 
 </div>

@@ -128,6 +128,9 @@ export class CustomerTrainTicketComponent implements OnInit, OnDestroy {
   availableVehicles: Vehicle[] = [];
   locations: LocationDto[] = [];
 
+  // ── Save confirmation modal state ────────────────────────────────────────────
+  showSaveConfirmModal = false;
+
   // ── Form state ───────────────────────────────────────────────────────────────
   selectedTicket: TrainTicketDto = this.emptyTicket();
   selectedRouteCode: string = '';
@@ -336,7 +339,9 @@ export class CustomerTrainTicketComponent implements OnInit, OnDestroy {
   /** All unique locations that are a valid departure ("From") point on some route. */
   get fromLocations(): LocationDto[] {
     const codes = new Set(this.routes.map((r) => r.departureLocationCode));
-    return this.locations.filter((l) => isNonNull(l.locationCode) && codes.has(l.locationCode));
+    return this.locations.filter(
+      (l) => isNonNull(l.locationCode) && codes.has(l.locationCode),
+    );
   }
 
   /** Locations reachable ("To") from the currently selected From location. */
@@ -347,7 +352,9 @@ export class CustomerTrainTicketComponent implements OnInit, OnDestroy {
         .filter((r) => r.departureLocationCode === this.selectedFromLocation)
         .map((r) => r.destinationLocationCode),
     );
-    return this.locations.filter((l) => isNonNull(l.locationCode) && codes.has(l.locationCode));
+    return this.locations.filter(
+      (l) => isNonNull(l.locationCode) && codes.has(l.locationCode),
+    );
   }
 
   onFromLocationChange(): void {
@@ -1064,82 +1071,103 @@ export class CustomerTrainTicketComponent implements OnInit, OnDestroy {
     return model ? model.charAt(0).toUpperCase() : '?';
   }
 
+  /**
+   * Called on form submit. Opens the "Save Ticket?" confirmation modal
+   * instead of saving immediately. The actual save runs from confirmSave().
+   */
+  requestSaveConfirmation(): void {
+    this.showSaveConfirmModal = true;
+  }
+
+  /** Cancel button on the save-confirmation modal — closes it without saving. */
+  cancelSaveConfirmation(): void {
+    this.showSaveConfirmModal = false;
+  }
+
+  /** Confirm button on the save-confirmation modal — closes it and runs save(). */
+  confirmSave(): void {
+    this.showSaveConfirmModal = false;
+    this.save();
+  }
+
   // ─────────────────────────────────────────────────────────────────────────────
   // SAVE
   // ─────────────────────────────────────────────────────────────────────────────
 
   save(): void {
-  const fail = (msg: string) => this.showToast('error', msg);
-  if (!this.selectedTicket.passengerName?.trim())
-    return fail('Please provide Passenger Name.');
-  if (!this.selectedTicket.passengerContact?.trim())
-    return fail('Please provide Passenger Contact.');
-  if (!this.selectedTicket.seatNumber?.trim())
-    return fail('Please select at least one seat.');
+    const fail = (msg: string) => this.showToast('error', msg);
+    if (!this.selectedTicket.passengerName?.trim())
+      return fail('Please provide Passenger Name.');
+    if (!this.selectedTicket.passengerContact?.trim())
+      return fail('Please provide Passenger Contact.');
+    if (!this.selectedTicket.seatNumber?.trim())
+      return fail('Please select at least one seat.');
 
-  const vehicleId = this.vehicles.find(
-    (v) => v.vehicleCode === this.selectedVehicleCode,
-  )?.id;
-  const schedule = this.schedules.find(
-    (s) =>
-      s.routeId === Number(this.selectedRouteCode) &&
-      s.vehicleId === vehicleId,
-  );
-  if (!schedule)
-    return fail('Please select From, To and a valid train.');
+    const vehicleId = this.vehicles.find(
+      (v) => v.vehicleCode === this.selectedVehicleCode,
+    )?.id;
+    const schedule = this.schedules.find(
+      (s) =>
+        s.routeId === Number(this.selectedRouteCode) &&
+        s.vehicleId === vehicleId,
+    );
+    if (!schedule) return fail('Please select From, To and a valid train.');
 
-  this.tripService
-    .findOrCreate({
-      scheduleId: schedule.id,
-      tripDate: this.selectedDepartureDate,
-    })
-    .subscribe({
-      next: (trip) => {
-        const dto: CreateTicketDto = {
-          tripId: trip.id,
-          passengerName: this.selectedTicket.passengerName,
-          passengerContact: this.selectedTicket.passengerContact,
-          seatNumber: this.selectedTicket.seatNumber,
-          farePaid: Number(this.selectedTicket.farePaid),
-          bookingDateTime: this.selectedTicket.bookingDateTime,
-          bookingCounterId: 0,
-          departureCounterId: 0,
-          arrivalCounterId: 0,
-        };
-        this.ticketService.createTicket(dto).subscribe({
-          next: async () => {
-            // Broadcast the real booking state BEFORE any local cleanup runs.
-            // Without this, reset() → clearSelection() would call releaseSeat()
-            // on these exact seats, broadcasting SeatReleased and making them
-            // look free to every other customer/agent until they happen to
-            // refetch bookedSeats from the database (i.e. on next page load).
-            const finalSeats = this.selectedSeats.map((s) => s.seatNumber);
-            if (
-              this.activeTripId !== null &&
-              this.seatLockService.isConnected &&
-              finalSeats.length
-            ) {
-              await this.seatLockService.confirmBooking(
-                this.activeTripId,
-                finalSeats,
+    this.tripService
+      .findOrCreate({
+        scheduleId: schedule.id,
+        tripDate: this.selectedDepartureDate,
+      })
+      .subscribe({
+        next: (trip) => {
+          const dto: CreateTicketDto = {
+            tripId: trip.id,
+            passengerName: this.selectedTicket.passengerName,
+            passengerContact: this.selectedTicket.passengerContact,
+            seatNumber: this.selectedTicket.seatNumber,
+            farePaid: Number(this.selectedTicket.farePaid),
+            bookingDateTime: this.selectedTicket.bookingDateTime,
+            bookingCounterId: 0,
+            departureCounterId: 0,
+            arrivalCounterId: 0,
+          };
+          this.ticketService.createTicket(dto).subscribe({
+            next: async () => {
+              // Broadcast the real booking state BEFORE any local cleanup runs.
+              // Without this, reset() → clearSelection() would call releaseSeat()
+              // on these exact seats, broadcasting SeatReleased and making them
+              // look free to every other customer/agent until they happen to
+              // refetch bookedSeats from the database (i.e. on next page load).
+              const finalSeats = this.selectedSeats.map((s) => s.seatNumber);
+              if (
+                this.activeTripId !== null &&
+                this.seatLockService.isConnected &&
+                finalSeats.length
+              ) {
+                await this.seatLockService.confirmBooking(
+                  this.activeTripId,
+                  finalSeats,
+                );
+              }
+
+              this.showToast('success', 'Train ticket booked successfully!');
+              await this.reset(false);
+            },
+            error: (e) => {
+              console.error(e);
+              this.showToast(
+                'error',
+                'Failed to book ticket. Please try again.',
               );
-            }
-
-            this.showToast('success', 'Train ticket booked successfully!');
-            await this.reset(false);
-          },
-          error: (e) => {
-            console.error(e);
-            this.showToast('error', 'Failed to book ticket. Please try again.');
-          },
-        });
-      },
-      error: (e) => {
-        console.error(e);
-        this.showToast('error', 'Could not resolve trip.');
-      },
-    });
-}
+            },
+          });
+        },
+        error: (e) => {
+          console.error(e);
+          this.showToast('error', 'Could not resolve trip.');
+        },
+      });
+  }
 
   // ─────────────────────────────────────────────────────────────────────────────
   // CRUD HELPERS
@@ -1166,23 +1194,23 @@ export class CustomerTrainTicketComponent implements OnInit, OnDestroy {
   }
 
   /** @param releaseLocks Pass `false` right after a successful booking (see clearSelection). */
-async reset(releaseLocks: boolean = true): Promise<void> {
-  await this.clearSelection(releaseLocks);
-  this.selectedTicket = this.emptyTicket();
-  const name = getUserName();
-  if (name) this.selectedTicket.passengerName = name;
-  this.selectedRouteCode = '';
-  this.selectedFromLocation = '';
-  this.selectedToLocation = '';
-  this.selectedVehicleCode = '';
-  this.selectedDepartureDate = '';
-  this.selectedArrivalDate = '';
-  this.selectedBaseFare = 0;
-  this.availableVehicles = [];
-  this.availableSeatCounts = {};
-  this.vehicleClassConfigs = {};
-  await this.closeSeatPanel(releaseLocks);
-}
+  async reset(releaseLocks: boolean = true): Promise<void> {
+    await this.clearSelection(releaseLocks);
+    this.selectedTicket = this.emptyTicket();
+    const name = getUserName();
+    if (name) this.selectedTicket.passengerName = name;
+    this.selectedRouteCode = '';
+    this.selectedFromLocation = '';
+    this.selectedToLocation = '';
+    this.selectedVehicleCode = '';
+    this.selectedDepartureDate = '';
+    this.selectedArrivalDate = '';
+    this.selectedBaseFare = 0;
+    this.availableVehicles = [];
+    this.availableSeatCounts = {};
+    this.vehicleClassConfigs = {};
+    await this.closeSeatPanel(releaseLocks);
+  }
 
   // ─────────────────────────────────────────────────────────────────────────────
   // TOAST
