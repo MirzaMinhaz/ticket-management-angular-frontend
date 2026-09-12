@@ -91,7 +91,10 @@
           </span>
           <div>
             <span class="mt-ticket__route">{{ getRouteName(t.tripId) }}</span>
-            <span class="mt-ticket__model">{{ getVehicleModel(t.tripId) }}</span>
+            <span class="mt-ticket__model">
+              {{ getOperatorName(t.tripId) }}<span *ngIf="getOperatorName(t.tripId) && getVehicleModel(t.tripId)"> ·
+              </span>{{ getVehicleModel(t.tripId) }}
+            </span>
           </div>
         </div>
         <span class="mt-status" [ngClass]="'mt-status--' + (t.status || 'booked').toLowerCase()">
