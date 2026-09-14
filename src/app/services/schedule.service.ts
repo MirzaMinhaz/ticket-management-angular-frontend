@@ -1,11 +1,15 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { ScheduleDto, CreateScheduleDto, UpdateScheduleDto } from '../models/common';
+import {
+  ScheduleDto,
+  CreateScheduleDto,
+  UpdateScheduleDto,
+} from '../models/common';
 import { environment } from '../../environments/environment';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ScheduleService {
   private apiUrl = `${environment.apiUrl}/Schedule`; // ✅ Adjust to your API base URL
@@ -36,5 +40,16 @@ export class ScheduleService {
   // Delete schedule
   deleteSchedule(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
+  }
+
+  // schedule.service.ts — add this method alongside your other schedule calls
+
+  updateBaseFare(
+    scheduleId: number,
+    baseFare: number,
+  ): Observable<ScheduleDto> {
+    return this.http.patch<ScheduleDto>(`${this.apiUrl}/${scheduleId}/fare`, {
+      baseFare,
+    });
   }
 }

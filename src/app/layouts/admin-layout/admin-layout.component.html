@@ -4,6 +4,7 @@
     <div class="navbar-links">
       <ng-container *ngIf="isAdminOrManager()">
         <a routerLink="/locations"             class="nav-link" routerLinkActive="active">Locations</a>
+        <a routerLink="/fare-matrix"           class="nav-link" routerLinkActive="active">Fare Matrix</a>
         <a routerLink="/ticket-counters/entry" class="nav-link" routerLinkActive="active">Ticket Counters</a>
         <a routerLink="/vehicles"              class="nav-link" routerLinkActive="active">Vehicles</a>
         <a routerLink="/operators"             class="nav-link" routerLinkActive="active">Operators</a>
@@ -43,6 +44,7 @@
   <div class="mobile-menu" [class.open]="mobileMenuOpen">
     <ng-container *ngIf="isAdminOrManager()">
       <a routerLink="/locations"             class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Locations</a>
+      <a routerLink="/fare-matrix" class="nav-link" routerLinkActive="active">Fare Matrix</a>
       <a routerLink="/ticket-counters/entry" class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Ticket Counters</a>
       <a routerLink="/vehicles"              class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Vehicles</a>
       <a routerLink="/operators"             class="nav-link" routerLinkActive="active" (click)="mobileMenuOpen=false">Operators</a>

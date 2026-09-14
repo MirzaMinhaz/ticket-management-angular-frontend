@@ -12,6 +12,9 @@ import { adminOrManagerGuard } from './guards/admin-or-manager.guard';
 // Admin pages (existing — untouched)
 import { HomeComponent } from './components/home/home.component';
 import { LocationsListComponent } from './components/locations-list/locations-list.component';
+import { FareMatrixComponent } from './components/fare-matrix/fare-matrix.component';
+
+// inside the admin children array in your routes:
 import { TicketCounterEntryComponent } from './components/ticket-counter-entry/ticket-counter-entry.component';
 import { VehicleComponent } from './components/vehicles/vehicles';
 import { OperatorComponent } from './components/operators/operators';
@@ -49,6 +52,7 @@ export const routes: Routes = [
     children: [
       { path: 'home', component: HomeComponent },
       { path: 'locations', component: LocationsListComponent },
+      { path: 'fare-matrix', component: FareMatrixComponent },
       { path: 'ticket-counters/entry', component: TicketCounterEntryComponent },
       {
         path: 'ticket-counters/edit/:id',
