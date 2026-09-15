@@ -34,6 +34,10 @@ interface FareCell {
   dirty: boolean;
   saving: boolean;
   saveError: boolean;
+  saved: boolean;
+  /** Denormalized context, set once at build time, used for toast copy. */
+  operatorName: string;
+  routeCode: string;
 }
 
 /** One matrix row: an operator, with a list of fare cells per route. */
@@ -50,6 +54,23 @@ interface RouteColumn {
   code: string; // e.g. "DHK-CTG"
   fromName: string;
   toName: string;
+}
+
+/** Data for the compact "fare updated" toast variant. */
+interface FareUpdateToastData {
+  operatorName: string;
+  routeCode: string;
+  vehicleModel: string;
+  acType: string | null;
+  oldFare: number;
+  newFare: number;
+}
+
+interface Toast {
+  id: number;
+  type: 'success' | 'error' | 'warn' | 'info' | 'fare-update';
+  message?: string;
+  fareUpdate?: FareUpdateToastData;
 }
 
 @Component({
@@ -77,11 +98,7 @@ export class FareMatrixComponent implements OnInit, OnDestroy {
 
   operatorSearch: string = '';
 
-  toasts: {
-    id: number;
-    type: 'success' | 'error' | 'warn' | 'info';
-    message: string;
-  }[] = [];
+  toasts: Toast[] = [];
   private _toastId = 0;
 
   /** Stream of every fare edit — debounced per-schedule so auto-save fires
@@ -145,11 +162,30 @@ export class FareMatrixComponent implements OnInit, OnDestroy {
         next: (updated: ScheduleDto) => {
           const cell = this.findCellByScheduleId(updated.id);
           if (cell) {
+            const oldFare = cell.originalFare;
+
             cell.originalFare = updated.baseFare;
             cell.fare = updated.baseFare;
             cell.dirty = false;
             cell.saving = false;
             cell.saveError = false;
+            cell.saved = true;
+            setTimeout(() => {
+              cell.saved = false;
+            }, 1600);
+
+            // Only announce a real change — skip the toast if the saved
+            // value happens to match what was already there.
+            if (oldFare !== updated.baseFare) {
+              this.showFareUpdateToast({
+                operatorName: cell.operatorName,
+                routeCode: cell.routeCode,
+                vehicleModel: cell.vehicleModel,
+                acType: cell.acType,
+                oldFare,
+                newFare: updated.baseFare,
+              });
+            }
           }
         },
       });
@@ -235,6 +271,8 @@ export class FareMatrixComponent implements OnInit, OnDestroy {
       })
       .sort((a, b) => a.code.localeCompare(b.code));
 
+    const routeById = new Map(this.routeColumns.map((c) => [c.id, c]));
+
     const operatorCodesInUse = new Set<string>(
       this.vehicles
         .filter((v) => busSchedules.some((s) => s.vehicleId === v.id))
@@ -271,6 +309,9 @@ export class FareMatrixComponent implements OnInit, OnDestroy {
                 dirty: false,
                 saving: false,
                 saveError: false,
+                saved: false,
+                operatorName: op.name,
+                routeCode: routeById.get(col.id)?.code ?? col.code,
               });
             }
           }
@@ -318,9 +359,10 @@ export class FareMatrixComponent implements OnInit, OnDestroy {
    *  auto-save that will actually hit the backend ~600ms after typing stops. */
   onFareChange(cell: FareCell): void {
     cell.dirty = cell.fare !== cell.originalFare;
+    cell.saved = false; // cancel any in-progress green pulse
 
     if (cell.fare == null || cell.fare < 0 || isNaN(cell.fare)) {
-      return; // don't queue a save for invalid input
+      return;
     }
 
     cell.saveError = false;
@@ -336,6 +378,13 @@ export class FareMatrixComponent implements OnInit, OnDestroy {
   ): void {
     const id = ++this._toastId;
     this.toasts.push({ id, type, message });
+    setTimeout(() => this.dismissToast(id), durationMs);
+  }
+
+  /** Compact structured toast shown after a fare successfully auto-saves. */
+  showFareUpdateToast(data: FareUpdateToastData, durationMs = 4000): void {
+    const id = ++this._toastId;
+    this.toasts.push({ id, type: 'fare-update', fareUpdate: data });
     setTimeout(() => this.dismissToast(id), durationMs);
   }
 

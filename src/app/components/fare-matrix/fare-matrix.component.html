@@ -3,19 +3,70 @@
   <!-- TOAST STACK -->
   <div class="fm-toast-stack">
     <div *ngFor="let toast of toasts; trackBy: trackToast" class="fm-toast"
-      [class.fm-toast--success]="toast.type === 'success'"
-      [class.fm-toast--error]="toast.type === 'error'"
-      [class.fm-toast--warn]="toast.type === 'warn'"
-      [class.fm-toast--info]="toast.type === 'info'">
-      <span class="fm-toast__icon">
-        <svg *ngIf="toast.type === 'success'" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-        <svg *ngIf="toast.type === 'error'" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-        <svg *ngIf="toast.type === 'warn'" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.29 3.86l-8.18 14.18A1.5 1.5 0 003.5 20.5h17a1.5 1.5 0 001.39-2.46L13.71 3.86a1.5 1.5 0 00-2.42 0z"/></svg>
-        <svg *ngIf="toast.type === 'info'" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></svg>
-      </span>
-      <span class="fm-toast__msg">{{ toast.message }}</span>
+      [class.fm-toast--success]="toast.type === 'success'" [class.fm-toast--error]="toast.type === 'error'"
+      [class.fm-toast--warn]="toast.type === 'warn'" [class.fm-toast--info]="toast.type === 'info'"
+      [class.fm-toast--fare]="toast.type === 'fare-update'">
+
+      <!-- Standard single-line toast (success / error / warn / info) -->
+      <ng-container *ngIf="toast.type !== 'fare-update'">
+        <span class="fm-toast__icon">
+          <svg *ngIf="toast.type === 'success'" viewBox="0 0 24 24" width="16" height="16" fill="none"
+            stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 6L9 17l-5-5" />
+          </svg>
+          <svg *ngIf="toast.type === 'error'" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+            stroke-width="2.4" stroke-linecap="round">
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+          <svg *ngIf="toast.type === 'warn'" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+            stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path
+              d="M12 9v4M12 17h.01M10.29 3.86l-8.18 14.18A1.5 1.5 0 003.5 20.5h17a1.5 1.5 0 001.39-2.46L13.71 3.86a1.5 1.5 0 00-2.42 0z" />
+          </svg>
+          <svg *ngIf="toast.type === 'info'" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+            stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 16v-4M12 8h.01" />
+          </svg>
+        </span>
+        <span class="fm-toast__msg">{{ toast.message }}</span>
+      </ng-container>
+
+      <!-- Compact structured fare-update toast -->
+      <ng-container *ngIf="toast.type === 'fare-update' && toast.fareUpdate as fu">
+        <span class="fm-toast-fare__icon">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.6"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 6L9 17l-5-5" />
+          </svg>
+        </span>
+        <div class="fm-toast-fare__body">
+          <div class="fm-toast-fare__route">
+            <span class="fm-toast-fare__operator">{{ fu.operatorName }}</span>
+            <span class="fm-toast-fare__sep">·</span>
+            <span class="fm-toast-fare__code">{{ fu.routeCode }}</span>
+          </div>
+          <div class="fm-toast-fare__vehicle">
+            {{ fu.vehicleModel }}
+            <span class="fm-toast-fare__ac">({{ fu.acType ?? 'N/A' }})</span>
+          </div>
+          <div class="fm-toast-fare__label">FARE UPDATED</div>
+          <div class="fm-toast-fare__change">
+            <span class="fm-toast-fare__old">৳{{ fu.oldFare }}</span>
+            <svg class="fm-toast-fare__arrow" viewBox="0 0 24 24" width="13" height="13" fill="none"
+              stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14M13 6l6 6-6 6" />
+            </svg>
+            <span class="fm-toast-fare__new">৳{{ fu.newFare }}</span>
+          </div>
+        </div>
+      </ng-container>
+
       <button class="fm-toast__close" (click)="dismissToast(toast.id)" type="button" aria-label="Dismiss">
-        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6"
+          stroke-linecap="round">
+          <path d="M18 6L6 18M6 6l12 12" />
+        </svg>
       </button>
     </div>
   </div>
@@ -24,11 +75,12 @@
   <div class="fm-header">
     <div class="fm-header-left">
       <span class="fm-header-icon">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="3" width="7" height="7" rx="1.2"/>
-          <rect x="14" y="3" width="7" height="7" rx="1.2"/>
-          <rect x="3" y="14" width="7" height="7" rx="1.2"/>
-          <rect x="14" y="14" width="7" height="7" rx="1.2"/>
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1.2" />
+          <rect x="14" y="3" width="7" height="7" rx="1.2" />
+          <rect x="3" y="14" width="7" height="7" rx="1.2" />
+          <rect x="14" y="14" width="7" height="7" rx="1.2" />
         </svg>
       </span>
       <div>
@@ -40,10 +92,18 @@
 
   <!-- SEARCH -->
   <div class="fm-search-bar" *ngIf="!loading && !error">
-    <svg class="fm-search-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-    <input type="text" [(ngModel)]="operatorSearch" placeholder="Search operator…" class="fm-search-input" autocomplete="off" />
+    <svg class="fm-search-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor"
+      stroke-width="2.2" stroke-linecap="round">
+      <circle cx="11" cy="11" r="7" />
+      <path d="M21 21l-4.3-4.3" />
+    </svg>
+    <input type="text" [(ngModel)]="operatorSearch" placeholder="Search operator…" class="fm-search-input"
+      autocomplete="off" />
     <button *ngIf="operatorSearch" type="button" class="fm-search-clear" (click)="operatorSearch = ''" title="Clear">
-      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6"
+        stroke-linecap="round">
+        <path d="M18 6L6 18M6 6l12 12" />
+      </svg>
     </button>
   </div>
 
@@ -55,19 +115,31 @@
 
   <!-- ERROR -->
   <div class="fm-empty" *ngIf="!loading && error">
-    <svg class="fm-empty__icon" viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.29 3.86l-8.18 14.18A1.5 1.5 0 003.5 20.5h17a1.5 1.5 0 001.39-2.46L13.71 3.86a1.5 1.5 0 00-2.42 0z"/></svg>
+    <svg class="fm-empty__icon" viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path
+        d="M12 9v4M12 17h.01M10.29 3.86l-8.18 14.18A1.5 1.5 0 003.5 20.5h17a1.5 1.5 0 001.39-2.46L13.71 3.86a1.5 1.5 0 00-2.42 0z" />
+    </svg>
     <p>Couldn't load the fare matrix. Please try again shortly.</p>
   </div>
 
   <!-- EMPTY -->
   <div class="fm-empty" *ngIf="!loading && !error && operatorRows.length === 0">
-    <svg class="fm-empty__icon" viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M3 9h18"/></svg>
+    <svg class="fm-empty__icon" viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <path d="M9 3v18M3 9h18" />
+    </svg>
     <p>No bus schedules found to build a fare matrix from.</p>
   </div>
 
   <!-- SEARCH EMPTY -->
   <div class="fm-empty" *ngIf="!loading && !error && operatorRows.length > 0 && filteredOperatorRows.length === 0">
-    <svg class="fm-empty__icon" viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    <svg class="fm-empty__icon" viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor"
+      stroke-width="1.6" stroke-linecap="round">
+      <circle cx="11" cy="11" r="7" />
+      <path d="M21 21l-4.3-4.3" />
+    </svg>
     <p>No operators match "{{ operatorSearch }}".</p>
   </div>
 
@@ -96,17 +168,21 @@
                 <div class="fm-vehicle-row" *ngFor="let cell of getCells(row, col.id); trackBy: trackCell">
                   <div class="fm-vehicle-info">
                     <span class="fm-vehicle-model">{{ cell.vehicleModel }}</span>
-                    <span class="fm-vehicle-ac" [class.fm-vehicle-ac--nonac]="cell.acType === 'Non AC'">{{ cell.acType ?? 'N/A' }}</span>
+                    <span class="fm-vehicle-ac" [class.fm-vehicle-ac--nonac]="cell.acType === 'Non AC'">{{ cell.acType
+                      ?? 'N/A' }}</span>
                   </div>
                   <div class="fm-fare-input-wrap"
-                       [class.fm-fare-input-wrap--dirty]="cell.dirty && !cell.saving"
-                       [class.fm-fare-input-wrap--saving]="cell.saving"
-                       [class.fm-fare-input-wrap--error]="cell.saveError">
+                    [class.fm-fare-input-wrap--dirty]="cell.dirty && !cell.saving && !cell.saved"
+                    [class.fm-fare-input-wrap--saving]="cell.saving" [class.fm-fare-input-wrap--saved]="cell.saved"
+                    [class.fm-fare-input-wrap--error]="cell.saveError && !cell.saving">
                     <span class="fm-currency">৳</span>
                     <input type="number" min="0" class="fm-fare-input" [(ngModel)]="cell.fare"
                       (ngModelChange)="onFareChange(cell)" [attr.aria-label]="cell.vehicleModel + ' fare'" />
                     <span class="fm-status-dot fm-status-dot--saving" *ngIf="cell.saving" title="Saving…"></span>
-                    <span class="fm-status-dot fm-status-dot--error" *ngIf="cell.saveError && !cell.saving" title="Save failed"></span>
+                    <span class="fm-status-dot fm-status-dot--saved" *ngIf="cell.saved && !cell.saving"
+                      title="Saved"></span>
+                    <span class="fm-status-dot fm-status-dot--error" *ngIf="cell.saveError && !cell.saving"
+                      title="Save failed"></span>
                   </div>
                 </div>
               </div>
