@@ -179,6 +179,14 @@ export class TrainTicketComponent implements OnInit, OnDestroy {
   todayString: string = '';
   selectedBaseFare: number = 0;
 
+  // ── From/To search-box state ─────────────────────────────────────────────────
+  fromLocationSearch: string = '';
+  toLocationSearch: string = '';
+  showFromSuggestions = false;
+  showToSuggestions = false;
+  /** True once the agent's home station was successfully auto-detected from their username. */
+  agentStationLocked = false;
+
   // ── UI ───────────────────────────────────────────────────────────────────────
   showModal = false;
   showCancelConfirmModal = false;
@@ -418,7 +426,10 @@ export class TrainTicketComponent implements OnInit, OnDestroy {
       error: (e) => console.error(e),
     });
     this.locationService.getAllLocations().subscribe({
-      next: (d) => (this.locations = d),
+      next: (d) => {
+        this.locations = d;
+        this.lockAgentHomeStation();
+      },
       error: (e) => console.error(e),
     });
 
@@ -436,50 +447,67 @@ export class TrainTicketComponent implements OnInit, OnDestroy {
   }
 
   loadTickets(): void {
-  this.ticketService.getTickets().subscribe({
-    next: (d) => {
-      const allTickets = d as TrainTicketDto[];
+    this.ticketService.getTickets().subscribe({
+      next: (d) => {
+        const allTickets = d as TrainTicketDto[];
 
-      this.tickets = allTickets
-        .filter((ticket) => {
-          const trip = this.trips.find((t) => t.id === ticket.tripId);
-          if (!trip) return false;
+        this.tickets = allTickets
+          .filter((ticket) => {
+            const trip = this.trips.find((t) => t.id === ticket.tripId);
+            if (!trip) return false;
 
-          const schedule = this.schedules.find(
-            (s) => s.id === trip.scheduleId
+            const schedule = this.schedules.find(
+              (s) => s.id === trip.scheduleId,
+            );
+            if (!schedule) return false;
+
+            const vehicle = this.vehicles.find(
+              (v) => v.id === schedule.vehicleId,
+            );
+
+            return vehicle?.type === 'Train';
+          })
+          .sort(
+            (a, b) =>
+              new Date(b.bookingDateTime).getTime() -
+              new Date(a.bookingDateTime).getTime(),
           );
-          if (!schedule) return false;
 
-          const vehicle = this.vehicles.find(
-            (v) => v.id === schedule.vehicleId
-          );
+        // Set default sorting state
+        this.sortField = 'bookingDateTime';
+        this.sortAsc = false;
 
-          return vehicle?.type === 'Train';
-        })
-        .sort(
-          (a, b) =>
-            new Date(b.bookingDateTime).getTime() -
-            new Date(a.bookingDateTime).getTime()
-        );
-
-      // Set default sorting state
-      this.sortField = 'bookingDateTime';
-      this.sortAsc = false;
-
-      this.updatePagination();
-    },
-    error: (e) => console.error(e),
-  });
-}
+        this.updatePagination();
+      },
+      error: (e) => console.error(e),
+    });
+  }
 
   // ── From / To (route picker) ─────────────────────────────────────────────────
 
-  /** All unique locations that are a valid departure ("From") point on some route. */
   get fromLocations(): LocationDto[] {
+    const home = this.resolveAgentHomeLocation();
+    if (home) return [home];
+    // Fallback: couldn't auto-detect the agent's station — don't block the page,
+    // let them pick manually from any valid departure location.
     const codes = new Set(this.routes.map((r) => r.departureLocationCode));
     return this.locations
       .filter((l) => codes.has(l.locationCode ?? ''))
       .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  /** Locations matching what's currently typed in the From input. */
+  get filteredFromLocations(): LocationDto[] {
+    const q = this.fromLocationSearch.trim().toLowerCase();
+    if (!q) return this.fromLocations;
+    return this.fromLocations.filter((l) => l.name.toLowerCase().includes(q));
+  }
+
+  /** Locations matching what's currently typed in the To input. */
+  get filteredToLocations(): LocationDto[] {
+    const q = this.toLocationSearch.trim().toLowerCase();
+    if (!q) return this.toLocations;
+    return this.toLocations.filter((l) => l.name.toLowerCase().includes(q));
   }
 
   /** Locations reachable ("To") from the currently selected From location. */
@@ -497,6 +525,7 @@ export class TrainTicketComponent implements OnInit, OnDestroy {
 
   onFromLocationChange(): void {
     this.selectedToLocation = '';
+    this.toLocationSearch = '';
     this.selectedRouteCode = '';
     this.availableVehicles = [];
     this.selectedArrivalDate = '';
@@ -523,6 +552,63 @@ export class TrainTicketComponent implements OnInit, OnDestroy {
 
     this.selectedRouteCode = String(route.id);
     this.calculateArrivalDate();
+  }
+
+  openFromSuggestions(): void {
+    this.showFromSuggestions = true;
+  }
+
+  closeFromSuggestions(): void {
+    this.showFromSuggestions = false;
+  }
+
+  openToSuggestions(): void {
+    if (!this.selectedFromLocation) return;
+    this.showToSuggestions = true;
+  }
+
+  closeToSuggestions(): void {
+    this.showToSuggestions = false;
+  }
+
+  /** Fires on every keystroke in the From input. */
+  onFromSearchChange(): void {
+    this.showFromSuggestions = true;
+    const current = this.locations.find(
+      (l) => l.locationCode === this.selectedFromLocation,
+    );
+    if (
+      this.selectedFromLocation &&
+      current?.name !== this.fromLocationSearch
+    ) {
+      this.selectedFromLocation = '';
+      this.onFromLocationChange();
+    }
+  }
+
+  /** Fires on every keystroke in the To input. */
+  onToSearchChange(): void {
+    this.showToSuggestions = true;
+    const current = this.locations.find(
+      (l) => l.locationCode === this.selectedToLocation,
+    );
+    if (this.selectedToLocation && current?.name !== this.toLocationSearch) {
+      this.selectedToLocation = '';
+    }
+  }
+
+  selectFromLocation(loc: LocationDto): void {
+    this.selectedFromLocation = loc.locationCode ?? '';
+    this.fromLocationSearch = loc.name;
+    this.showFromSuggestions = false;
+    this.onFromLocationChange();
+  }
+
+  selectToLocation(loc: LocationDto): void {
+    this.selectedToLocation = loc.locationCode ?? '';
+    this.toLocationSearch = loc.name;
+    this.showToSuggestions = false;
+    this.onToLocationChange();
   }
 
   swapLocations(): void {
@@ -552,9 +638,68 @@ export class TrainTicketComponent implements OnInit, OnDestroy {
     if (route) {
       this.selectedFromLocation = route.departureLocationCode;
       this.selectedToLocation = route.destinationLocationCode;
+      this.fromLocationSearch = this.getLocationName(
+        route.departureLocationCode,
+      );
+      this.toLocationSearch = this.getLocationName(
+        route.destinationLocationCode,
+      );
     } else {
       this.selectedFromLocation = '';
       this.selectedToLocation = '';
+      this.fromLocationSearch = '';
+      this.toLocationSearch = '';
+    }
+  }
+
+  /** Strips a trailing "_Station" (any case) off a username: "Dhaka_Station" → "Dhaka". */
+  private deriveStationNameFromUsername(username: string): string {
+    return username.replace(/_?Station$/i, '').trim();
+  }
+
+  /** Matches the agent's username to a real LocationDto — tries exact code,
+   *  exact name, then loose name matches, so both full names ("Dhaka") and
+   *  abbreviations ("CTG") in the username work. */
+  private resolveAgentHomeLocation(): LocationDto | undefined {
+    const username = getUserName();
+    if (!username) return undefined;
+    const stationPart =
+      this.deriveStationNameFromUsername(username).toLowerCase();
+    if (!stationPart) return undefined;
+
+    let match = this.locations.find(
+      (l) => (l.locationCode ?? '').toLowerCase() === stationPart,
+    );
+    if (match) return match;
+
+    match = this.locations.find((l) => l.name.toLowerCase() === stationPart);
+    if (match) return match;
+
+    match = this.locations.find((l) =>
+      l.name.toLowerCase().startsWith(stationPart),
+    );
+    if (match) return match;
+
+    return this.locations.find((l) =>
+      l.name.toLowerCase().includes(stationPart),
+    );
+  }
+
+  /** Pre-fills and locks the From field to the agent's own station.
+   *  Falls back to a free choice among all departure locations, with a
+   *  warning toast, if the username can't be matched to a station. */
+  private lockAgentHomeStation(): void {
+    const home = this.resolveAgentHomeLocation();
+    if (home) {
+      this.selectedFromLocation = home.locationCode ?? '';
+      this.fromLocationSearch = home.name;
+      this.agentStationLocked = true;
+    } else {
+      this.agentStationLocked = false;
+      this.showToast(
+        'warn',
+        "Couldn't detect your station from your username — please select it manually.",
+      );
     }
   }
 
@@ -1640,8 +1785,8 @@ export class TrainTicketComponent implements OnInit, OnDestroy {
     const name = getUserName();
     if (name) this.selectedTicket.passengerName = name;
     this.selectedRouteCode = '';
-    this.selectedFromLocation = '';
     this.selectedToLocation = '';
+    this.toLocationSearch = '';
     this.selectedVehicleCode = '';
     this.selectedDepartureDate = '';
     this.selectedArrivalDate = '';
@@ -1737,8 +1882,8 @@ export class TrainTicketComponent implements OnInit, OnDestroy {
     await this.closeSeatPanel(releaseLocks);
     this.selectedTicket = this.emptyTicket();
     this.selectedRouteCode = '';
-    this.selectedFromLocation = '';
     this.selectedToLocation = '';
+    this.toLocationSearch = '';
     this.selectedVehicleCode = '';
     this.selectedDepartureDate = '';
     this.selectedArrivalDate = '';

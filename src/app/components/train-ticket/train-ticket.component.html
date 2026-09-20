@@ -41,34 +41,41 @@
         <div class="agent-route-card">
           <div class="location-row">
 
-            <div class="location-field">
+            <div class="location-field location-field--autocomplete">
               <span class="location-field-icon">🚉</span>
               <div class="location-field-body">
-                <label for="fromLocation">From</label>
-                <select [(ngModel)]="selectedFromLocation" name="fromLocation" id="fromLocation" required
-                  (change)="onFromLocationChange()">
-                  <option value="" disabled selected>Select origin</option>
-                  <option *ngFor="let l of fromLocations" [value]="l.locationCode">{{ l.name }}</option>
-                </select>
+                <label for="fromLocation">
+                  From
+                  <span class="locked-badge" *ngIf="agentStationLocked">🔒 Your Station</span>
+                </label>
+                <input type="text" id="fromLocation" name="fromLocation" autocomplete="off"
+                  placeholder="Type your station…" [(ngModel)]="fromLocationSearch" required
+                  (ngModelChange)="onFromSearchChange()" (focus)="openFromSuggestions()"
+                  (blur)="closeFromSuggestions()" />
               </div>
+              <ul class="location-suggestions" *ngIf="showFromSuggestions && filteredFromLocations.length">
+                <li *ngFor="let l of filteredFromLocations" (mousedown)="selectFromLocation(l)">{{ l.name }}</li>
+              </ul>
             </div>
 
-            <button type="button" class="swap-btn" (click)="swapLocations()"
-              [disabled]="!selectedFromLocation || !selectedToLocation" title="Swap From / To">⇄</button>
-
-            <div class="location-field">
+            <div class="location-field location-field--autocomplete">
               <span class="location-field-icon">🏁</span>
               <div class="location-field-body">
                 <label for="toLocation">To</label>
-                <select [(ngModel)]="selectedToLocation" name="toLocation" id="toLocation" required
-                  [disabled]="!selectedFromLocation" (change)="onToLocationChange()">
-                  <option value="" disabled selected>Select destination</option>
-                  <option *ngFor="let l of toLocations" [value]="l.locationCode">{{ l.name }}</option>
-                </select>
+                <input type="text" id="toLocation" name="toLocation" autocomplete="off"
+                  placeholder="Type a destination…" [(ngModel)]="toLocationSearch" required
+                  [disabled]="!selectedFromLocation" (ngModelChange)="onToSearchChange()" (focus)="openToSuggestions()"
+                  (blur)="closeToSuggestions()" />
               </div>
+              <ul class="location-suggestions" *ngIf="showToSuggestions && filteredToLocations.length">
+                <li *ngFor="let l of filteredToLocations" (mousedown)="selectToLocation(l)">{{ l.name }}</li>
+              </ul>
             </div>
 
           </div>
+          <p class="from-lock-hint" *ngIf="agentStationLocked">
+            Your station is fixed as the departure point. Type to search destinations only.
+          </p>
 
           <div class="date-row">
             <div class="form-group">
@@ -109,8 +116,7 @@
               <div class="filter-group-title">Train Class</div>
               <div class="filter-pill-row">
                 <button type="button" class="filter-pill" *ngFor="let opt of classFilterOptions"
-                  [class.active]="selectedClassFilters.has(opt.value)"
-                  (click)="toggleClassFilter(opt.value)">
+                  [class.active]="selectedClassFilters.has(opt.value)" (click)="toggleClassFilter(opt.value)">
                   <span class="filter-pill-icon">{{ opt.icon }}</span>
                   <span class="filter-pill-label">{{ opt.label }}</span>
                   <span class="filter-pill-count">{{ opt.count }}</span>
@@ -123,8 +129,7 @@
               <div class="filter-group-title">Departure Time</div>
               <div class="filter-block-stack">
                 <button type="button" class="filter-block-btn" *ngFor="let opt of timeFilterOptions"
-                  [class.active]="selectedTimeFilters.has(opt.value)"
-                  (click)="toggleTimeFilter(opt.value)">
+                  [class.active]="selectedTimeFilters.has(opt.value)" (click)="toggleTimeFilter(opt.value)">
                   <span class="filter-block-icon">{{ opt.icon }}</span>
                   <span class="filter-block-label">{{ opt.label }}</span>
                   <span class="filter-block-count">{{ opt.count }}</span>
@@ -146,7 +151,8 @@
                       <div class="model-cell">
                         <img *ngIf="getBrandLogo(v.model)" [src]="getBrandLogo(v.model)" [alt]="getBrandName(v.model)"
                           class="brand-logo" />
-                        <span *ngIf="!getBrandLogo(v.model)" class="brand-fallback">{{ getBrandInitial(v.model) }}</span>
+                        <span *ngIf="!getBrandLogo(v.model)" class="brand-fallback">{{ getBrandInitial(v.model)
+                          }}</span>
                         <div class="train-name-row">
                           <span class="train-icon"></span>
                           <span class="train-name">{{ v.model }}</span>
@@ -166,7 +172,8 @@
                         <div class="time-block">
                           <span class="time">{{ getDepartureTimeForVehicle(v.id) }}</span>
                           <span class="station">Departure</span>
-                          <span class="time-cat-badge">{{ getTimeCategoryIcon(v.id) }} {{ getTimeCategoryShortLabel(v.id) }}</span>
+                          <span class="time-cat-badge">{{ getTimeCategoryIcon(v.id) }} {{
+                            getTimeCategoryShortLabel(v.id) }}</span>
                         </div>
                       </div>
                       <div class="journey-path">
@@ -249,7 +256,8 @@
                       <div class="berth-layout-area">
                         <div class="berth-intro">
                           <span class="berth-intro-icon">🛏️</span>
-                          <span class="berth-intro-text">Select a berth compartment, then pick your berth position</span>
+                          <span class="berth-intro-text">Select a berth compartment, then pick your berth
+                            position</span>
                         </div>
                         <div class="bogies-container">
                           <div *ngFor="let bogie of getActiveBogies()" class="bogie-card">
@@ -276,7 +284,8 @@
                                     [disabled]="seat.status === 'reserved' || seat.status === 'locked'"
                                     [title]="seat.status === 'reserved' ? 'Already booked' : seat.status === 'locked' ? 'Selected by another user' : seat.seatNumber"
                                     (click)="toggleSeat(seat)">
-                                    <span class="berth-position-icon">{{ getBerthPositionIcon(seat.berthPosition) }}</span>
+                                    <span class="berth-position-icon">{{ getBerthPositionIcon(seat.berthPosition)
+                                      }}</span>
                                     <span class="berth-seat-num">{{ seat.seatNumber }}</span>
                                     <span class="berth-pos-label">{{ seat.berthPosition }}</span>
                                   </button>
@@ -364,7 +373,8 @@
                       <div class="fare-summary-inner">
                         <div class="fare-section">
                           <p class="fare-section-label">Class</p>
-                          <span class="class-badge" [ngClass]="getClassTagCss(activeClassTab)">{{ activeClassTab }}</span>
+                          <span class="class-badge" [ngClass]="getClassTagCss(activeClassTab)">{{ activeClassTab
+                            }}</span>
                         </div>
                         <div class="fare-divider"></div>
                         <div class="fare-section">
@@ -382,15 +392,18 @@
                         <div class="fare-section">
                           <p class="fare-section-label">Fare Details</p>
                           <div class="fare-line">
-                            <span class="fare-line-desc">({{ selectedBaseFare | number }}) × {{ selectedSeats.length || 1
+                            <span class="fare-line-desc">({{ selectedBaseFare | number }}) × {{ selectedSeats.length ||
+                              1
                               }}</span>
-                            <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number
+                            <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) |
+                              number
                               }}</span>
                           </div>
                           <div class="fare-divider slim"></div>
                           <div class="fare-line">
                             <span class="fare-line-desc">Subtotal</span>
-                            <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number
+                            <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) |
+                              number
                               }}</span>
                           </div>
                         </div>
@@ -592,31 +605,35 @@
             <div class="agent-route-card">
               <div class="location-row">
 
-                <div class="location-field">
+                <div class="location-field location-field--autocomplete">
                   <span class="location-field-icon">🚉</span>
                   <div class="location-field-body">
-                    <label for="editFromLocation">From</label>
-                    <select [(ngModel)]="selectedFromLocation" name="editFromLocation" id="editFromLocation" required
-                      (change)="onFromLocationChange()">
-                      <option value="" disabled selected>Select origin</option>
-                      <option *ngFor="let l of fromLocations" [value]="l.locationCode">{{ l.name }}</option>
-                    </select>
+                    <label for="editFromLocation">
+                      From
+                      <span class="locked-badge" *ngIf="agentStationLocked">🔒 Your Station</span>
+                    </label>
+                    <input type="text" id="editFromLocation" name="editFromLocation" autocomplete="off"
+                      placeholder="Type your station…" [(ngModel)]="fromLocationSearch" required
+                      (ngModelChange)="onFromSearchChange()" (focus)="openFromSuggestions()"
+                      (blur)="closeFromSuggestions()" />
                   </div>
+                  <ul class="location-suggestions" *ngIf="showFromSuggestions && filteredFromLocations.length">
+                    <li *ngFor="let l of filteredFromLocations" (mousedown)="selectFromLocation(l)">{{ l.name }}</li>
+                  </ul>
                 </div>
 
-                <button type="button" class="swap-btn" (click)="swapLocations()"
-                  [disabled]="!selectedFromLocation || !selectedToLocation" title="Swap From / To">⇄</button>
-
-                <div class="location-field">
+                <div class="location-field location-field--autocomplete">
                   <span class="location-field-icon">🏁</span>
                   <div class="location-field-body">
                     <label for="editToLocation">To</label>
-                    <select [(ngModel)]="selectedToLocation" name="editToLocation" id="editToLocation" required
-                      [disabled]="!selectedFromLocation" (change)="onToLocationChange()">
-                      <option value="" disabled selected>Select destination</option>
-                      <option *ngFor="let l of toLocations" [value]="l.locationCode">{{ l.name }}</option>
-                    </select>
+                    <input type="text" id="editToLocation" name="editToLocation" autocomplete="off"
+                      placeholder="Type a destination…" [(ngModel)]="toLocationSearch" required
+                      [disabled]="!selectedFromLocation" (ngModelChange)="onToSearchChange()"
+                      (focus)="openToSuggestions()" (blur)="closeToSuggestions()" />
                   </div>
+                  <ul class="location-suggestions" *ngIf="showToSuggestions && filteredToLocations.length">
+                    <li *ngFor="let l of filteredToLocations" (mousedown)="selectToLocation(l)">{{ l.name }}</li>
+                  </ul>
                 </div>
 
               </div>
@@ -661,8 +678,7 @@
                   <div class="filter-group-title">Train Class</div>
                   <div class="filter-pill-row">
                     <button type="button" class="filter-pill" *ngFor="let opt of classFilterOptions"
-                      [class.active]="selectedClassFilters.has(opt.value)"
-                      (click)="toggleClassFilter(opt.value)">
+                      [class.active]="selectedClassFilters.has(opt.value)" (click)="toggleClassFilter(opt.value)">
                       <span class="filter-pill-icon">{{ opt.icon }}</span>
                       <span class="filter-pill-label">{{ opt.label }}</span>
                       <span class="filter-pill-count">{{ opt.count }}</span>
@@ -675,8 +691,7 @@
                   <div class="filter-group-title">Departure Time</div>
                   <div class="filter-block-stack">
                     <button type="button" class="filter-block-btn" *ngFor="let opt of timeFilterOptions"
-                      [class.active]="selectedTimeFilters.has(opt.value)"
-                      (click)="toggleTimeFilter(opt.value)">
+                      [class.active]="selectedTimeFilters.has(opt.value)" (click)="toggleTimeFilter(opt.value)">
                       <span class="filter-block-icon">{{ opt.icon }}</span>
                       <span class="filter-block-label">{{ opt.label }}</span>
                       <span class="filter-block-count">{{ opt.count }}</span>
@@ -693,8 +708,8 @@
                       <div class="vehicle-info-main">
                         <div class="vehicle-left">
                           <div class="model-cell">
-                            <img *ngIf="getBrandLogo(v.model)" [src]="getBrandLogo(v.model)" [alt]="getBrandName(v.model)"
-                              class="brand-logo" />
+                            <img *ngIf="getBrandLogo(v.model)" [src]="getBrandLogo(v.model)"
+                              [alt]="getBrandName(v.model)" class="brand-logo" />
                             <span *ngIf="!getBrandLogo(v.model)" class="brand-fallback">{{ getBrandInitial(v.model)
                               }}</span>
                             <div class="train-name-row">
@@ -715,7 +730,8 @@
                             <div class="time-block">
                               <span class="time">{{ getDepartureTimeForVehicle(v.id) }}</span>
                               <span class="station">Departure</span>
-                              <span class="time-cat-badge">{{ getTimeCategoryIcon(v.id) }} {{ getTimeCategoryShortLabel(v.id) }}</span>
+                              <span class="time-cat-badge">{{ getTimeCategoryIcon(v.id) }} {{
+                                getTimeCategoryShortLabel(v.id) }}</span>
                             </div>
                           </div>
                           <div class="journey-path"><span class="journey-icon">🛤️</span></div>
@@ -737,7 +753,8 @@
                             </ng-container>
                             <ng-template #modalSeatsAvail>{{ getTotalAvailableSeats(v.id) }} seats left</ng-template>
                           </div>
-                          <button type="button" class="btn primary small" [disabled]="getTotalAvailableSeats(v.id) === 0"
+                          <button type="button" class="btn primary small"
+                            [disabled]="getTotalAvailableSeats(v.id) === 0"
                             (click)="openSeatPanel(v.vehicleCode, v.id)">
                             {{ seatBookingBusId === v.id ? '✕ Close' : '🪑 Select Seats' }}
                           </button>
@@ -914,7 +931,8 @@
                             <div class="fare-section">
                               <p class="fare-section-label">Fare Details</p>
                               <div class="fare-line">
-                                <span class="fare-line-desc">({{ selectedBaseFare | number }}) × {{ selectedSeats.length ||
+                                <span class="fare-line-desc">({{ selectedBaseFare | number }}) × {{ selectedSeats.length
+                                  ||
                                   1 }}</span>
                                 <span class="fare-line-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) |
                                   number }}</span>
@@ -928,7 +946,8 @@
                             </div>
                             <div class="fare-total-box">
                               <span class="fare-total-label">Total Fare</span>
-                              <span class="fare-total-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) | number
+                              <span class="fare-total-amount">৳ {{ (selectedBaseFare * (selectedSeats.length || 1)) |
+                                number
                                 }}</span>
                             </div>
                           </div>
