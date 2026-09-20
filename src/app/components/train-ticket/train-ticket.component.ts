@@ -1452,6 +1452,13 @@ export class TrainTicketComponent implements OnInit, OnDestroy {
     return 'high';
   }
 
+  /** A ticket's trip is upcoming if its booking date is today or later. */
+  isUpcoming(bookingDateTime: string): boolean {
+    return (
+      new Date(bookingDateTime).getTime() >= new Date().setHours(0, 0, 0, 0)
+    );
+  }
+
   // ─────────────────────────────────────────────────────────────────────────────
   // HELPERS
   // ─────────────────────────────────────────────────────────────────────────────
@@ -1899,9 +1906,16 @@ export class TrainTicketComponent implements OnInit, OnDestroy {
 
   get filteredTickets(): TrainTicketDto[] {
     const q = this.passengerSearch.trim().toLowerCase();
-    return q
-      ? this.tickets.filter((t) => t.passengerName?.toLowerCase().includes(q))
-      : this.tickets;
+
+    return this.tickets.filter((t) => {
+      // Only show trips that haven't happened yet, and aren't cancelled.
+      const isUpcomingTrip =
+        t.status !== 'Cancelled' && this.isUpcoming(t.bookingDateTime);
+      if (!isUpcomingTrip) return false;
+
+      if (!q) return true;
+      return t.passengerName?.toLowerCase().includes(q);
+    });
   }
 
   onSearchChange(): void {

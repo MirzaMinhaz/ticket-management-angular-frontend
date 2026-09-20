@@ -34,19 +34,16 @@
 
       <!-- SECTION 1: From / To Route Search + Dates -->
       <div class="section section-route-search">
-        <h4 class="section-title">
-          <span class="section-icon">📍</span> Route &amp; Dates
-        </h4>
+        <h4 class="section-title">Route &amp; Dates</h4>
 
         <div class="agent-route-card">
           <div class="location-row">
 
-            <div class="location-field location-field--autocomplete">
-              <span class="location-field-icon">🚉</span>
+            <div class="location-field">
               <div class="location-field-body">
                 <label for="fromLocation">
                   From
-                  <span class="locked-badge" *ngIf="agentStationLocked">🔒 Your Station</span>
+                  <span class="locked-badge" *ngIf="agentStationLocked">Fixed</span>
                 </label>
                 <input type="text" id="fromLocation" name="fromLocation" autocomplete="off"
                   placeholder="Type your station…" [(ngModel)]="fromLocationSearch" required
@@ -58,8 +55,7 @@
               </ul>
             </div>
 
-            <div class="location-field location-field--autocomplete">
-              <span class="location-field-icon">🏁</span>
+            <div class="location-field">
               <div class="location-field-body">
                 <label for="toLocation">To</label>
                 <input type="text" id="toLocation" name="toLocation" autocomplete="off"
@@ -600,17 +596,16 @@
 
           <!-- Route & Dates -->
           <div class="section section-route-search">
-            <h4 class="section-title"><span class="section-icon">📍</span> Route &amp; Dates</h4>
+            <h4 class="section-title">Route &amp; Dates</h4>
 
             <div class="agent-route-card">
               <div class="location-row">
 
-                <div class="location-field location-field--autocomplete">
-                  <span class="location-field-icon">🚉</span>
+                <div class="location-field">
                   <div class="location-field-body">
                     <label for="editFromLocation">
                       From
-                      <span class="locked-badge" *ngIf="agentStationLocked">🔒 Your Station</span>
+                      <span class="locked-badge" *ngIf="agentStationLocked">Fixed</span>
                     </label>
                     <input type="text" id="editFromLocation" name="editFromLocation" autocomplete="off"
                       placeholder="Type your station…" [(ngModel)]="fromLocationSearch" required
@@ -622,8 +617,7 @@
                   </ul>
                 </div>
 
-                <div class="location-field location-field--autocomplete">
-                  <span class="location-field-icon">🏁</span>
+                <div class="location-field">
                   <div class="location-field-body">
                     <label for="editToLocation">To</label>
                     <input type="text" id="editToLocation" name="editToLocation" autocomplete="off"
