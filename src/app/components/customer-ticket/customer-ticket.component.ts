@@ -140,6 +140,10 @@ export class CustomerTicketComponent implements OnInit {
   // ── Save confirmation modal state ────────────────────────────────────────────
   showSaveConfirmModal = false;
 
+  // ── Validation error modal state ─────────────────────────────────────────────
+  showValidationErrorModal = false;
+  validationErrors: string[] = [];
+
   /** True while the seat panel is loading from the backend */
   seatPanelLoading = false;
 
@@ -1344,12 +1348,72 @@ export class CustomerTicketComponent implements OnInit {
   }
 
   /**
+   * Runs every required-field check for the current ticket and returns a
+   * human-readable list of everything that's missing. An empty array means
+   * the ticket is ready to save.
+   */
+  private getValidationErrors(): string[] {
+    const errors: string[] = [];
+
+    if (!this.selectedTicket.passengerName?.trim()) {
+      errors.push(
+        this.isAdmin ? 'Passenger Name is required.' : 'Please enter your name.',
+      );
+    }
+    if (!this.selectedTicket.passengerContact?.trim()) {
+      errors.push('Passenger Contact is required.');
+    }
+    if (!this.selectedTicket.seatNumber?.trim()) {
+      errors.push('Please select at least one seat.');
+    }
+    if (!this.selectedTicket.bookingCounterId) {
+      errors.push('Please select a Booking Counter.');
+    }
+    if (!this.selectedTicket.departureCounterId) {
+      errors.push('Please select a Departure Counter.');
+    }
+    if (!this.selectedTicket.arrivalCounterId) {
+      errors.push('Please select an Arrival Counter.');
+    }
+
+    const vehicleId = this.vehicles.find(
+      (v) => v.vehicleCode === this.selectedVehicleCode,
+    )?.id;
+    const schedule = this.schedules.find(
+      (s) =>
+        s.routeId === Number(this.selectedRouteCode) &&
+        s.vehicleId === vehicleId,
+    );
+    if (!schedule) {
+      errors.push('Please select a valid From, To and Vehicle combination.');
+    }
+
+    return errors;
+  }
+
+  /**
    * Called on form submit (both the Add form and the Edit modal form).
-   * Opens the "Save Ticket?" confirmation modal instead of saving
-   * immediately. The actual save is triggered from confirmSave().
+   * Validates the ticket first: if anything required is missing, shows the
+   * validation-error modal instead. Only when everything checks out does it
+   * open the "Save Ticket?" confirmation modal. The actual save is
+   * triggered from confirmSave().
    */
   requestSaveConfirmation(): void {
+    const errors = this.getValidationErrors();
+
+    if (errors.length > 0) {
+      this.validationErrors = errors;
+      this.showValidationErrorModal = true;
+      return;
+    }
+
     this.showSaveConfirmModal = true;
+  }
+
+  /** Closes the validation-error modal so the person can go fix the form. */
+  closeValidationErrorModal(): void {
+    this.showValidationErrorModal = false;
+    this.validationErrors = [];
   }
 
   /** Cancel button on the save-confirmation modal — closes it without saving. */

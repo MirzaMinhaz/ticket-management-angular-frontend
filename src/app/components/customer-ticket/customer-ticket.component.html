@@ -1336,31 +1336,62 @@
     </div>
   </div>
 
-<!-- ═══════════════════════════════════════════════ -->
-<!-- SAVE CONFIRMATION MODAL                          -->
-<!-- ═══════════════════════════════════════════════ -->
-<div class="modal-overlay" *ngIf="showSaveConfirmModal" (click)="cancelSaveConfirmation()">
-  <div class="modal-panel cancel-modal-panel save-modal-panel" (click)="$event.stopPropagation()">
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- SAVE CONFIRMATION MODAL                          -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div class="modal-overlay" *ngIf="showSaveConfirmModal" (click)="cancelSaveConfirmation()">
+    <div class="modal-panel cancel-modal-panel save-modal-panel" (click)="$event.stopPropagation()">
 
-    <button class="save-modal-close-btn" type="button" (click)="cancelSaveConfirmation()" title="Close">✕</button>
+      <button class="save-modal-close-btn" type="button" (click)="cancelSaveConfirmation()" title="Close">✕</button>
 
-    <div class="cancel-modal-icon save-confirm-icon">
-      <svg viewBox="0 0 24 24" width="26" height="26" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
+      <div class="cancel-modal-icon save-confirm-icon">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <h3 class="cancel-modal-title">Save Ticket?</h3>
+      <p class="cancel-modal-message">
+        Are you sure you want to save this information?
+      </p>
+
+      <div class="cancel-modal-actions">
+        <button class="btn secondary" (click)="cancelSaveConfirmation()">Cancel</button>
+        <button class="btn primary" (click)="confirmSave()">Confirm</button>
+      </div>
+
     </div>
-
-    <h3 class="cancel-modal-title">Save Ticket?</h3>
-    <p class="cancel-modal-message">
-      Are you sure you want to save this information?
-    </p>
-
-    <div class="cancel-modal-actions">
-      <button class="btn secondary" (click)="cancelSaveConfirmation()">Cancel</button>
-      <button class="btn primary" (click)="confirmSave()">Confirm</button>
-    </div>
-
   </div>
-</div>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- VALIDATION ERROR MODAL                           -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div class="modal-overlay" *ngIf="showValidationErrorModal" (click)="closeValidationErrorModal()">
+    <div class="modal-panel cancel-modal-panel save-modal-panel" (click)="$event.stopPropagation()">
+
+      <button class="save-modal-close-btn" type="button" (click)="closeValidationErrorModal()" title="Close">✕</button>
+
+      <div class="cancel-modal-icon validation-error-icon">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 9v4M12 17h.01M10.29 3.86l-8.18 14.18A1.5 1.5 0 003.5 20.5h17a1.5 1.5 0 001.39-2.46L13.71 3.86a1.5 1.5 0 00-2.42 0z"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <h3 class="cancel-modal-title">Incomplete Ticket</h3>
+      <p class="cancel-modal-message">
+        Please fix the following before continuing:
+      </p>
+
+      <ul class="validation-error-list">
+        <li *ngFor="let err of validationErrors">{{ err }}</li>
+      </ul>
+
+      <div class="cancel-modal-actions">
+        <button class="btn primary validation-ok-btn" (click)="closeValidationErrorModal()">Got it, let me fix it</button>
+      </div>
+
+    </div>
+  </div>
 
 </div>
