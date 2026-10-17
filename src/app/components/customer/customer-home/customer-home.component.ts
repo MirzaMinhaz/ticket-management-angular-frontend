@@ -22,7 +22,7 @@ export class CustomerHomeComponent {
   testimonials = [
     {
       quote: "Booked my Cox's Bazar trip in literally two minutes. Didn't think buying a bus ticket could feel this easy.",
-      name: 'Rahim Uddin',
+      name: 'Rahat Hasan',
       loc: 'Dhaka',
       avatar: 'R',
       large: true
