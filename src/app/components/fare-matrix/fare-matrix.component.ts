@@ -21,6 +21,8 @@ import { VehicleService } from '../../services/vehicle.service';
 import { OperatorService } from '../../services/operators.service';
 import { ScheduleService } from '../../services/schedule.service';
 import { LocationService } from '../../services/location.service';
+/** Fares must be strictly below this value. */
+const MAX_FARE = 5000;
 
 /** One editable fare — a single vehicle's fare on a single route, under one operator. */
 interface FareCell {
@@ -36,6 +38,8 @@ interface FareCell {
   saveError: boolean;
   saved: boolean;
   /** Denormalized context, set once at build time, used for toast copy. */
+  invalid: boolean; // 👈 new
+  revertTimer?: ReturnType<typeof setTimeout>; // 👈 new (optional, so buildMatrix needs no change)
   operatorName: string;
   routeCode: string;
 }
@@ -135,6 +139,11 @@ export class FareMatrixComponent implements OnInit, OnDestroy {
           group$.pipe(
             debounceTime(600),
             switchMap((cell) => {
+              // Reverted or invalid during the debounce window, so nothing to save
+              if (cell.fare >= MAX_FARE || cell.fare === cell.originalFare) {
+                cell.dirty = false;
+                return EMPTY;
+              }
               cell.saving = true;
               cell.saveError = false;
               return this.scheduleService
@@ -310,6 +319,7 @@ export class FareMatrixComponent implements OnInit, OnDestroy {
                 saving: false,
                 saveError: false,
                 saved: false,
+                invalid: false, // 👈 new
                 operatorName: op.name,
                 routeCode: routeById.get(col.id)?.code ?? col.code,
               });
@@ -358,13 +368,44 @@ export class FareMatrixComponent implements OnInit, OnDestroy {
   /** Fires on every keystroke — flags the cell, and (if valid) queues an
    *  auto-save that will actually hit the backend ~600ms after typing stops. */
   onFareChange(cell: FareCell): void {
-    cell.dirty = cell.fare !== cell.originalFare;
-    cell.saved = false; // cancel any in-progress green pulse
+    cell.saved = false;
+
+    // Any new edit cancels a pending revert; we re-evaluate below
+    if (cell.revertTimer) {
+      clearTimeout(cell.revertTimer);
+      cell.revertTimer = undefined;
+    }
 
     if (cell.fare == null || cell.fare < 0 || isNaN(cell.fare)) {
+      cell.invalid = false;
+      cell.dirty = cell.fare !== cell.originalFare;
       return;
     }
 
+    // Validation: fare must be less than MAX_FARE
+    if (cell.fare >= MAX_FARE) {
+      // Toast only on the transition into invalid, not on every keystroke
+      if (!cell.invalid) {
+        this.showToast('error', `Fare must be less than ৳${MAX_FARE}.`, 2000);
+      }
+
+      cell.invalid = true;
+      cell.dirty = false;
+      cell.saveError = false;
+
+      // After 2 seconds, put the previous (last saved) fare back
+      cell.revertTimer = setTimeout(() => {
+        cell.fare = cell.originalFare;
+        cell.invalid = false;
+        cell.dirty = false;
+        cell.revertTimer = undefined;
+      }, 2000);
+
+      return; // do NOT queue auto-save
+    }
+
+    cell.dirty = cell.fare !== cell.originalFare;
+    cell.invalid = false;
     cell.saveError = false;
     this.fareChange$.next(cell);
   }
