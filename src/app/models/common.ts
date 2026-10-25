@@ -273,6 +273,15 @@ export interface UpdateScheduleDto {
   status: string;
 }
 
+export interface FareHistoryEntry {
+  id: number;
+  operatorName: string;
+  vehicleName: string;
+  previousFare: number;
+  currentFare: number;
+  createdAt: string;
+}
+
 
 // ── User ──────────────────────────────────────────────────────────────────────
 

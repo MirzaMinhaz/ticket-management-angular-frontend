@@ -197,4 +197,51 @@
     </table>
   </div>
 
+    <!-- RECENT FARE UPDATES -->
+  <section class="fm-history" *ngIf="!loading && !error">
+    <div class="fm-history__head">
+      <div class="fm-history__head-left">
+        <span class="fm-history__icon">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 7v5l3 2" />
+          </svg>
+        </span>
+        <div>
+          <h3 class="fm-history__title">Recent Fare Updates</h3>
+          <p class="fm-history__desc">The latest fare changes made across all operators.</p>
+        </div>
+      </div>
+      <span class="fm-history__sub">Latest {{ fareHistory.length }}</span>
+    </div>
+
+    <div class="fm-history__empty" *ngIf="fareHistory.length === 0">
+      No fare updates yet. Changes you make above will appear here.
+    </div>
+
+    <div class="fm-history__scroll" *ngIf="fareHistory.length > 0">
+      <table class="fm-history-table">
+        <thead>
+          <tr>
+            <th>SL.</th>
+            <th>Operator</th>
+            <th>Vehicle Name</th>
+            <th class="fm-num">Previous Fare</th>
+            <th class="fm-num">Current Fare</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let h of fareHistory; let i = index; trackBy: trackHistory">
+            <td class="fm-history-sl"><span class="fm-sl-badge">{{ i + 1 }}</span></td>
+            <td class="fm-history-op">{{ h.operatorName }}</td>
+            <td class="fm-history-vehicle">{{ h.vehicleName }}</td>
+            <td class="fm-num"><span class="fm-pill fm-pill--old">৳{{ h.previousFare }}</span></td>
+            <td class="fm-num"><span class="fm-pill fm-pill--new">৳{{ h.currentFare }}</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
 </div>

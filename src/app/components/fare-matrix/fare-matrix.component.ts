@@ -15,6 +15,7 @@ import {
   OperatorDto,
   ScheduleDto,
   LocationDto,
+  FareHistoryEntry,
 } from '../../models/common';
 import { RouteService } from '../../services/route.service';
 import { VehicleService } from '../../services/vehicle.service';
@@ -23,6 +24,7 @@ import { ScheduleService } from '../../services/schedule.service';
 import { LocationService } from '../../services/location.service';
 /** Fares must be strictly below this value. */
 const MAX_FARE = 5000;
+const HISTORY_LIMIT = 5;
 
 /** One editable fare — a single vehicle's fare on a single route, under one operator. */
 interface FareCell {
@@ -37,7 +39,6 @@ interface FareCell {
   saving: boolean;
   saveError: boolean;
   saved: boolean;
-  /** Denormalized context, set once at build time, used for toast copy. */
   invalid: boolean; // 👈 new
   revertTimer?: ReturnType<typeof setTimeout>; // 👈 new (optional, so buildMatrix needs no change)
   operatorName: string;
@@ -101,6 +102,7 @@ export class FareMatrixComponent implements OnInit, OnDestroy {
   vehicleTypeFilter: 'Bus' = 'Bus';
 
   operatorSearch: string = '';
+  fareHistory: FareHistoryEntry[] = [];
 
   toasts: Toast[] = [];
   private _toastId = 0;
@@ -118,13 +120,19 @@ export class FareMatrixComponent implements OnInit, OnDestroy {
     private locationService: LocationService,
   ) {}
 
-  ngOnInit(): void {
+    ngOnInit(): void {
     this.loadAll();
     this.setupAutoSave();
+    this.refreshHistory();
   }
 
   ngOnDestroy(): void {
     this.fareChange$.complete();
+    for (const row of this.operatorRows) {
+      for (const cells of Object.values(row.cellsByRoute)) {
+        cells.forEach((c) => c.revertTimer && clearTimeout(c.revertTimer));
+      }
+    }
   }
 
   // ── Auto-save pipeline ───────────────────────────────────────────────────────
@@ -187,6 +195,7 @@ export class FareMatrixComponent implements OnInit, OnDestroy {
             // value happens to match what was already there.
             if (oldFare !== updated.baseFare) {
               this.showFareUpdateToast({
+                
                 operatorName: cell.operatorName,
                 routeCode: cell.routeCode,
                 vehicleModel: cell.vehicleModel,
@@ -194,6 +203,7 @@ export class FareMatrixComponent implements OnInit, OnDestroy {
                 oldFare,
                 newFare: updated.baseFare,
               });
+              this.refreshHistory();   // 👈 add here
             }
           }
         },
@@ -408,6 +418,19 @@ export class FareMatrixComponent implements OnInit, OnDestroy {
     cell.invalid = false;
     cell.saveError = false;
     this.fareChange$.next(cell);
+  }
+
+    // ── Fare history (server-side, latest 5) ─────────────────────────────────────
+
+  private refreshHistory(): void {
+    this.scheduleService.getFareHistory(HISTORY_LIMIT).subscribe({
+      next: (rows) => (this.fareHistory = rows),
+      error: (e) => console.error('Failed to load fare history', e),
+    });
+  }
+
+  trackHistory(_: number, h: FareHistoryEntry): number {
+    return h.id;
   }
 
   // ── Toast ────────────────────────────────────────────────────────────────────

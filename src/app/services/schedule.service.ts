@@ -5,6 +5,7 @@ import {
   ScheduleDto,
   CreateScheduleDto,
   UpdateScheduleDto,
+  FareHistoryEntry,
 } from '../models/common';
 import { environment } from '../../environments/environment';
 
@@ -50,6 +51,17 @@ export class ScheduleService {
   ): Observable<ScheduleDto> {
     return this.http.patch<ScheduleDto>(`${this.apiUrl}/${scheduleId}/fare`, {
       baseFare,
+    });
+  }
+
+  //    getFareHistory(take = 5) {
+  //    return this.http.get<FareHistoryEntry[]>(`${this.baseUrl}/fare-history`, { params: { take } });
+  //  }
+
+     // Latest fare updates (server-side history)
+  getFareHistory(take = 5): Observable<FareHistoryEntry[]> {
+    return this.http.get<FareHistoryEntry[]>(`${this.apiUrl}/fare-history`, {
+      params: { take },
     });
   }
 }
